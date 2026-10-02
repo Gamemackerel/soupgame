@@ -137,11 +137,22 @@ function draw() {
     Sim.render(simImg.data);
     simCtx.putImageData(simImg, 0, 0);
     g.drawImage(simCanvas, GX, GY);
+    // Fire glows: each burning cell throws soft light around it, so flames read as a blaze.
+    g.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < N; i++) {
+      if (Sim.mat[i] !== FIRE) continue;
+      const a = Math.min(1, Sim.life[i] / 20);
+      g.fillStyle = `rgba(255,${110 + (Sim.life[i] & 3) * 25},30,${0.16 * a})`;
+      g.fillRect(GX + (i % GW) - 2, GY + ((i / GW) | 0) - 3, 5, 6);
+    }
+    g.globalCompositeOperation = 'source-over';
     // Fond stuck to the pot bottom.
     for (let x = 0; x < GW; x++) {
       if (Sim.fond[x] > 0.05) rect(g, GX + x, GY + GH - 1, 1, 1, mix([150, 90, 50], [70, 40, 20], Sim.fond[x]));
     }
-    Art.drawPotFront(g, Math.max(0, (Sim.panT - 120) / 150));
+    const glow = Math.max(0, Math.min(1, (Sim.panT - 150) / 120));
+    if (glow > 0) { g.fillStyle = `rgba(255,80,30,${0.18 * glow})`; ellipse(g, 160, GY + GH + 10, 72, 4, g.fillStyle); }   // warm light on the grate
+    Art.drawPotFront(g, glow);
     if (Sim.lid) Art.drawLid(g, t);
     Art.drawFlames(g, Sim.dial, t, true);
     Chef.drawArms(g, input.x);
@@ -165,7 +176,13 @@ function loop() {
 Sim.reset();
 Chef.select(SHELF[0]);
 // Dev: #demo pre-cooks a pot; #judge also jumps to judging.
-if (location.hash === '#plate') {
+if (location.hash === '#fire') {
+  // Dev: a grease fire in full swing.
+  const ing = (id) => SHELF.find((s) => s.id === id);
+  for (let f = 0; f < 90; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }
+  Sim.dial = 10; for (let f = 0; f < 60 * 12; f++) Sim.step();
+  Sim.events.length = 0; Chef.select(ing('extinguisher'));
+} else if (location.hash === '#plate') {
   // Dev: a dry dish (seared beef, fish, fried egg) served on a plate.
   const ing = (id) => SHELF.find((s) => s.id === id);
   for (let f = 0; f < 24; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }

@@ -174,7 +174,7 @@ const UI = {
   },
 
   drawText(T, mx, my) {
-    T.text('SOUP POT', 160, 2, { size: 8, color: '#7a3a2a', align: 'center' });
+    T.text('SOUP POT', 160, 1, { size: 7, color: '#ffe9c0', align: 'center' });
     T.text('PANTRY', 29, 4, { size: 6, color: '#7a3a2a', align: 'center' });
     T.text('TOOLS', 291, 4, { size: 6, color: '#7a3a2a', align: 'center' });
     TOOLS.forEach((tl, n) => {

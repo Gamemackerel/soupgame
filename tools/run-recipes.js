@@ -15,7 +15,7 @@ const ROOT = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const opt = (k, d) => { const a = args.find((s) => s.startsWith('--' + k)); return a ? (a.includes('=') ? a.split('=')[1] : true) : d; };
 const target = args.find((a) => !a.startsWith('--')) || 'all';
-const SNAP = opt('snap', false), SEED = +opt('seed', 1), VERBOSE = opt('verbose', false);
+const SNAP = opt('snap', false), SEED = +opt('seed', 1), VERBOSE = opt('verbose', false), SCALE = +opt('scale', 1);
 const FPS = 60;
 
 // ---------- Load the game's simulation code into a sandbox ----------
@@ -23,12 +23,11 @@ function makeGame(seed) {
   let s = seed >>> 0;
   const rand = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const math = Object.create(Math); math.random = rand;
-  const ctx = { console, Math: math, Chef: { t: 0 } };
   const files = ['materials', 'sim', 'reactions', 'taste', 'judges'];
   const src = files.map((f) => fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8')).join('\n;\n');
-  // Expose the lexical globals we need.
-  vm.runInNewContext(src + '\n;this.G = { Sim, SHELF, Taste, JUDGES, Judging, MAT, CLS, GW, GH, N, NF, F_SALTY, BROTH, OIL, C_LIQUID, C_CHUNK, C_POWDER, C_GAS, EMPTY, DISCOVERIES };', ctx);
-  return ctx.G;
+  // Compile the game as one function in this context (a vm sandbox makes every global lookup ~10x slower).
+  const body = src + '\n;return { Sim, SHELF, Taste, JUDGES, Judging, MAT, CLS, GW, GH, N, NF, F_SALTY, BROTH, OIL, C_LIQUID, C_CHUNK, C_POWDER, C_GAS, EMPTY, DISCOVERIES };';
+  return new Function('Math', 'Chef', 'Plating', body)(math, { t: 0 }, undefined);
 }
 
 // ---------- Recipes ----------
@@ -60,6 +59,9 @@ function execStep(G, step, log) {
   const pos = mods.includes('@left') ? GW * 0.25 : mods.includes('@right') ? GW * 0.75 : GW / 2;
   const withStir = mods.includes('+stir');
   const secs = (s) => parseFloat(s);
+  // --scale multiplies every ingredient amount (pot fullness test); times and heat stay the same.
+  const amt = (s) => parseFloat(s) * (cmd === 'pour' ? SCALE : 1);
+  const count = (s) => Math.max(1, Math.round(parseInt(s, 10) * SCALE));
   let stirPhase = 0, prev = null;
   const stirFrame = () => {
     // Ladle sweeps an ellipse through the liquid.
@@ -72,20 +74,20 @@ function execStep(G, step, log) {
   switch (cmd) {
     case 'pour': {
       const ing = SHELF.find((s) => s.id === a);
-      const frames = Math.round(secs(b) * FPS);
+      const frames = Math.round(amt(b) * FPS);
       runFrames(G, frames, (f) => { Sim.pour(ing, Math.round(pos + ((f * 5) % 7) - 3), ing.rate); if (withStir) stirFrame(); });
       break;
     }
     case 'add': {
       const ing = SHELF.find((s) => s.id === a);
-      const n = parseInt(b, 10);
+      const n = count(b);
       let k = 0;
       runFrames(G, n * 8, (f) => { if (f % 8 === 0 && k < n) { Sim.pour(ing, Math.round(pos + (k % 2 ? 1 : -1) * (k * 3 % 24)), 1); k++; } });
       break;
     }
     case 'crack':   // crack N eggs on the rim and drop them in, ~1s apart
     case 'throw': { // throw N whole eggs or fish in
-      const n = parseInt(b, 10);
+      const n = count(b);
       let k = 0;
       runFrames(G, n * 60, (f) => {
         if (f % 60 === 0 && k < n) {

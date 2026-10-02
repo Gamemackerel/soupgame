@@ -32,8 +32,8 @@ Taste.gather = function (cx, cy, r) {
 };
 
 // Apply perception rules (salt suppresses bitter, fat carries heat, acid brightens…).
-Taste.perceive = function (g, burntFrac = 0) {
-  const r = g.raw, oilFrac = g.oil / Math.max(1, g.broth + g.oil);
+Taste.perceive = function (g, burntFrac = 0, plate = false) {
+  const r = g.raw, oilFrac = g.oil / Math.max(1, g.broth + g.oil) * (plate ? 0.4 : 1);   // pan oil on a plate is mostly left behind
   const n = (k, v) => Math.max(0, Math.min(1, v / NORM[k]));
   const salty = n('salty', r[F_SALTY]);
   const sour = n('sour', r[F_SOUR]);
@@ -83,7 +83,8 @@ Taste.feedback = function (p) {
   if (p.salty > 0.85) return 'Way too salty!';
   if (p.heat > 0.85) return 'SPICY!! *gasp*';
   if (p.sour > 0.7) return 'Too sharp! Sugar or fat?';
-  if (p.sweet > 0.7) return 'Tastes like dessert...';
+  if (p.sweet > 0.85 && p.sweet > p.salty + p.umami) return 'Tastes like dessert...';
+  if (p.sweet > 0.6 && p.salty < 0.3) return 'Sweet but flat. A pinch of salt?';
   if (p.salty < 0.2 && p.umami < 0.3) return 'Flat... needs salt.';
   if (p.rich > 0.75 && p.sour < 0.1) return 'Heavy. Acid would lift it.';
   if (p.umami < 0.25) return 'Needs depth. Something savory?';
@@ -133,9 +134,12 @@ Taste.analyzeBowl = function () {
   const S = Sim, g = Taste.gather(0, 0, 0);
   const counts = {}, cooked = {}, bite = new Float32Array(NF);
   let total = 0, edible = 0, weight = 0, temp = 0, solidCells = 0, crust = 0, done = 0, oilHeat = 0;
+  const surface = S.findSurface();
+  // Seasoning still in the air when you serve hasn't landed yet: not grit.
   for (let i = 0; i < N; i++) {
     const m = S.mat[i];
     if (m === EMPTY || CLS[m] === C_GAS || m === FIRE || m === FOAM) continue;
+    if (CLS[m] === C_POWDER && i < surface * GW && (m === SALT || m === SUGAR)) continue;
     total++;
     counts[m] = (counts[m] || 0) + 1;
     cooked[m] = (cooked[m] || 0) + S.cook[i];
@@ -170,7 +174,7 @@ Taste.analyzeBowl = function () {
     if (counts[m] && avgCook(m) < 30 && m !== HERB) raw += counts[m];
   }
   const burntFrac = (counts[BURNT] || 0) / Math.max(1, total);
-  const p = Taste.perceive({ raw: bite, broth: nonOil, oil: g.oil, oilHeat: oilHeat / Math.max(1, edible) }, burntFrac);
+  const p = Taste.perceive({ raw: bite, broth: nonOil, oil: g.oil, oilHeat: oilHeat / Math.max(1, edible) }, burntFrac, plate);
   if (plate) p.body = 0;
   // Undissolved powder is gritty in a soup; on a plate, salt and spice are just seasoning.
   const seasoning = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[CHILI] || 0) + (counts[CUMIN] || 0);
@@ -189,9 +193,10 @@ Taste.analyzeBowl = function () {
     // A plate can carry some oil; a soup with an oil slick is greasy much sooner.
     greasy: Math.min(1, Math.max(0, oilShare - (plate ? 0.35 : 0.12)) * (plate ? 3 : 5)),
     shell: Math.min(1, (counts[SHELL] || 0) / 10),
+    chemical: Math.min(1, (counts[EXTPOWDER] || 0) / 15 + Math.max(0, bite[F_BITTER] - 0.6)),
   };
   const flawSum = flaws.burnt * 0.3 + flaws.curdled * 0.2 + flaws.lumps * 0.15 + flaws.scrambled * 0.1 +
-                  flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2;
+                  flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2 + flaws.chemical * 0.4;
   return {
     type, empty: type === 'empty',
     debug: { edible, broth: g.broth, oil: g.oil, solids: solidCells, rawSalty: +bite[F_SALTY].toFixed(2), rawSweet: +bite[F_SWEET].toFixed(2), rawUmami: +bite[F_UMAMI].toFixed(2) },

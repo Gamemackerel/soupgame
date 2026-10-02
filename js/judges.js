@@ -19,6 +19,7 @@ const JUDGES = [
       // A plate is judged on its sear and doneness instead of its broth.
       if (plate && a.crust > 0.25 && a.flaws.burnt < 0.2) { tech += 0.4; good.push('A beautiful golden crust. Magnifique.'); }
       if (plate && a.crust < 0.05 && a.doneness > 0.5) { tech -= 0.1; bad.push('No sear at all. Where is the color?'); }
+      if (a.flaws.chemical > 0.2) bad.push('Is that... fire extinguisher? In my soup?!');
       if (a.flaws.burnt > 0.2) bad.push('I taste carbon. A cook must watch the flame.');
       if (a.flaws.curdled > 0.2) bad.push('The dairy has split. Patience, always patience.');
       if (a.flaws.lumps > 0.2) bad.push('Lumps of raw flour. Did no one teach you a roux?');

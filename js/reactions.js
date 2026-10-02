@@ -7,7 +7,7 @@ const isLiquid = (m) => CLS[m] === C_LIQUID;
 const isEmpty = (m) => m === EMPTY;
 const isFire = (m) => m === FIRE;
 
-const TOMATO_MELT = flavorVec({ sour: 5, umami: 7, red: 10, sweet: 2, body: 1.5 });
+const TOMATO_MELT = flavorVec({ sour: 5, umami: 7, red: 10, sweet: 0.8, body: 1.5 });
 const LEACH_K = 2; // how strongly chunks flavor the soup
 const BURNT_TASTE = flavorVec({ bitter: 0.6, brown: 0.8 });
 
@@ -17,6 +17,7 @@ Sim.react = function (x, y, i, m) {
     case OIL: return reactOil(this, x, y, i);
     case EGG: case YOLK: return reactEgg(this, x, y, i, m);
     case SALT: case SUGAR: return reactSeasoning(this, x, y, i, m);
+    case EXTPOWDER: return reactExtinguisher(this, x, y, i);
     case CHILI: case CUMIN: return reactSpice(this, x, y, i, m);
     case FLOUR: return reactFlour(this, x, y, i);
     case ROUX: return reactRoux(this, x, y, i);
@@ -36,12 +37,12 @@ function reactBroth(S, x, y, i) {
   if (y === GH - 1 && S.fond[x] > 0.02) return deglaze(S, x, i, o, fl, t);
   // Water touching very hot oil splatters (checked every frame: falling drops pass through fast).
   const ob = y < GH - 1 && S.mat[i + GW] === OIL ? i + GW : y > 0 && S.mat[i - GW] === OIL ? i - GW : -1;
-  if (ob >= 0 && S.temp[ob] > 120 && rnd() < 0.4) return splatter(S, x, y, i, ob);
+  if (ob >= 0 && S.temp[ob] > 140 && rnd() < 0.4 && oilDominates(S, x, y)) return splatter(S, x, y, i, ob);
   if ((S.frame + i) & 3) return false;
   const j = S.nb(x, y);
   if (j >= 0) {
     const mj = S.mat[j];
-    if (mj === OIL && S.temp[j] > 120 && rnd() < 0.8) return splatter(S, x, y, i, j);
+    if (mj === OIL && S.temp[j] > 140 && rnd() < 0.8 && oilDominates(S, x, y)) return splatter(S, x, y, i, j);
     if (mj === FIRE) {
       if (fl[o + F_ALCOHOL] > 0.25) {
         flambe(S, x, y, i);
@@ -76,6 +77,19 @@ function deglaze(S, x, i, o, fl, t) {
   if (S.flags.deglazed > 1) S.discover('deglaze');
   if (t > 90) S.emit('hiss', x, GH - 1, 30);
   return false;
+}
+
+// Spitting only happens when a little water meets a lot of hot oil. Pour lots of water into a
+// thin film of oil and the water just wins: it boils and cools the oil instead.
+function oilDominates(S, x, y) {
+  let oil = 0, water = 0;
+  for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) {
+    const xx = x + dx, yy = y + dy;
+    if (xx < 0 || xx >= GW || yy < 0 || yy >= GH) continue;
+    const m = S.mat[yy * GW + xx];
+    if (m === OIL) oil++; else if (m === BROTH) water++;
+  }
+  return oil >= 14 && oil >= water * 4;   // a real depth of oil, and only a little water
 }
 
 // Water flashing to steam under hot oil: droplets fly, oil jumps, and a burning pot flares up.
@@ -119,9 +133,12 @@ function flambe(S, x, y, i) {
 
 function reactOil(S, x, y, i) {
   const t = S.temp[i];
-  if (t > 190 && y > 0 && S.mat[i - GW] === EMPTY) {
-    if (t > 205 && rnd() < 0.02) {
-      S.setCell(i - GW, FIRE, 300);
+  // Oil past its smoke point builds up (cook counts seconds of smoking) before the vapour catches.
+  if (t > 185) { if (S.cook[i] < 255) S.cook[i]++; } else if (S.cook[i] > 0) S.cook[i]--;
+  if (t > 185 && y > 0 && S.mat[i - GW] === EMPTY) {
+    if (t > 205 && S.cook[i] > 200 && rnd() < 0.03) {
+      // Past its smoke point the oil vapour catches: a tongue of flame shoots up.
+      for (let k = 1; k <= 3 + rint(4); k++) if (y - k >= 0 && S.mat[i - k * GW] === EMPTY) S.setCell(i - k * GW, FIRE, 300);
       S.addNote('smoky', 0.01); S.addNote('burnt', 0.004);
       S.discover('greasefire'); S.emit('fire', x, y);
     } else if (rnd() < 0.01) {
@@ -159,6 +176,22 @@ function reactEgg(S, x, y, i, m) {
   return true;
 }
 
+// Extinguisher powder smothers fire and cools whatever it lands on, then dissolves (bitterly).
+function reactExtinguisher(S, x, y, i) {
+  let put = false;
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+    const xx = x + dx, yy = y + dy;
+    if (xx < 0 || xx >= GW || yy < 0 || yy >= GH) continue;
+    const j = yy * GW + xx;
+    if (S.mat[j] === FIRE) { S.setCell(j, rnd() < 0.5 ? SMOKE : EMPTY, 60); put = true; }
+    else if (S.temp[j] > 40) S.temp[j] -= (S.temp[j] - 20) * 0.08;
+  }
+  if (put) { S.discover('extinguish'); S.emit('extinguish', x, y, 60); }
+  const j = S.findNb(x, y, isLiquid);
+  if (j >= 0 && rnd() < 0.01) { S.addFlavor(j, MAT[EXTPOWDER].solu); S.setCell(i, EMPTY); return true; }
+  return false;
+}
+
 function reactSeasoning(S, x, y, i, m) {
   const j = S.findNb(x, y, isBroth);
   if (j >= 0) {
@@ -181,8 +214,8 @@ function reactSeasoning(S, x, y, i, m) {
 function reactSpice(S, x, y, i, m) {
   const t = S.temp[i];
   const inOil = S.findNb(x, y, isOil);
-  if (inOil >= 0 && t > 120 && S.cook[i] < 250) {
-    S.cook[i] = Math.min(255, S.cook[i] + 2);
+  if (inOil >= 0 && t > 100 && S.cook[i] < 250) {
+    S.cook[i] = Math.min(255, S.cook[i] + 3);
     if (S.cook[i] >= 60) { S.discover('bloom'); S.addNote('spice', 0.002); S.emit('sizzle', x, y, 60); }
   }
   if (t > MAT[m].burnAt && rnd() < 0.01) { burn(S, x, y, i); return true; }
@@ -302,13 +335,15 @@ function reactChunk(S, x, y, i, m) {
       if (m === HERB && c >= 40) { /* wilted herbs have nothing left */ }
       else {
         const browned = c >= 150 ? 2 : 1;
-        if (S.mat[j] === OIL) {
+        const intoOil = S.mat[j] === OIL;
+        if (intoOil) {
           // Fat pulls out aromatics, but barely any of the water-soluble savoriness.
           const o = j * NF;
           for (let k = 0; k < NF; k++) S.fl[o + k] += M.leach[k] * browned * LEACH_K * (k === F_AROMA ? 0.3 : 0.03);
         } else S.addFlavor(j, M.leach, browned * LEACH_K);
-        if (browned > 1) { S.fl[j * NF + F_BROWN] += 0.05; S.fl[j * NF + F_SWEET] += 0.04; }
-        S.life[i] -= 1;
+        // Browned food gives up the good stuff: sweetness, savoriness and roasty aroma.
+        if (browned > 1) { const o = j * NF; S.fl[o + F_BROWN] += 0.05; S.fl[o + F_SWEET] += 0.05; S.fl[o + F_UMAMI] += 0.02; S.fl[o + F_AROMA] += 0.04; }
+        if (!intoOil || rnd() < 0.2) S.life[i] -= 1;   // frying barely depletes it: the flavor waits for the broth
         if (M.note) S.addNote(M.note, 0.0008);
       }
     }

@@ -27,7 +27,8 @@ const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CH
       CUMIN = 8, SODA = 9, ONION = 10, GARLIC = 11, CARROT = 12, CELERY = 13, TOMATO = 14,
       MEAT = 15, HERB = 16, STEAM = 17, SMOKE = 18, FIRE = 19, FOAM = 20, ROUX = 21,
       LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26,
-      YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33;
+      YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33,
+      EXTPOWDER = 34;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -47,16 +48,16 @@ defMat(CUMIN,   { name: 'cumin',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [1
                   solu: flavorVec({ aroma: 16, bitter: 0.6, brown: 2 }) });
 defMat(SODA,    { name: 'baking soda', cls: C_POWDER, dens: 1.5, cond: 0.08, col: [226, 236, 244] });
 defMat(ONION,   { brownRate: 0.2, name: 'onion',  cls: C_CHUNK, dens: 1.06, cond: 0.1, col: [244, 236, 214], col2: [150, 82, 30], burnAt: 200,
-                  leach: flavorVec({ sweet: 0.05, aroma: 0.05 }), note: 'allium' });
+                  leach: flavorVec({ sweet: 0.022, aroma: 0.05 }), note: 'allium' });
 defMat(GARLIC,  { name: 'garlic', cls: C_CHUNK, dens: 1.08, cond: 0.1, col: [250, 246, 230], col2: [196, 150, 70], burnAt: 165,
                   leach: flavorVec({ aroma: 0.15 }), note: 'allium' });
 defMat(CARROT,  { name: 'carrot', cls: C_CHUNK, dens: 1.1, cond: 0.1, col: [244, 128, 32], col2: [176, 74, 22], burnAt: 210,
-                  leach: flavorVec({ sweet: 0.06, gold: 0.05 }), note: 'earthy' });
+                  leach: flavorVec({ sweet: 0.03, gold: 0.05 }), note: 'earthy' });
 defMat(CELERY,  { name: 'celery', cls: C_CHUNK, dens: 1.04, cond: 0.1, col: [150, 210, 90], col2: [110, 120, 50], burnAt: 210,
                   leach: flavorVec({ aroma: 0.05, salty: 0.01 }), note: 'herbal' });
 defMat(TOMATO,  { name: 'tomato', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [228, 50, 44], col2: [180, 40, 30], burnAt: 190 });
 defMat(MEAT,    { brownRate: 0.15, name: 'meat',   cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [206, 84, 96], col2: [120, 66, 38], burnAt: 240,
-                  leach: flavorVec({ umami: 0.06, rich: 0.05, brown: 0.04 }), note: 'toasty' });
+                  leach: flavorVec({ umami: 0.06, rich: 0.03, brown: 0.04, aroma: 0.01 }), note: 'toasty' });
 defMat(HERB,    { name: 'herbs',  cls: C_CHUNK, dens: 0.9, cond: 0.1, col: [70, 170, 70], col2: [90, 100, 50], burnAt: 170,
                   leach: flavorVec({ aroma: 0.25 }), note: 'herbal' });
 defMat(STEAM,   { name: 'steam',  cls: C_GAS,  dens: 0,   cond: 0.05, col: [230, 240, 250] });
@@ -79,6 +80,8 @@ defMat(FISH,    { brownRate: 0.15, name: 'fish', cls: C_CHUNK, dens: 1.05, cond:
                   leach: flavorVec({ umami: 0.07, rich: 0.05, aroma: 0.03 }), note: 'oceanic' });
 defMat(FISHFIN, { brownRate: 0.15, name: 'fish fin', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [104, 126, 160], burnAt: 200,
                   stops: [[0, [104, 126, 160]], [110, [176, 172, 168]], [190, [150, 96, 46]], [255, [30, 22, 18]]] });
+defMat(EXTPOWDER, { name: 'extinguisher powder', cls: C_POWDER, dens: 0.95, cond: 0.05, col: [246, 246, 250],
+                    solu: flavorVec({ bitter: 1.5, salty: 0.3 }) });
 defMat(FISHEYE, { name: 'fish eye', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [24, 24, 34],
                   stops: [[0, [24, 24, 34]], [110, [230, 230, 220]], [255, [60, 50, 40]]] });
 
@@ -105,6 +108,7 @@ EAT[LUMP] = flavorVec({ bitter: 0.2, body: 0.3 });
 EAT[CURD] = flavorVec({ rich: 0.4, sour: 0.1 });
 EAT[FLOUR] = flavorVec({ bitter: 0.1, body: 0.2 });
 EAT[SODA] = flavorVec({ bitter: 2 });
+EAT[EXTPOWDER] = flavorVec({ bitter: 3 });
 for (const m of [SALT, SUGAR, CHILI, CUMIN]) EAT[m] = MAT[m].solu;   // a grain is just as salty dissolved or not
 
 // Global aroma notes the pot can develop.
@@ -137,6 +141,7 @@ const SHELF = [
   { id: 'meat',    name: 'Beef',        kind: 'chunk',  mat: MEAT,  rate: 1, icon: 'meat',   c: [206, 84, 96] },
   { id: 'egg',     name: 'Egg',         kind: 'whole',  mat: EGG,   rate: 1, icon: 'egg',    c: [250, 246, 236] },
   { id: 'fish',    name: 'Whole Fish',  kind: 'whole',  mat: FISH,  rate: 1, icon: 'fish',   c: [150, 172, 196] },
+  { id: 'extinguisher', name: 'Fire Extinguisher', kind: 'spray', mat: EXTPOWDER, rate: 7, icon: 'extinguisher', c: [220, 40, 40] },
   { id: 'herbs',   name: 'Fresh Herbs', kind: 'chunk',  mat: HERB,  rate: 1, icon: 'herb',   c: [70, 170, 70] },
 ];
 
@@ -169,5 +174,6 @@ const DISCOVERIES = [
   { id: 'friedegg',   name: 'Fried Egg',      hint: 'A cracked egg in hot oil.',       desc: 'Egg set in hot fat: crisp, browned edges.' },
   { id: 'flake',      name: 'Flaky Fish',     hint: 'Fish needs only a gentle poach.', desc: 'Poached fish turns opaque and falls apart into tender flakes.' },
   { id: 'crispyskin', name: 'Crispy Skin',    hint: 'Fish on a hot, dry pan.',          desc: 'Fish skin browns and crisps when it is seared without water.' },
+  { id: 'extinguish', name: "Fire's Out!",    hint: 'Every kitchen needs a red cylinder.', desc: 'The extinguisher smothers and cools a fire. Your dish will taste of chemicals.' },
   { id: 'herbloss',   name: 'Wilted Herbs',   hint: 'When should herbs go in?',        desc: 'Fresh herb aroma cooks away fast. Add them at the end.' },
 ];

@@ -46,7 +46,7 @@ Sim.setCell = function (i, m, t) {
   this.cook[i] = 0;
   const c = CLS[m];
   this.life[i] = c === C_CHUNK ? 255 : m === STEAM ? 80 : m === SMOKE ? 50 :
-                 m === FIRE ? 25 + rint(30) : m === FOAM ? 160 + rint(90) : 0;
+                 m === FIRE ? 14 + rint(22) : m === FOAM ? 160 + rint(90) : 0;
   this.shade[i] = rint(256);
   this.body[i] = 0;
   this.bodyPart[i] = 0;
@@ -201,6 +201,13 @@ function moveLiquid(x, y, i, m) {
       if (mk === EMPTY || CLS[mk] === C_GAS) { S.swap(i, k); return; }
     }
   }
+  // A rolling boil makes the surface heave: droplets jump up and fall back (or over the rim).
+  if (m === BROTH && S.turb > 0.4 && S.temp[i] > 70 && (y === 0 || isOpen(mat[i - GW])) && rnd() < (S.turb - 0.4) * 0.05) {
+    const up = 1 + rint(3);
+    if (y - up < 0) { S.spill(i); return; }
+    const j = i - up * GW;
+    if (mat[j] === EMPTY) { S.swap(i, j); return; }
+  }
   // Convection: hot liquid rises through cooler liquid of the same kind (broth rolls, oil shimmers).
   if (y > 0) {
     const j = i - GW;
@@ -247,25 +254,93 @@ function swirlDir(x, y, cx, cy, ax, ay, dir) {
 }
 
 // Lasting whirlpool after a stir: swaps cells along ellipses around the middle of the liquid.
-Sim.swirlPass = function () {
-  const s = this.swirl;
-  if (Math.abs(s) < 0.02) { this.swirl = 0; return; }
-  this.swirl *= 0.996;   // ~3 s half-life: the pot keeps spinning after you stop
-  const top = this.surface, depth = GH - top;
-  if (depth < 4) return;
-  const cx = GW / 2, cy = top + depth / 2, ax = GW / 2, ay = depth / 2, dir = Math.sign(s);
-  const n = Math.abs(s) * GW * depth * 0.2;
-  for (let k = 0; k < n; k++) {
-    const x = rint(GW), y = top + rint(depth), i = y * GW + x, m = this.mat[i];
-    if (m === EMPTY || CLS[m] === C_GAS || this.body[i]) continue;
-    const [vx, vy] = swirlDir(x, y, cx, cy, ax, ay, dir), step = 1 + rint(4);
-    const tx = x + vx * step + rint(3) - 1, ty = y + vy * step;
-    if (tx < 0 || tx >= GW || ty < top || ty >= GH) continue;
-    const j = ty * GW + tx, mj = this.mat[j];
-    if (mj === EMPTY || CLS[mj] === C_GAS || this.body[j]) continue;
-    this.swap(i, j);
-    this.stirT[i] = this.stirT[j] = 20;
+// The flows in the pot right now: the stirred whirlpool, plus rolling convection cells when it boils.
+// Each is an ellipse that turns one way (s > 0) or the other.
+Sim.flows = function () {
+  const top = this.surface, depth = GH - top, out = [];
+  if (depth < 4) return out;
+  if (Math.abs(this.swirl) > 0.02) out.push({ cx: GW / 2, cy: top + depth / 2, ax: GW / 2, ay: depth / 2, s: this.swirl });
+  // A rolling boil breaks into side-by-side rolls that wander and pulse.
+  if (this.turb > 0.3) {
+    const n = depth > 30 ? 3 : 2, w = GW / n, power = Math.min(1, (this.turb - 0.3) / 0.6);
+    // The pattern slides across the pot and every so often the rolls reorganize and reverse,
+    // so nothing stays trapped in one spot.
+    const drift = Math.sin(this.frame * 0.005) * w * 0.5, flip = Math.sin(this.frame * 0.0035) >= 0 ? 1 : -1;
+    for (let k = 0; k < n; k++) {
+      const f = this.frame * 0.012 + k * 2.1;
+      out.push({ cx: w * (k + 0.5) + drift + Math.sin(f) * w * 0.25, cy: top + depth * (0.5 + Math.sin(f * 1.3) * 0.1),
+                 ax: w * 0.6, ay: depth * 0.5, s: flip * (k % 2 ? 1 : -1) * power * (0.75 + 0.25 * Math.sin(f * 2.7)) });
+    }
   }
+  return out;
+};
+
+Sim.swirlPass = function () {
+  if (Math.abs(this.swirl) < 0.02) this.swirl = 0;
+  else this.swirl *= 0.996;   // ~3 s half-life: the pot keeps spinning after you stop
+  const top = this.surface;
+  this.flowList = this.flows();
+  for (const v of this.flowList) {
+    const dir = Math.sign(v.s), n = Math.abs(v.s) * v.ax * v.ay * 4 * 0.2;
+    for (let k = 0; k < n; k++) {
+      const x = Math.round(v.cx - v.ax + rnd() * v.ax * 2), y = Math.round(v.cy - v.ay + rnd() * v.ay * 2);
+      if (x < 0 || x >= GW || y < top || y >= GH) continue;
+      const i = y * GW + x, m = this.mat[i];
+      if (m === EMPTY || CLS[m] === C_GAS || this.body[i]) continue;
+      const [vx, vy] = swirlDir(x, y, v.cx, v.cy, v.ax, v.ay, dir), step = 1 + rint(4);
+      const tx = x + vx * step + rint(3) - 1, ty = y + vy * step;
+      if (tx < 0 || tx >= GW || ty < top || ty >= GH) continue;
+      const j = ty * GW + tx, mj = this.mat[j];
+      if (mj === EMPTY || CLS[mj] === C_GAS || this.body[j]) continue;
+      this.swap(i, j);
+      this.stirT[i] = this.stirT[j] = 20;
+    }
+  }
+};
+
+// ---------------- Overflow ----------------
+
+// Rough display color of a cell (for things that leave the pot as particles).
+Sim.cellRGB = function (i) {
+  const m = this.mat[i], M = MAT[m];
+  if (m === BROTH) {
+    const o = i * NF, c = [128, 184, 226];
+    lerpC(c, this.fl[o + F_RED] * 0.35, 196, 52, 36);
+    lerpC(c, this.fl[o + F_BROWN] * 0.3, 128, 70, 30);
+    lerpC(c, this.fl[o + F_WHITE] * 0.4, 246, 240, 226);
+    return c;
+  }
+  return M.col.slice();
+};
+
+// A cell of liquid goes over the rim and runs down the outside of the pot.
+Sim.spill = function (i) {
+  const x = i % GW, left = x < GW / 2;
+  this.particle({ x: left ? GX - 5 : GX + GW + 4, y: GY - 2, vx: left ? -0.3 : 0.3, vy: 0,
+                  life: 200, max: 200, c: this.cellRGB(i), kind: 'spill' });
+  this.setCell(i, EMPTY);
+  this.spilled = (this.spilled || 0) + 1;
+  this.emit('overflow', x, 0, 60);
+};
+
+// A brim-full pot sloshes over when it boils or swirls.
+Sim.overflowPass = function () {
+  const slosh = 0.01 + this.turb * 0.12 + Math.abs(this.swirl) * 0.1;
+  for (let x = 0; x < GW; x++) {
+    const m = this.mat[x];
+    if (CLS[m] === C_LIQUID && rnd() < slosh) this.spill(x);
+  }
+};
+
+// A piece flung up out of the pot: it leaves as a little shower of bits that arc over the rim.
+Sim.ejectBody = function (cells, v) {
+  for (const i of cells) {
+    const x = i % GW, y = (i / GW) | 0;
+    if (rnd() < 0.6) this.particle({ x: GX + x, y: GY + y, vx: v.vx * 0.5 + (x < GW / 2 ? -1 : 1) * (0.8 + rnd()), vy: Math.min(-1.5, v.vy * 0.6),
+                                     life: 120, max: 120, c: this.cellRGB(i), kind: 'drop' });
+    this.setCell(i, EMPTY);
+  }
+  this.emit('overflow', 0, 0, 30);
 };
 
 // ---------------- Rigid chunk pieces ----------------
@@ -344,11 +419,14 @@ Sim.moveBodies = function () {
       if (swimming) { v.vx = p.x * sp * 0.9; v.vy = p.y * sp * 0.9; }
       else { v.vx = p.x * sp * 1.3 + (rnd() - 0.5); v.vy = Math.min(p.y * sp, 0) - 1.5 - rnd() * 1.5; }
     }
-    // Whirlpool accelerates submerged pieces along the vortex.
-    if (swimming && sw > 0.03) {
-      const [tx, ty] = swirlDir(cx, cy, pcx, pcy, GW / 2, depth / 2, Math.sign(this.swirl));
-      v.vx += tx * sw * 0.22 + (rnd() - 0.5) * sw * 0.3;
-      v.vy += ty * sw * 0.22 + (rnd() - 0.5) * sw * 0.3;
+    // The whirlpool and boiling rolls push submerged pieces along their currents.
+    if (swimming) for (const f of this.flowList || []) {
+      const d2 = ((cx - f.cx) / f.ax) ** 2 + ((cy - f.cy) / f.ay) ** 2;
+      if (d2 > 1.3) continue;
+      const a = Math.abs(f.s);
+      const [tx, ty] = swirlDir(cx, cy, f.cx, f.cy, f.ax, f.ay, Math.sign(f.s));
+      v.vx += tx * a * 0.22 + (rnd() - 0.5) * a * 0.3;
+      v.vy += ty * a * 0.22 + (rnd() - 0.5) * a * 0.3;
     }
     // Drag and buoyancy grow as the piece goes under, so a splash-down slows it right away.
     const immersed = touching / n;
@@ -361,6 +439,7 @@ Sim.moveBodies = function () {
     for (let k = 0; k < 6 && (Math.abs(v.ax) >= 1 || Math.abs(v.ay) >= 1); k++) {
       const dx = Math.abs(v.ax) >= 1 ? Math.sign(v.ax) : 0, dy = Math.abs(v.ay) >= 1 ? Math.sign(v.ay) : 0;
       if (tryBody(this, cells, b, dx, dy, true)) { v.ax -= dx; v.ay -= dy; moved = true; continue; }
+      if (dy < 0 && v.vy < -1.2 && cells.some((i) => i < GW)) { this.ejectBody(cells, v); cracked = true; break; }   // flung out of the pot
       if (dx && tryBody(this, cells, b, dx, 0, true)) { v.ax -= dx; moved = true; }
       else if (dx) { v.vx *= -0.45; v.ax = 0; }                       // bounce off a wall or piece
       if (dy && tryBody(this, cells, b, 0, dy, true)) { v.ay -= dy; moved = true; }
@@ -492,7 +571,7 @@ Sim.spinBody = function (b, cells, v, swimming, moved, cx, cy, sw) {
   cx /= cells.length; cy /= cells.length;
   let w = v.w || 0;
   if (swimming) {
-    w += Math.sign(this.swirl) * sw * 0.0025 + (rnd() - 0.5) * this.turb * 0.02;   // whirlpool + boil churn
+    w += Math.sign(this.swirl) * sw * 0.0025 + (rnd() - 0.5) * this.turb * 0.04;   // whirlpool + boil churn
     w *= 0.92;
   } else {
     w *= 0.99;
@@ -679,7 +758,16 @@ function moveGas(x, y, i, m) {
     // Bubble reaching the surface: mostly re-condenses, sometimes escapes (reduction).
     if (m === STEAM && y < GH - 1 && CLS[mat[i + GW]] === C_LIQUID) {
       S.bubblePops++;
-      if (rnd() > 0.02) { S.setCell(i, BROTH, 99); return; }
+      if (rnd() > 0.014) {
+        S.setCell(i, BROTH, 99);
+        // Bursting bubbles fling droplets up off the surface, and over the rim of a full pot.
+        if (rnd() < S.turb * 0.4) {
+          const up = 1 + rint(4);
+          if (y - up < 0) S.spill(i);
+          else if (mat[i - up * GW] === EMPTY) S.swap(i, i - up * GW);
+        }
+        return;
+      }
     }
     if (!S.lid || m !== STEAM) { if (--S.life[i] === 0) { S.setCell(i, EMPTY); return; } }
   }
@@ -703,10 +791,11 @@ function moveFire(x, y, i) {
   if (y > 0) S.temp[i - GW] += 6;
   if (y < GH - 1) S.temp[i + GW] += 6;
   if (y === 0) { leaveTop(x, i, FIRE); return; }
+  // Flames lick upward in a tight mass rather than drifting off as sparks.
   const j = i - GW;
-  if (mat[j] === EMPTY && rnd() < 0.6) { S.swap(i, j); return; }
+  if (mat[j] === EMPTY && rnd() < 0.35) { S.swap(i, j); return; }
   const dx = rnd() < 0.5 ? -1 : 1, nx = x + dx;
-  if (nx >= 0 && nx < GW && mat[i + dx] === EMPTY && rnd() < 0.4) S.swap(i, i + dx);
+  if (nx >= 0 && nx < GW && mat[i + dx] === EMPTY && rnd() < 0.15) S.swap(i, i + dx);
 }
 
 function moveFoam(x, y, i) {
@@ -736,8 +825,10 @@ function moveFoam(x, y, i) {
 
 Sim.heatPass = function () {
   const { mat, temp, cook } = this;
+  // The pot is a lump of metal: the flame heats it fairly quickly, but with the burner off
+  // it holds its heat and cools off slowly.
   const target = 20 + this.dial * 25;
-  this.panT += (target - this.panT) * 0.02;
+  this.panT += (target - this.panT) * (target > this.panT ? 0.012 : 0.006);
   // Burner heats the pot bottom.
   const base = (GH - 1) * GW;
   for (let x = 0; x < GW; x++) {
@@ -857,6 +948,7 @@ Sim.step = function () {
       }
     }
   }
+  this.overflowPass();
   if (this.frame % 2 === 0) this.diffuse();
   if (this.frame % 60 === 0) this.checkCombos();
   if (this.bubbles > 4 && this.dial >= 6) this.discover('boil');
@@ -879,6 +971,7 @@ Sim.updateParticles = function () {
     } else {
       p.x += p.vx + Math.sin((this.frame + n * 13) * 0.08) * 0.15; p.y += p.vy;
     }
+    if (p.kind === 'drop' && p.y > 214) { p.life = 0; if (rnd() < 0.3) this.emit('hiss', p.x, p.y, 20); }
     if (p.life <= 0 || p.y > H) ps.splice(n, 1);
   }
 };
@@ -896,10 +989,11 @@ Sim.pour = function (ing, x, amount) {
       if (this.mat[i] === EMPTY || CLS[this.mat[i]] === C_GAS) { this.setCell(i, ing.mat); this.body[i] = this.nextBody; placed++; }
     }
   } else {
-    const spread = ing.kind === 'powder' ? 3 : 1 + amount / 4;   // a heavy pour is a wider stream
+    const spread = ing.kind === 'powder' ? 3 : ing.kind === 'spray' ? 9 : 1 + amount / 4;   // a heavy pour is a wider stream
     for (let n = 0; n < amount; n++) {
       const px = Math.max(0, Math.min(GW - 1, Math.round(x + (rnd() * 2 - 1) * spread)));
       const py = rint(3), i = py * GW + px;
+      if (py === 0 && CLS[this.mat[i]] === C_LIQUID) this.spill(i);   // brim-full: it goes over the side
       if (this.mat[i] !== EMPTY && CLS[this.mat[i]] !== C_GAS) continue;
       this.setCell(i, ing.mat, 20);
       if (ing.flavor) this.addFlavor(i, ing.flavor);

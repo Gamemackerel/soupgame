@@ -124,6 +124,11 @@ const ICON_DRAW = {
     for (let k = 0; k < 4; k++) rect(g, 12 + k, 8 - k, 1, k * 2 + 1, [104, 126, 160]);
     rect(g, 5, 3, 4, 2, [104, 126, 160]); rect(g, 3, 7, 2, 2, [24, 24, 34]); rect(g, 3, 7, 1, 1, [255, 255, 255]);
   },
+  extinguisher(g) {
+    rect(g, 5, 4, 7, 11, [220, 40, 40]); rect(g, 5, 4, 2, 11, [250, 110, 100]); rect(g, 10, 4, 2, 11, [170, 20, 30]);
+    rect(g, 6, 2, 5, 2, [60, 60, 70]); rect(g, 10, 1, 4, 2, [40, 40, 50]); rect(g, 13, 2, 1, 5, [40, 40, 50]);
+    rect(g, 6, 8, 5, 3, [250, 250, 250]);
+  },
   herb(g) {
     rect(g, 7, 6, 1, 9, [90, 130, 60]);
     ball(g, 5, 6, 3, [70, 170, 70], false); ball(g, 10, 5, 3, [60, 160, 60], false); ball(g, 8, 3, 2, [90, 190, 80], false);
@@ -173,33 +178,42 @@ Art.buildBackground = function () {
     rect(g, x, y, 11, 11, [252, 232, 208]); rect(g, x, y, 11, 1, [255, 244, 228]);
   }
   for (let y = 0; y < 150; y += 12) rect(g, 0, y + 11, W, 1, [226, 196, 170]);
+  // We're looking slightly up: a range hood looms overhead, seen from underneath.
+  for (let y = 0; y < 13; y++) {
+    const inset = 70 + y * 1.5;
+    rect(g, inset, y, W - inset * 2, 1, mix([96, 100, 116], [150, 156, 172], y / 13));
+  }
+  rect(g, 92, 12, 136, 2, [70, 72, 86]);
+  rect(g, 110, 9, 22, 2, [255, 236, 170]); rect(g, 188, 9, 22, 2, [255, 236, 170]);   // hood lights
   // Window with sky, upper right.
-  rect(g, 196, 12, 54, 40, [120, 80, 60]); rect(g, 199, 15, 48, 34, [150, 210, 245]);
-  ellipse(g, 214, 30, 8, 3, [255, 255, 255]); ellipse(g, 236, 22, 6, 2, [255, 255, 255]);
-  rect(g, 222, 15, 2, 34, [120, 80, 60]); rect(g, 199, 31, 48, 2, [120, 80, 60]);
-  rect(g, 194, 50, 58, 4, [150, 100, 70]);
+  rect(g, 196, 8, 54, 40, [120, 80, 60]); rect(g, 199, 11, 48, 34, [150, 210, 245]);
+  ellipse(g, 214, 26, 8, 3, [255, 255, 255]); ellipse(g, 236, 18, 6, 2, [255, 255, 255]);
+  rect(g, 222, 11, 2, 34, [120, 80, 60]); rect(g, 199, 27, 48, 2, [120, 80, 60]);
+  rect(g, 194, 44, 58, 3, [150, 100, 70]); rect(g, 194, 47, 58, 2, [110, 70, 50]);   // sill, underside showing
   // Hanging utensils rail, upper left.
-  rect(g, 66, 18, 100, 3, [150, 156, 170]); rect(g, 66, 18, 100, 1, [210, 214, 226]);
-  const hang = (x, h, head) => { rect(g, x, 21, 1, h, [120, 124, 140]); head(x, 21 + h); };
+  rect(g, 66, 16, 100, 3, [150, 156, 170]); rect(g, 66, 18, 100, 1, [110, 116, 130]);
+  const hang = (x, h, head) => { rect(g, x, 19, 1, h, [120, 124, 140]); head(x, 19 + h); };
   hang(76, 14, (x, y) => ellipse(g, x, y + 4, 5, 5, [80, 84, 96]));
   hang(92, 18, (x, y) => ellipse(g, x, y + 2, 3, 2, [180, 186, 200]));
   hang(104, 12, (x, y) => { for (let k = -2; k <= 2; k += 2) rect(g, x + k, y, 1, 6, [180, 186, 200]); });
   hang(150, 16, (x, y) => ellipse(g, x, y + 3, 4, 4, [200, 120, 70]));
   // Shadowy back counter line.
   rect(g, 0, 140, W, 10, [200, 170, 150]);
-  // Counter/stovetop in perspective (trapezoid).
-  for (let y = 150; y < 214; y++) {
-    const t = (y - 150) / 64, inset = 30 * (1 - t);
+  // Counter/stovetop: from a low angle its top is a thin sliver, so mostly we see the back wall.
+  rect(g, 0, 150, W, 50, [214, 186, 164]);
+  for (let x = 0; x < W; x += 12) rect(g, x, 150, 1, 50, [200, 172, 150]);
+  for (let y = 200; y < 214; y++) {
+    const t = (y - 200) / 14, inset = 10 * (1 - t);
     rect(g, inset, y, W - inset * 2, 1, mix([150, 156, 172], [110, 116, 132], t));
   }
-  rect(g, 30, 150, W - 60, 1, [190, 196, 210]);
+  rect(g, 10, 200, W - 20, 1, [190, 196, 210]);
   // Stove front panel.
   rect(g, 0, 214, W, 26, [70, 74, 92]); rect(g, 0, 214, W, 2, [150, 156, 176]);
   for (let x = 6; x < W; x += 40) rect(g, x, 232, 26, 2, [56, 60, 76]);
-  // Burner grate.
-  ellipse(g, 160, 208, 74, 9, [50, 50, 60]);
-  ellipse(g, 160, 208, 66, 7, [36, 36, 44]);
-  ellipse(g, 160, 208, 44, 5, [60, 60, 72]);
+  // Burner grate, nearly edge-on from this angle.
+  ellipse(g, 160, 209, 74, 4, [50, 50, 60]);
+  ellipse(g, 160, 209, 66, 3, [36, 36, 44]);
+  rect(g, 90, 206, 140, 2, [62, 62, 74]);
   return cv;
 };
 
@@ -210,7 +224,6 @@ const STEEL = [176, 184, 202];
 
 // Interior back wall drawn behind the simulation.
 Art.drawPotBack = function (g) {
-  ellipse(g, 160, POT_TOP + 1, (POT_R - POT_L) / 2, 6, rgb(STEEL, 0.6), 'top');
   for (let x = GX; x < GX + GW; x++) {
     const t = (x - GX) / GW;
     const f = 0.45 + 0.25 * Math.sin(t * Math.PI) - (t > 0.75 ? 0.1 : 0);
@@ -221,12 +234,23 @@ Art.drawPotBack = function (g) {
 };
 
 // Front walls, rim, and handles drawn over the sim edges.
+// Metal color at a temperature: steel → dull red → cherry → orange as it heats past ~150°C.
+function hotMetal(c, glow) {
+  if (glow <= 0) return c;
+  if (glow < 0.5) return mix(c, [150, 40, 30], glow * 2 * 0.8);
+  return mix([150, 40, 30], [255, 110, 40], (glow - 0.5) * 2);
+}
+
 Art.drawPotFront = function (g, heatGlow) {
   const band = (x0, w) => {
     for (let x = x0; x < x0 + w; x++) {
       const t = (x - POT_L) / (POT_R - POT_L);
       const f = 0.7 + 0.5 * Math.max(0, 1 - Math.abs(t - 0.28) * 4) - (t > 0.8 ? 0.15 : 0);
-      rect(g, x, POT_TOP, 1, POT_BOT - POT_TOP, rgb(STEEL, f));
+      // The walls glow from the bottom up, fading with height.
+      for (let y = POT_TOP; y < POT_BOT; y += 2) {
+        const up = (POT_BOT - y) / (POT_BOT - POT_TOP), glow = heatGlow * Math.max(0, 1 - up * 2.2);
+        rect(g, x, y, 1, 2, rgb(hotMetal(STEEL, glow), glow > 0.5 ? 1 : f));
+      }
     }
   };
   band(POT_L, 6); band(POT_R - 6, 6);
@@ -234,14 +258,16 @@ Art.drawPotFront = function (g, heatGlow) {
   for (let x = POT_L; x < POT_R; x++) {
     const t = (x - POT_L) / (POT_R - POT_L);
     const f = 0.7 + 0.4 * Math.max(0, 1 - Math.abs(t - 0.28) * 3);
-    const dip = Math.round(3 * Math.sin(t * Math.PI));
-    rect(g, x, GY + GH, 1, 5 + dip, rgb(mix(STEEL, [255, 120, 60], heatGlow * 0.35), f));
+    // From below we see the pot's curved underside, in shadow except where the flames light it.
+    const dip = Math.round(7 * Math.sqrt(Math.max(0, Math.sin(t * Math.PI))));
+    const flick = heatGlow > 0.3 ? (Math.sin(x * 0.7 + Date.now() * 0.004) * 0.05) : 0;
+    rect(g, x, GY + GH, 1, 4, rgb(hotMetal(STEEL, Math.min(1, heatGlow + flick)), heatGlow > 0.5 ? 1 : f));
+    rect(g, x, GY + GH + 4, 1, 1 + dip, rgb(hotMetal(STEEL, Math.min(1, heatGlow * 1.1 + flick)), heatGlow > 0.5 ? 0.9 : f * 0.62));
   }
-  rect(g, POT_L, GY + GH + 5, 1, 1, rgb(STEEL, 0.5));
-  // Rim: front lip (bottom half of the ellipse) with a bright edge.
-  ellipse(g, 160, POT_TOP + 1, (POT_R - POT_L) / 2 + 1, 6, rgb(STEEL, 1.15), 'bottom');
-  ellipse(g, 160, POT_TOP, (POT_R - POT_L) / 2 - 2, 4, rgb(STEEL, 0.55), 'bottom');
-  rect(g, GX, POT_TOP + 4, GW, 2, rgb(STEEL, 0.5));
+  // Rim seen from just below: a rolled lip with its shadowed underside.
+  ellipse(g, 160, POT_TOP + 2, (POT_R - POT_L) / 2 + 1, 3, rgb(STEEL, 0.6), 'bottom');
+  ellipse(g, 160, POT_TOP + 1, (POT_R - POT_L) / 2 + 1, 2, rgb(STEEL, 1.2), 'bottom');
+  rect(g, POT_L - 1, POT_TOP, POT_R - POT_L + 2, 2, rgb(STEEL, 1.25));
   // Handles.
   for (const [hx, dir] of [[POT_L - 9, 1], [POT_R + 1, -1]]) {
     rect(g, hx, GY + 4, 8, 4, [40, 36, 44]); rect(g, hx, GY + 4, 8, 1, [90, 86, 100]);
@@ -251,9 +277,9 @@ Art.drawPotFront = function (g, heatGlow) {
 
 Art.drawLid = function (g, t) {
   const cy = POT_TOP - 2 + Math.round(Math.sin(t * 0.3) * 0.6);
-  ellipse(g, 160, cy, 84, 8, rgb(STEEL, 0.55));
-  ellipse(g, 160, cy - 1, 82, 7, rgb(STEEL, 0.95));
-  ellipse(g, 140, cy - 3, 40, 3, rgb(STEEL, 1.2));
+  ellipse(g, 160, cy, 84, 5, rgb(STEEL, 0.55));
+  ellipse(g, 160, cy - 1, 82, 4, rgb(STEEL, 0.95));
+  ellipse(g, 140, cy - 2, 40, 2, rgb(STEEL, 1.2));
   rect(g, 152, cy - 11, 16, 6, [50, 44, 50]); rect(g, 152, cy - 11, 16, 2, [100, 94, 104]);
 };
 
@@ -266,7 +292,7 @@ Art.drawFlames = function (g, dial, t, front) {
     const a = (k / n) * Math.PI * 2;
     const sy = Math.sin(a);
     if (front ? sy < 0 : sy >= 0) continue;
-    const bx = 160 + Math.cos(a) * 60, by = 208 + sy * 6;
+    const bx = 160 + Math.cos(a) * 60, by = 208 + sy * 2.5;
     const wob = 0.7 + 0.3 * Math.sin(t * 0.35 + k * 1.7) + 0.15 * Math.sin(t * 0.9 + k);
     const h = Math.max(2, dial * 1.9 * wob);
     for (let y = 0; y < h; y++) {

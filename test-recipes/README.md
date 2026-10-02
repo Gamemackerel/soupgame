@@ -117,4 +117,6 @@ node tools/run-recipes.js all --seed=2                        # everything, diff
 
 **Iteration loop:** run one recipe with `--verbose --snap` → look at the failing checks and snapshots → change the sim → re-run with seeds 1–3.
 
-Recipes that pass so far: `s06` `s08` `s66` `s67` `s68` `f05` `f07` `f08` `f16` `x02` `x03` `x04` `x05` `x11`.
+Recipes that pass (seed 1): `s01` `s02` `s03` `s06` `s08` `s10` `s12` `s21` `s26` `s29` `s36` `s55` `s66` `s67` `s68` `f07` `f08` `f16` `x02` `x03` `x04` `x05` `x10` `x11`.
+
+`--scale=0.5` / `--scale=2` replays a recipe with every ingredient amount halved or doubled, to check that tuning holds regardless of how full the pot is.
