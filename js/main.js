@@ -39,6 +39,17 @@ screen.addEventListener('pointerdown', (e) => {
   }
   input.down = true;
   input.consumed = UI.click(p.x, p.y);
+  // Whole eggs and fish are one click each: crack on the rim, drop, or throw.
+  const held = Chef.held;
+  if (!input.consumed && UI.tool === 'pour' && held && held.kind === 'whole' && overPotArea(p.x, p.y) && !Sim.lid) {
+    const gx = Math.max(0, Math.min(GW - 1, Math.round(p.x - GX)));
+    if (held.id === 'egg') {
+      if (Chef.cracked) { Sim.dropCrackedEgg(gx); Sim.discover('crack'); Chef.cracked = false; Chef.swapT = 12; }
+      else if (Chef.onRim(p.y)) Chef.crack();
+      else { Sim.throwEgg(gx); Chef.throwIt(); }
+    } else { Sim.throwFish(gx); Chef.throwIt(); }
+    input.consumed = true;
+  }
   if (!input.consumed && UI.tool === 'taste' && inGrid(p.x, p.y)) {
     const res = Taste.sip((p.x - GX) | 0, (p.y - GY) | 0);
     UI.showTaste(res);
@@ -70,8 +81,8 @@ function update() {
   if (Judging.active) { Judging.update(); Chef.update(160, false, false); return; }
   UI.hover = UI.pick(input.x, input.y);
   const active = input.down && !input.consumed && !UI.dragDial && !UI.journal;
-  const pouring = active && UI.tool === 'pour' && overPotArea(input.x, input.y) && !!Chef.held && !Sim.lid;
-  Chef.update(input.x, overPotArea(input.x, input.y) && UI.tool === 'pour', pouring);
+  const pouring = active && UI.tool === 'pour' && overPotArea(input.x, input.y) && !!Chef.held && Chef.held.kind !== 'whole' && !Sim.lid;
+  Chef.update(input.x, overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid, pouring);
 
   if (!paused) {
     if (Chef.pouring) {
@@ -154,7 +165,7 @@ function loop() {
 Sim.reset();
 Chef.select(SHELF[0]);
 // Dev: #demo pre-cooks a pot; #judge also jumps to judging.
-if (/^#(demo|judge|speak|verdict)/.test(location.hash)) {
+if (/^#(demo|judge|speak|verdict|eggs)/.test(location.hash)) {
   const ing = (id) => SHELF.find((s) => s.id === id);
   for (let f = 0; f < 60; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }
   for (let f = 0; f < 160; f++) { if (f % 8 === 0) Sim.pour(ing('onion'), 30 + (f * 3) % 90, 1); if (f % 8 === 4) Sim.pour(ing('carrot'), 50 + (f * 5) % 70, 1); Sim.step(); }
@@ -164,7 +175,11 @@ if (/^#(demo|judge|speak|verdict)/.test(location.hash)) {
   Sim.dial = 7; for (let f = 0; f < 600; f++) Sim.step();
   Sim.events.length = 0;
   Chef.select(ing('chili'));
-  if (location.hash !== '#demo') Judging.start();
+  if (location.hash === '#eggs') {
+    Sim.throwFish(40); Sim.dropCrackedEgg(100); for (let f = 0; f < 200; f++) Sim.step();
+    Sim.throwEgg(120); for (let f = 0; f < 600; f++) Sim.step();
+    Chef.select(ing('egg')); Chef.swapT = 0; Chef.cracked = true; input.y = POT_TOP - 4;
+  } else if (location.hash !== '#demo') Judging.start();
   if (location.hash === '#speak') { Judging.k = 1; Judging.next('speak'); Judging.typed = 999; }
   if (location.hash === '#verdict') { Judging.k = 3; Judging.next('done'); }
 }

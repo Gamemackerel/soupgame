@@ -9,8 +9,9 @@ const Sim = {
   mat: new Uint8Array(N), temp: new Float32Array(N), cook: new Uint8Array(N),
   life: new Uint8Array(N), shade: new Uint8Array(N), stamp: new Uint8Array(N),
   stirT: new Uint8Array(N), fl: new Float32Array(N * NF),
-  body: new Uint16Array(N), nextBody: 1, bodyEnv: new Uint8Array(65536), // env: 0 dry, 1 in oil, 2 in broth
-    // rigid chunk pieces: cells sharing an id move together
+  body: new Uint16Array(N), nextBody: 1, bodyVel: new Map(), bodyKind: new Uint8Array(65536),
+  bodyEnv: new Uint8Array(65536),                      // 0 dry, 1 in oil, 2 in broth
+  bodyPart: new Uint8Array(N), bodyShape: new Map(),   // rotation: which template cell each grid cell is
   fond: new Float32Array(GW),
   panT: 20, dial: 0, lid: false, frame: 0, tag: 1,
   notes: {}, discovered: new Set(), events: [], particles: [],
@@ -21,9 +22,20 @@ const Sim = {
 function rnd() { return Math.random(); }
 function rint(n) { return (Math.random() * n) | 0; }
 
+// Piece kinds: how a piece holds together.
+const BK_FIRM = 0, BK_SOFT = 1, BK_SHELL = 2, BK_FISH = 3;
+
+Sim.newBody = function (kind = BK_FIRM) {
+  this.nextBody = this.nextBody >= 65000 ? 1 : this.nextBody + 1;
+  this.bodyKind[this.nextBody] = kind;
+  this.bodyVel.delete(this.nextBody);
+  this.bodyShape.delete(this.nextBody);
+  return this.nextBody;
+};
+
 Sim.reset = function () {
   this.mat.fill(0); this.temp.fill(20); this.cook.fill(0); this.life.fill(0);
-  this.stirT.fill(0); this.fl.fill(0); this.fond.fill(0); this.body.fill(0);
+  this.stirT.fill(0); this.fl.fill(0); this.fond.fill(0); this.body.fill(0); this.bodyVel.clear(); this.bodyShape.clear(); this.bodyPart.fill(0);
   this.panT = 20; this.notes = {}; this.particles = []; this.flags = {};
   this.turb = 0; this.swirl = 0; this.surface = GH;
 };
@@ -37,6 +49,7 @@ Sim.setCell = function (i, m, t) {
                  m === FIRE ? 25 + rint(30) : m === FOAM ? 160 + rint(90) : 0;
   this.shade[i] = rint(256);
   this.body[i] = 0;
+  this.bodyPart[i] = 0;
   this.fl.fill(0, i * NF, i * NF + NF);
   this.stamp[i] = this.tag;
 };
@@ -50,6 +63,7 @@ Sim.swap = function (i, j) {
   t = life[i]; life[i] = life[j]; life[j] = t;
   t = shade[i]; shade[i] = shade[j]; shade[j] = t;
   t = this.body[i]; this.body[i] = this.body[j]; this.body[j] = t;
+  t = this.bodyPart[i]; this.bodyPart[i] = this.bodyPart[j]; this.bodyPart[j] = t;
   const a = i * NF, b = j * NF;
   for (let k = 0; k < NF; k++) { t = fl[a + k]; fl[a + k] = fl[b + k]; fl[b + k] = t; }
   this.stamp[i] = this.stamp[j] = this.tag;
@@ -187,11 +201,13 @@ function moveLiquid(x, y, i, m) {
       if (mk === EMPTY || CLS[mk] === C_GAS) { S.swap(i, k); return; }
     }
   }
-  // Convection: hot broth rises through cooler broth.
-  if (m === BROTH && y > 0) {
+  // Convection: hot liquid rises through cooler liquid of the same kind (broth rolls, oil shimmers).
+  if (y > 0) {
     const j = i - GW;
-    if (S.mat[j] === BROTH && S.temp[i] > S.temp[j] + 2 && rnd() < 0.2) { S.swap(i, j); return; }
+    if (S.mat[j] === m && S.temp[i] > S.temp[j] + 2 && rnd() < 0.2) { S.swap(i, j); return; }
   }
+  // Deep inside the liquid there's nowhere to flow sideways: skip the spreading work.
+  if (y > 0 && CLS[mat[i - GW]] === C_LIQUID && DENS[mat[i - GW]] >= d && m === BROTH) return;
   // A lighter liquid on the surface (oil) spreads out over the broth into a thin film.
   if (DENS[m] < 1 && y < GH - 1 && CLS[mat[i + GW]] === C_LIQUID && rnd() < 0.5) {
     const dx = rnd() < 0.5 ? -1 : 1, nx = x + dx;
@@ -204,8 +220,10 @@ function moveLiquid(x, y, i, m) {
   const flow = m === BROTH ? 1 - Math.min(0.85, S.fl[i * NF + F_BODY] * 0.3) : m === OIL ? 0.9 : 0.5;
   if (rnd() < flow) {
     const dir = rnd() < 0.5 ? -1 : 1;
+    const surfaceCell = y === 0 || isOpen(mat[i - GW]);
+    const reach = Math.max(2, Math.round((m === BROTH ? 8 : m === OIL ? 6 : 3) * flow * (surfaceCell ? 2.5 : 1)));   // runny liquids level fast
     let t = -1;
-    for (let k = 1; k <= 3; k++) {
+    for (let k = 1; k <= reach; k++) {
       const nx = x + dir * k;
       if (nx < 0 || nx >= GW) break;
       const jj = i + dir * k, mm = mat[jj];
@@ -232,15 +250,15 @@ function swirlDir(x, y, cx, cy, ax, ay, dir) {
 Sim.swirlPass = function () {
   const s = this.swirl;
   if (Math.abs(s) < 0.02) { this.swirl = 0; return; }
-  this.swirl *= 0.99;
+  this.swirl *= 0.996;   // ~3 s half-life: the pot keeps spinning after you stop
   const top = this.surface, depth = GH - top;
   if (depth < 4) return;
   const cx = GW / 2, cy = top + depth / 2, ax = GW / 2, ay = depth / 2, dir = Math.sign(s);
-  const n = Math.abs(s) * GW * depth * 0.12;
+  const n = Math.abs(s) * GW * depth * 0.2;
   for (let k = 0; k < n; k++) {
     const x = rint(GW), y = top + rint(depth), i = y * GW + x, m = this.mat[i];
     if (m === EMPTY || CLS[m] === C_GAS || this.body[i]) continue;
-    const [vx, vy] = swirlDir(x, y, cx, cy, ax, ay, dir), step = 1 + rint(3);
+    const [vx, vy] = swirlDir(x, y, cx, cy, ax, ay, dir), step = 1 + rint(4);
     const tx = x + vx * step + rint(3) - 1, ty = y + vy * step;
     if (tx < 0 || tx >= GW || ty < top || ty >= GH) continue;
     const j = ty * GW + tx, mj = this.mat[j];
@@ -253,14 +271,14 @@ Sim.swirlPass = function () {
 // ---------------- Rigid chunk pieces ----------------
 
 // Can piece b shift by (dx,dy)? Targets must be its own cells, liquid, or (when falling) open air.
-function bodyCanMove(S, cells, b, dx, dy) {
+function bodyCanMove(S, cells, b, dx, dy, free) {
   for (const i of cells) {
     const x = i % GW + dx, y = ((i / GW) | 0) + dy;
     if (x < 0 || x >= GW || y < 0 || y >= GH) return false;
     const j = y * GW + x, mj = S.mat[j];
     if (S.body[j] === b) continue;
     if (CLS[mj] === C_LIQUID) continue;
-    if (dy > 0 && isOpen(mj)) continue;
+    if ((dy > 0 || free) && isOpen(mj)) continue;
     if (dy === 0 && isOpen(mj) && y < GH - 1 && !isOpen(S.mat[j + GW])) continue;
     return false;
   }
@@ -274,14 +292,16 @@ function bodyMove(S, cells, dx, dy) {
   for (let k = 0; k < cells.length; k++) { S.swap(cells[k], cells[k] + off); cells[k] += off; }
 }
 
-function tryBody(S, cells, b, dx, dy) {
-  if (!bodyCanMove(S, cells, b, dx, dy)) return false;
+function tryBody(S, cells, b, dx, dy, free) {
+  if (!bodyCanMove(S, cells, b, dx, dy, free)) return false;
   bodyMove(S, cells, dx, dy);
   return true;
 }
 
+// Pieces carry momentum: the ladle and the whirlpool push them, liquid drags them back to rest,
+// and in a dry pot they fly, bounce off the walls and skid across the floor.
 Sim.moveBodies = function () {
-  const groups = new Map(), mat = this.mat, body = this.body;
+  const groups = new Map(), mat = this.mat, body = this.body, vel = this.bodyVel;
   for (let i = 0; i < N; i++) {
     const b = body[i];
     if (!b) continue;
@@ -290,44 +310,89 @@ Sim.moveBodies = function () {
     if (!g) groups.set(b, g = []);
     g.push(i);
   }
+  for (const b of vel.keys()) if (!groups.has(b)) vel.delete(b);
+  for (const b of this.bodyShape.keys()) if (!groups.has(b)) this.bodyShape.delete(b);
   const top = this.surface, depth = Math.max(1, GH - top), pcx = GW / 2, pcy = top + depth / 2;
+  const sw = Math.abs(this.swirl);
   for (const [b, cells] of groups) {
     if (cells.length === 1) { body[cells[0]] = 0; continue; }   // a lone cell moves like a grain
-    let sx = 0, sy = 0, d = 0, wet = 0, hot = 0, stirred = 0, liqD = 0, inBroth = 0;
+    let sx = 0, sy = 0, d = 0, wet = 0, covered = 0, touching = 0, hot = 0, stirred = 0, liqD = 0, inBroth = 0;
     for (const i of cells) {
       const x = i % GW, y = (i / GW) | 0;
       sx += x; sy += y; d += DENS[mat[i]];
       if (this.temp[i] > 85) hot++;
       if (this.stirT[i]) stirred++;
       const below = y < GH - 1 ? mat[i + GW] : EMPTY, above = y > 0 ? mat[i - GW] : EMPTY;
+      if (CLS[above] === C_LIQUID) covered++;
+      if (CLS[below] === C_LIQUID || CLS[above] === C_LIQUID ||
+          (x > 0 && CLS[mat[i - 1]] === C_LIQUID) || (x < GW - 1 && CLS[mat[i + 1]] === C_LIQUID)) touching++;
       if (CLS[below] === C_LIQUID) { wet++; liqD += DENS[below]; if (below === BROTH) inBroth++; }
       else if (CLS[above] === C_LIQUID) { wet++; liqD += DENS[above]; if (above === BROTH) inBroth++; }
     }
     this.bodyEnv[b] = !wet ? 0 : inBroth * 2 >= wet ? 2 : 1;
     const n = cells.length, cx = sx / n, cy = sy / n;
     d /= n;
+    // Submerged pieces feel liquid drag; a piece sitting in a thin film of oil is basically in the air.
+    const swimming = covered / n > 0.25;
+    let v = vel.get(b);
+    if (!v) vel.set(b, v = { vx: 0, vy: 0, ax: 0, ay: 0 });
 
-    // Stirred by the ladle: carried along the stroke.
+    // Ladle hit: take on the stroke's speed. In a dry pot it's a smack that pops the piece up.
     if (this.pushBodies.has(b) && this.pushDir) {
-      const p = this.pushDir, mx = Math.round(p.x), my = Math.round(p.y);
-      for (let k = 0; k < p.n; k++) if (!tryBody(this, cells, b, mx, my) && !tryBody(this, cells, b, mx, 0) && !tryBody(this, cells, b, 0, my)) break;
-      continue;
+      const p = this.pushDir, sp = Math.min(6, p.n + 1);
+      v.w = (v.w || 0) + (rnd() - 0.5) * (swimming ? 0.15 : 0.5);
+      if (swimming) { v.vx = p.x * sp * 0.9; v.vy = p.y * sp * 0.9; }
+      else { v.vx = p.x * sp * 1.3 + (rnd() - 0.5); v.vy = Math.min(p.y * sp, 0) - 1.5 - rnd() * 1.5; }
     }
-    if (!wet) {
-      // In air (or resting on the dry pot): fall, sliding off piles.
-      if (tryBody(this, cells, b, 0, 1)) continue;
+    // Whirlpool accelerates submerged pieces along the vortex.
+    if (swimming && sw > 0.03) {
+      const [tx, ty] = swirlDir(cx, cy, pcx, pcy, GW / 2, depth / 2, Math.sign(this.swirl));
+      v.vx += tx * sw * 0.22 + (rnd() - 0.5) * sw * 0.3;
+      v.vy += ty * sw * 0.22 + (rnd() - 0.5) * sw * 0.3;
+    }
+    // Drag and buoyancy grow as the piece goes under, so a splash-down slows it right away.
+    const immersed = touching / n;
+    if (swimming) { v.vx *= 0.88; v.vy *= 0.88; }
+    else { v.vy += 0.3 * (1 - immersed); const k = 1 - 0.45 * immersed; v.vx *= 0.97 * k; v.vy *= k; }
+
+    // Integrate velocity in whole-cell steps, bouncing off whatever blocks us.
+    v.ax += v.vx; v.ay += v.vy;
+    let moved = false, cracked = false;
+    for (let k = 0; k < 6 && (Math.abs(v.ax) >= 1 || Math.abs(v.ay) >= 1); k++) {
+      const dx = Math.abs(v.ax) >= 1 ? Math.sign(v.ax) : 0, dy = Math.abs(v.ay) >= 1 ? Math.sign(v.ay) : 0;
+      if (tryBody(this, cells, b, dx, dy, true)) { v.ax -= dx; v.ay -= dy; moved = true; continue; }
+      if (dx && tryBody(this, cells, b, dx, 0, true)) { v.ax -= dx; moved = true; }
+      else if (dx) { v.vx *= -0.45; v.ax = 0; }                       // bounce off a wall or piece
+      if (dy && tryBody(this, cells, b, 0, dy, true)) { v.ay -= dy; moved = true; }
+      else if (dy > 0 && this.bodyKind[b] === BK_SHELL && v.vy > 2.2) { this.crackEgg(b, cells, v); cracked = true; break; }
+      else if (dy) {
+        if (dy > 0 && !swimming) {   // land, skid, maybe bounce (off-center landings tip the piece)
+          if (Math.abs(v.vy) > 1.2) v.w = (v.w || 0) + (rnd() - 0.5) * 0.25 + v.vx * 0.03;
+          v.vx *= 0.75; v.vy = Math.abs(v.vy) > 1.2 ? -v.vy * 0.3 : 0;
+        }
+        else v.vy *= -0.3;
+        v.ay = 0;
+      }
+    }
+    if (cracked) continue;
+    if (n >= 6 && this.bodyKind[b] !== BK_SOFT) this.spinBody(b, cells, v, swimming, moved, cx, cy, sw);
+    if (Math.abs(v.vx) < 0.02 && Math.abs(v.vy) < 0.02 && !moved) { v.vx = v.vy = 0; }
+    const kind = this.bodyKind[b];
+    if (kind === BK_SOFT) {
+      if (!this.softBody(b, cells, swimming, sw, cx, cy)) continue;
+    } else if (kind === BK_FISH && this.bodyEnv[b] === 2 && rnd() < 0.01) {
+      this.maybeFlake(b, cells);
+    }
+    if (moved || Math.hypot(v.vx, v.vy) > 0.4) continue;
+
+    if (!wet && !swimming) {
+      // Resting in a dry pot: slide off piles.
       if (rnd() < 0.3) { const dx = rnd() < 0.5 ? -1 : 1; tryBody(this, cells, b, dx, 1); }
       continue;
     }
-    const dl = liqD / wet;
-    // Whirlpool carries pieces around the pot (and its turbulence scatters them).
-    const sw = Math.abs(this.swirl);
-    if (sw > 0.05 && rnd() < sw * 0.7) {
-      const [vx, vy] = swirlDir(cx, cy, pcx, pcy, GW / 2, depth / 2, Math.sign(this.swirl));
-      if ((vx || vy) && (tryBody(this, cells, b, vx, vy) || (vx && tryBody(this, cells, b, vx, 0)) || (vy && tryBody(this, cells, b, 0, vy)))) continue;
-    }
+    const dl = wet ? liqD / wet : 1;
     // Boiling churn and leftover stir energy: bob up, drift sideways, tumble.
-    const e = this.turb * (hot / n > 0.5 ? 1 : 0.2) + (stirred / n > 0.3 ? 0.5 : 0) + sw * 0.8;
+    const e = this.turb * (hot / n > 0.5 ? 1 : 0.2) + (stirred / n > 0.3 ? 0.5 : 0) + sw;
     if (e > 0 && rnd() < e * 0.3) {
       const r = rnd();
       const ok = r < 0.45 ? tryBody(this, cells, b, 0, -1)
@@ -341,11 +406,243 @@ Sim.moveBodies = function () {
       const dy = d > dl ? 1 : -1;
       if (tryBody(this, cells, b, 0, dy)) continue;
       if (dy > 0 && rnd() < 0.4) tryBody(this, cells, b, rnd() < 0.5 ? -1 : 1, 1);
-    } else if (rnd() < 0.02) {
+    } else if (rnd() < 0.03) {
       tryBody(this, cells, b, rnd() < 0.5 ? -1 : 1, 0);   // gentle drift
     }
   }
   this.pushBodies.clear();
+};
+
+// ---------------- Rotation ----------------
+// Each larger piece remembers its shape (a template) and is re-rasterized at 16 angles,
+// so it can tumble when smacked, spin in the whirlpool, and settle flat when it lands.
+
+const ROT_STEP = Math.PI / 8;
+
+Sim.shapeOf = function (b, cells) {
+  let sh = this.bodyShape.get(b);
+  if (sh && sh.count === cells.length) return sh;
+  if (cells.length > 255) return null;
+  // (Re)build the template from the piece as it is now: first use, or it melted/burnt a cell.
+  let sx = 0, sy = 0;
+  for (const i of cells) { sx += i % GW; sy += (i / GW) | 0; }
+  const X = Math.round(sx / cells.length), Y = Math.round(sy / cells.length);
+  const lookup = new Map(), mats = [];
+  let r = 0, minx = 99, maxx = -99, miny = 99, maxy = -99;
+  cells.forEach((i, k) => {
+    mats.push(this.mat[i]);
+    const ox = i % GW - X, oy = ((i / GW) | 0) - Y;
+    lookup.set((ox + 512) * 1024 + oy + 512, k);
+    this.bodyPart[i] = k;
+    r = Math.max(r, Math.hypot(ox, oy));
+    minx = Math.min(minx, ox); maxx = Math.max(maxx, ox); miny = Math.min(miny, oy); maxy = Math.max(maxy, oy);
+  });
+  const w = maxx - minx + 1, h = maxy - miny + 1;
+  // Long pieces (a fish) rest on their side, flat every 180°; blocky ones every 90°.
+  sh = { lookup, mats, count: cells.length, radius: Math.ceil(r) + 1, angle: 0, shown: 0,
+         flat: w > h * 1.6 || h > w * 1.6 ? 2 : 4 };
+  this.bodyShape.set(b, sh);
+  return sh;
+};
+
+Sim.rotateBody = function (b, cells, sh, step, cx, cy) {
+  const th = step * ROT_STEP, c = Math.cos(th), s = Math.sin(th);
+  const { mat, temp, cook, life, shade, body, bodyPart } = this;
+  const X = Math.round(cx), Y = Math.round(cy), R = sh.radius;
+  const targets = new Map();
+  for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+    // Inverse-rotate each nearby grid cell back into the template to see which part lands there.
+    const p = sh.lookup.get((Math.round(c * dx + s * dy) + 512) * 1024 + Math.round(-s * dx + c * dy) + 512);
+    if (p === undefined) continue;
+    const gx = X + dx, gy = Y + dy;
+    if (gx < 0 || gx >= GW || gy < 0 || gy >= GH) return false;
+    const j = gy * GW + gx, mj = mat[j];
+    if (body[j] !== b && !(CLS[mj] === C_LIQUID || isOpen(mj))) return false;   // would hit something solid
+    targets.set(j, p);
+  }
+  if (targets.size < cells.length * 0.75) return false;
+  // Remember each part's state (cook level, temperature…) so it survives the move.
+  const state = new Map();
+  for (const i of cells) state.set(bodyPart[i], [mat[i], temp[i], cook[i], life[i], shade[i]]);
+  const any = state.values().next().value;
+  const vacated = cells.filter((i) => !targets.has(i));
+  for (const j of targets.keys()) {
+    if (body[j] === b) continue;
+    const v = vacated.pop();                 // displaced liquid/air moves into the space we leave
+    if (v !== undefined) this.swap(j, v); else this.setCell(j, EMPTY);
+  }
+  for (const v of vacated) this.setCell(v, EMPTY);
+  for (const [j, p] of targets) {
+    // A part hidden by the last raster comes back as itself (an eye stays an eye), warmed like its neighbours.
+    const st = state.get(p) || [sh.mats[p], any[1], any[2], any[3], any[4]];
+    mat[j] = st[0]; temp[j] = st[1]; cook[j] = st[2]; life[j] = st[3]; shade[j] = st[4];
+    body[j] = b; bodyPart[j] = p; this.stamp[j] = this.tag;
+  }
+  sh.count = targets.size;
+  return true;
+};
+
+Sim.spinBody = function (b, cells, v, swimming, moved, cx, cy, sw) {
+  const sh = this.shapeOf(b, cells);
+  if (!sh) return;
+  // Pivot on where the piece is now (it may have just moved this frame).
+  cx = 0; cy = 0;
+  for (const i of cells) { cx += i % GW; cy += (i / GW) | 0; }
+  cx /= cells.length; cy /= cells.length;
+  let w = v.w || 0;
+  if (swimming) {
+    w += Math.sign(this.swirl) * sw * 0.0025 + (rnd() - 0.5) * this.turb * 0.02;   // whirlpool + boil churn
+    w *= 0.92;
+  } else {
+    w *= 0.99;
+    // Resting on something: gravity tips it over onto a flat side.
+    if (!moved && !bodyCanMove(this, cells, b, 0, 1, true)) {
+      w += -Math.sin(sh.flat * sh.angle) * 0.025;
+      w *= 0.8;
+    }
+  }
+  if (Math.abs(w) < 0.002) w = 0;
+  v.w = w;
+  sh.angle += w;
+  const step = Math.round(sh.angle / ROT_STEP);
+  if (step === sh.shown) return;
+  // Try in place, then nudged up or sideways (a fish rolling on the floor lifts as it turns).
+  for (const [ox, oy] of [[0, 0], [0, -1], [0, -2], [-1, -1], [1, -1], [0, -3], [-2, 0], [2, 0]]) {
+    if (this.rotateBody(b, cells, sh, step, cx + ox, cy + oy)) { sh.shown = step; return; }
+  }
+  sh.angle = sh.shown * ROT_STEP; v.w = -w * 0.3;       // blocked: bounce the spin back
+};
+
+// ---------------- Eggs and fish ----------------
+
+// Drop a shape (rows of legend characters) in at the rim as one piece.
+Sim.spawnShape = function (rows, legend, x, vy, kind) {
+  const b = this.newBody(kind), w = rows[0].length;
+  const flip = rnd() < 0.5, x0 = Math.max(0, Math.min(GW - w, Math.round(x - w / 2)));
+  let placed = 0;
+  rows.forEach((row, yy) => {
+    for (let xx = 0; xx < w; xx++) {
+      const ch = row[flip ? w - 1 - xx : xx], m = legend[ch];
+      if (m === undefined) continue;
+      const i = yy * GW + x0 + xx;
+      if (this.mat[i] !== EMPTY && CLS[this.mat[i]] !== C_GAS) continue;
+      this.setCell(i, m, 20);
+      this.body[i] = b;
+      placed++;
+    }
+  });
+  this.bodyVel.set(b, { vx: 0, vy, ax: 0, ay: 0 });
+  if (!placed) this.emit('full', x, 0, 90);
+  return placed;
+};
+
+const EGG_WHOLE = [
+  '  SSS  ',
+  ' SWWWS ',
+  'SWWWWWS',
+  'SWWYWWS',
+  'SWYYYWS',
+  'SWWYWWS',
+  'SWWWWWS',
+  ' SWWWS ',
+  '  SSS  '];
+const EGG_OPEN = [
+  '  WWWWWW  ',
+  ' WWWYYWWW ',
+  'WWWYYYYWWW',
+  ' WWWYYWWW ',
+  '  WWWWWW  '];
+const FISH_ROWS = [
+  '     FFF        ',
+  '   BBBBBBB    F ',
+  ' BEBBBBBBBB  FF ',
+  'BBBBBBBBBBBBBFFF',
+  ' BBBBBBBBBBB FF ',
+  '   BBBBBBB    F ',
+  '      FF        '];
+
+Sim.throwEgg = function (x) { return this.spawnShape(EGG_WHOLE, { S: SHELL, W: EGG, Y: YOLK }, x, 2.5, BK_SHELL); };
+Sim.dropCrackedEgg = function (x) { return this.spawnShape(EGG_OPEN, { W: EGG, Y: YOLK }, x, 0.5, BK_SOFT); };
+Sim.throwFish = function (x) { return this.spawnShape(FISH_ROWS, { B: FISH, F: FISHFIN, E: FISHEYE }, x, 2.5, BK_FISH); };
+
+// A whole egg hit the bottom hard: shell shatters into loose bits, the inside becomes a blob.
+Sim.crackEgg = function (b, cells, v) {
+  let inner = 0;
+  for (const i of cells) if (this.mat[i] !== SHELL && this.mat[i] !== WHITE_COOKED && this.mat[i] !== YOLK_COOKED) inner++;
+  const nb = this.newBody(inner ? BK_SOFT : BK_FIRM);   // a hard-boiled egg stays firm
+  const shards = new Map();
+  for (const i of cells) {
+    if (this.mat[i] !== SHELL) { this.body[i] = nb; continue; }
+    // Shell breaks into little shards that skitter outward.
+    const key = ((i % GW) >> 1) * 1000 + (((i / GW) | 0) >> 1);
+    if (!shards.has(key)) {
+      const sb = this.newBody(BK_FIRM), dir = (i % GW) < (cells[0] % GW) + 2 ? -1 : 1;
+      this.bodyVel.set(sb, { vx: dir * (1 + rnd() * 2), vy: -1 - rnd() * 1.5, ax: 0, ay: 0 });
+      shards.set(key, sb);
+    }
+    this.body[i] = shards.get(key);
+  }
+  this.bodyVel.set(nb, { vx: v.vx * 0.3, vy: 0, ax: 0, ay: 0 });
+  const c = cells[0], x = c % GW, y = (c / GW) | 0;
+  for (let k = 0; k < 5; k++) this.particle({ x: GX + x, y: GY + y, vx: (rnd() - 0.5) * 2.5, vy: -1 - rnd() * 1.5, life: 40, max: 40, c: [255, 200, 60], kind: 'drop' });
+  this.discover('splat'); this.emit('splat', x, y, 30);
+};
+
+// Raw egg: holds together like a blob, slumps and spreads, and tears apart when stirred.
+// Returns false once handled (so the caller skips its other movement).
+Sim.softBody = function (b, cells, swimming, sw, cx, cy) {
+  const body = this.body, mat = this.mat;
+  const same = (j, excl) => j !== excl && body[j] === b;
+  const neighbours = (j, excl) => {
+    const jx = j % GW, jy = (j / GW) | 0;
+    return (jy > 0 && same(j - GW, excl)) + (jy < GH - 1 && same(j + GW, excl)) +
+           (jx > 0 && same(j - 1, excl)) + (jx < GW - 1 && same(j + 1, excl));
+  };
+  let raw = 0;
+  for (let k = 0; k < cells.length; k++) {
+    const i = cells[k];
+    if (mat[i] === EGG || mat[i] === YOLK) raw++;
+    const own = neighbours(i, -1);
+    if (own === 0) {
+      // A stray drop: surface tension pulls it back toward the blob; only a stir rips it free.
+      if (this.stirT[i]) { body[i] = 0; continue; }
+      const x = i % GW, y = (i / GW) | 0, dx = Math.sign(Math.round(cx) - x), dy = Math.sign(Math.round(cy) - y);
+      for (const [mx, my] of [[dx, dy], [dx, 0], [0, dy]]) {
+        if (!mx && !my) continue;
+        const j = (y + my) * GW + x + mx, mj = mat[j];
+        if (!body[j] && (CLS[mj] === C_LIQUID || isOpen(mj))) { this.swap(i, j); cells[k] = j; break; }
+      }
+      continue;
+    }
+    // Strong swirl or a fresh stir pulls loose strands off the edges.
+    if (swimming && own <= 2 && rnd() < sw * 0.05 + (this.stirT[i] ? 0.04 : 0)) { body[i] = 0; continue; }
+    const isYolk = mat[i] === YOLK || mat[i] === YOLK_COOKED, set = mat[i] === WHITE_COOKED || mat[i] === YOLK_COOKED;
+    if (set || rnd() > (isYolk ? 0.15 : 0.45)) continue;   // raw white runs, yolk wobbles, cooked egg holds
+    const x = i % GW, y = (i / GW) | 0, side = rnd() < 0.5 ? -1 : 1, k2 = isYolk ? 2 : 1;
+    for (const [dx, dy, need] of [[0, 1, 1], [side, 1, k2], [-side, 1, k2], [side, 0, k2], [-side, 0, k2]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || nx >= GW || ny >= GH) continue;
+      const j = ny * GW + nx, mj = mat[j];
+      if (body[j] || !(CLS[mj] === C_LIQUID || isOpen(mj))) continue;
+      if (neighbours(j, i) >= need) { this.swap(i, j); cells[k] = j; break; }
+    }
+  }
+  if (!raw) this.bodyKind[b] = BK_FIRM;                            // fully set: now a firm piece
+  return true;
+};
+
+// Poached fish falls apart into flakes.
+Sim.maybeFlake = function (b, cells) {
+  let cook = 0, n = 0;
+  for (const i of cells) if (this.mat[i] === FISH) { cook += this.cook[i]; n++; }
+  if (!n || cook / n < 100) return;
+  const tiles = new Map();
+  for (const i of cells) {
+    const key = ((i % GW) >> 2) * 1000 + (((i / GW) | 0) / 3 | 0);
+    if (!tiles.has(key)) tiles.set(key, this.newBody(BK_FIRM));
+    this.body[i] = tiles.get(key);
+  }
+  this.discover('flake');
 };
 
 // Top row of the liquid body (ignores falling droplets).
@@ -582,7 +879,7 @@ Sim.updateParticles = function () {
 Sim.pour = function (ing, x, amount) {
   let placed = 0;
   if (ing.kind === 'chunk') {
-    this.nextBody = this.nextBody >= 65000 ? 1 : this.nextBody + 1;
+    this.newBody();
     const w = 3 + rint(3), h = 3 + rint(2), x0 = Math.max(0, Math.min(GW - w, (x - w / 2) | 0));
     for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
       const i = yy * GW + x0 + xx;
@@ -614,13 +911,18 @@ Sim.stir = function (cx, cy, dx, dy, r) {
       if ((x - cx) ** 2 + (y - cy) ** 2 > r * r) continue;
       const i = y * GW + x, m = this.mat[i];
       this.stirT[i] = 30;
-      if (this.body[i]) { this.pushBodies.add(this.body[i]); continue; }
+      if (this.body[i]) {
+        // The ladle tears a raw egg apart; anything firmer gets shoved as a whole.
+        if (this.bodyKind[this.body[i]] === BK_SOFT && rnd() < 0.6) this.body[i] = 0;
+        else { this.pushBodies.add(this.body[i]); continue; }
+      }
       if (m === EMPTY || CLS[m] === C_GAS || rnd() > 0.6) continue;
       const d = 1 + rint(Math.ceil(push) + 1);
       const tx = Math.round(x + ux * d) + rint(3) - 1, ty = Math.round(y + uy * d) + rint(3) - 1;
       if (tx < 0 || tx >= GW || ty < 0 || ty >= GH) continue;
       const j = ty * GW + tx, mj = this.mat[j];
-      if (mj === EMPTY || CLS[mj] === C_GAS || this.body[j]) continue;   // never fling soup into the air
+      if (this.body[j]) continue;
+      if ((mj === EMPTY || CLS[mj] === C_GAS) && ty < y) continue;   // shove along, never fling soup upward
       this.swap(i, j);
       this.stirT[j] = 30;
     }
@@ -629,5 +931,5 @@ Sim.stir = function (cx, cy, dx, dy, r) {
   // Torque about the middle of the liquid feeds the whirlpool.
   const pcx = GW / 2, pcy = (this.surface + GH) / 2;
   const torque = ((cx - pcx) * dy - (cy - pcy) * dx) / (GW * 0.5);
-  this.swirl = Math.max(-1, Math.min(1, this.swirl + torque * 0.02));
+  this.swirl = Math.max(-1, Math.min(1, this.swirl + torque * 0.03));
 };

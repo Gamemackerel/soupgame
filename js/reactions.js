@@ -15,7 +15,7 @@ Sim.react = function (x, y, i, m) {
   switch (m) {
     case BROTH: return reactBroth(this, x, y, i);
     case OIL: return reactOil(this, x, y, i);
-    case EGG: return reactEgg(this, x, y, i);
+    case EGG: case YOLK: return reactEgg(this, x, y, i, m);
     case SALT: case SUGAR: return reactSeasoning(this, x, y, i, m);
     case CHILI: case CUMIN: return reactSpice(this, x, y, i, m);
     case FLOUR: return reactFlour(this, x, y, i);
@@ -24,6 +24,7 @@ Sim.react = function (x, y, i, m) {
     case SODA: return reactSoda(this, x, y, i);
     case TOMATO: return reactChunk(this, x, y, i, m) || reactTomato(this, x, y, i);
     case ONION: case GARLIC: case CARROT: case CELERY: case MEAT: case HERB:
+    case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED:
       return reactChunk(this, x, y, i, m);
   }
   return false;
@@ -31,32 +32,16 @@ Sim.react = function (x, y, i, m) {
 
 function reactBroth(S, x, y, i) {
   const o = i * NF, fl = S.fl, t = S.temp[i];
+  // Deglazing needs every frame; the rarer reactions are checked on a rotating quarter of cells.
+  if (y === GH - 1 && S.fond[x] > 0.02) return deglaze(S, x, i, o, fl, t);
+  // Water touching very hot oil splatters (checked every frame: falling drops pass through fast).
+  const ob = y < GH - 1 && S.mat[i + GW] === OIL ? i + GW : y > 0 && S.mat[i - GW] === OIL ? i - GW : -1;
+  if (ob >= 0 && S.temp[ob] > 120 && rnd() < 0.4) return splatter(S, x, y, i, ob);
+  if ((S.frame + i) & 3) return false;
   const j = S.nb(x, y);
   if (j >= 0) {
     const mj = S.mat[j];
-    // Water hitting very hot oil: splatter.
-    if (mj === OIL && S.temp[j] > 150 && rnd() < 0.3) {
-      S.setCell(i, STEAM, 120);
-      for (let k = 0; k < 3; k++) {
-        S.particle({ x: GX + x, y: GY + y, vx: (rnd() - 0.5) * 3, vy: -2 - rnd() * 2.5,
-                     life: 60, max: 60, c: [240, 200, 80], kind: 'drop' });
-      }
-      // Launch the oil upward too.
-      for (let up = 2 + rint(8); up > 0; up--) {
-        const ty = y - up;
-        if (ty >= 0 && S.mat[ty * GW + x] === EMPTY) { S.swap(j, ty * GW + x); break; }
-      }
-      // Water on a grease fire makes it worse.
-      if (S.findNb(x, y, isFire) >= 0 || S.temp[j] > 220) {
-        for (let k = 0; k < 6; k++) {
-          const fx = x + rint(9) - 4, fy = y - 1 - rint(6);
-          if (fx >= 0 && fx < GW && fy >= 0 && S.mat[fy * GW + fx] === EMPTY) S.setCell(fy * GW + fx, FIRE, 300);
-        }
-        S.emit('fire', x, y);
-      }
-      S.discover('splatter'); S.emit('splatter', x, y);
-      return true;
-    }
+    if (mj === OIL && S.temp[j] > 120 && rnd() < 0.8) return splatter(S, x, y, i, j);
     if (mj === FIRE) {
       if (fl[o + F_ALCOHOL] > 0.25) {
         flambe(S, x, y, i);
@@ -67,10 +52,10 @@ function reactBroth(S, x, y, i) {
   }
   // Spontaneous flambé: hot wine at the surface over a roaring flame.
   if (fl[o + F_ALCOHOL] > 0.4 && t > 85 && S.dial >= 9 && !S.lid && y > 0 &&
-      S.mat[i - GW] === EMPTY && rnd() < 0.003) flambe(S, x, y, i);
+      S.mat[i - GW] === EMPTY && rnd() < 0.012) flambe(S, x, y, i);
 
   // Curdling: dairy + acid + heat, or dairy at a hard boil.
-  if (fl[o + F_WHITE] > 0.35 && t > 80 && rnd() < 0.02) {
+  if (fl[o + F_WHITE] > 0.35 && t > 80 && rnd() < 0.08) {
     const acid = fl[o + F_SOUR] > 0.25 * fl[o + F_WHITE] + 0.1;
     if (acid || (t >= 100 && S.dial >= 8 && rnd() < 0.15)) {
       S.setCell(i, CURD, t);
@@ -78,17 +63,43 @@ function reactBroth(S, x, y, i) {
       return true;
     }
   }
-  // Deglazing: liquid on the fond at the bottom.
-  if (y === GH - 1 && S.fond[x] > 0.02) {
-    const f = S.fond[x];
-    fl[o + F_UMAMI] += f * 2.5; fl[o + F_BROWN] += f * 3; fl[o + F_AROMA] += f * 2; fl[o + F_RICH] += f * 0.5;
-    S.fond[x] = 0;
-    S.addNote('toasty', f * 0.15);
-    S.flags.deglazed = (S.flags.deglazed || 0) + f;
-    if (S.flags.deglazed > 1) S.discover('deglaze');
-    if (t > 90) S.emit('hiss', x, y, 30);
-  }
   return false;
+}
+
+// Liquid on the fond at the bottom lifts it into the broth.
+function deglaze(S, x, i, o, fl, t) {
+  const f = S.fond[x];
+  fl[o + F_UMAMI] += f * 2.5; fl[o + F_BROWN] += f * 3; fl[o + F_AROMA] += f * 2; fl[o + F_RICH] += f * 0.5;
+  S.fond[x] = 0;
+  S.addNote('toasty', f * 0.15);
+  S.flags.deglazed = (S.flags.deglazed || 0) + f;
+  if (S.flags.deglazed > 1) S.discover('deglaze');
+  if (t > 90) S.emit('hiss', x, GH - 1, 30);
+  return false;
+}
+
+// Water flashing to steam under hot oil: droplets fly, oil jumps, and a burning pot flares up.
+function splatter(S, x, y, i, j) {
+  S.setCell(i, STEAM, 120);
+  for (let k = 0; k < 3; k++) {
+    S.particle({ x: GX + x, y: GY + y, vx: (rnd() - 0.5) * 3, vy: -2 - rnd() * 2.5,
+                 life: 60, max: 60, c: [240, 200, 80], kind: 'drop' });
+  }
+  // Launch the oil upward too.
+  for (let up = 2 + rint(8); up > 0; up--) {
+    const ty = y - up;
+    if (ty >= 0 && S.mat[ty * GW + x] === EMPTY) { S.swap(j, ty * GW + x); break; }
+  }
+  // Water on a grease fire makes it worse.
+  if (S.findNb(x, y, isFire) >= 0 || S.temp[j] > 220) {
+    for (let k = 0; k < 6; k++) {
+      const fx = x + rint(9) - 4, fy = y - 1 - rint(6);
+      if (fx >= 0 && fx < GW && fy >= 0 && S.mat[fy * GW + fx] === EMPTY) S.setCell(fy * GW + fx, FIRE, 300);
+    }
+    S.emit('fire', x, y);
+  }
+  S.discover('splatter'); S.emit('splatter', x, y);
+  return true;
 }
 
 function flambe(S, x, y, i) {
@@ -107,11 +118,12 @@ function flambe(S, x, y, i) {
 function reactOil(S, x, y, i) {
   const t = S.temp[i];
   if (t > 190 && y > 0 && S.mat[i - GW] === EMPTY) {
-    if (t > 212 && rnd() < 0.02) {
+    if (t > 205 && rnd() < 0.02) {
       S.setCell(i - GW, FIRE, 300);
+      S.addNote('smoky', 0.01); S.addNote('burnt', 0.004);
       S.discover('greasefire'); S.emit('fire', x, y);
     } else if (rnd() < 0.01) {
-      S.setCell(i - GW, SMOKE, 200); S.emit('smoke', x, y, 120);
+      S.setCell(i - GW, SMOKE, 200); S.addNote('smoky', 0.002); S.emit('smoke', x, y, 120);
     }
   }
   // Fire feeds on oil.
@@ -119,17 +131,27 @@ function reactOil(S, x, y, i) {
   return false;
 }
 
-function reactEgg(S, x, y, i) {
-  if (S.temp[i] < 72 || rnd() > 0.08) return false;
+function reactEgg(S, x, y, i, m) {
+  if (S.temp[i] < 70 || rnd() > 0.06) return false;
+  const t = S.temp[i], b = S.body[i];
+  if (b) {
+    // Part of a blob or a whole egg: it sets in place and stays one piece.
+    S.mat[i] = m === YOLK ? YOLK_COOKED : WHITE_COOKED;
+    S.cook[i] = 0;
+    const kind = S.bodyKind[b], env = S.bodyEnv[b];
+    if (kind === BK_SOFT) S.discover(env === 2 ? 'poached' : 'friedegg');
+    if (kind === BK_SHELL && m === YOLK && env === 2) S.discover('hardboil');
+    return true;
+  }
+  // Loose strands: thin ones become ribbons, crowded ones clump into scramble.
   let n = 0;
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
     const xx = x + dx, yy = y + dy;
     if ((dx || dy) && xx >= 0 && xx < GW && yy >= 0 && yy < GH) {
-      const mm = S.mat[yy * GW + xx];
-      if (mm === EGG || mm === SCRAMBLE) n++;
+      const j = yy * GW + xx, mm = S.mat[j];
+      if (!S.body[j] && (mm === EGG || mm === YOLK || mm === SCRAMBLE)) n++;
     }
   }
-  const t = S.temp[i];
   if (n >= 4) { S.setCell(i, SCRAMBLE, t); S.discover('scramble'); }
   else { S.setCell(i, RIBBON, t); if (S.findNb(x, y, isBroth) >= 0) S.discover('eggdrop'); }
   return true;
@@ -299,6 +321,7 @@ function reactChunk(S, x, y, i, m) {
   if (c >= 80 && S.cook[i] < 80 && pieceOily && m !== MEAT && m !== HERB) S.discover('sweat');
   if (c >= 150 && S.cook[i] < 150) {
     if (m === ONION) { S.discover('caramelize'); S.addNote('caramel', 0.03); }
+    else if (m === FISH || m === FISHFIN) { S.discover('crispyskin'); S.addNote('toasty', 0.02); }
     else S.addNote('toasty', 0.02);
   }
   S.cook[i] = c;
@@ -389,7 +412,15 @@ Sim.render = function (data) {
       } else {
         c[0] = M.col[0]; c[1] = M.col[1]; c[2] = M.col[2];
         const k = cook[i];
-        if (M.col2) {
+        if (M.alpha) a = M.alpha;
+        if (M.stops) {
+          const st = M.stops;
+          for (let q = 1; q < st.length; q++) if (k <= st[q][0] || q === st.length - 1) {
+            const [k0, c0] = st[q - 1], [k1, c1] = st[q], u = Math.max(0, Math.min(1, (k - k0) / (k1 - k0)));
+            c[0] = c0[0] + (c1[0] - c0[0]) * u; c[1] = c0[1] + (c1[1] - c0[1]) * u; c[2] = c0[2] + (c1[2] - c0[2]) * u;
+            break;
+          }
+        } else if (M.col2) {
           if (k < 150) lerpC(c, k / 150 * 0.5, M.col2[0], M.col2[1], M.col2[2]);
           else lerpC(c, 0.5 + (k - 150) / 100, M.col2[0], M.col2[1], M.col2[2]);
           if (k > 200) lerpC(c, (k - 200) / 70, 40, 28, 22);

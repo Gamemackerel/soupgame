@@ -34,7 +34,7 @@ const T = {
   },
 };
 
-const SHELF_X = 2, SHELF_Y = 16, SLOT_W = 27, SLOT_H = 22;
+const SHELF_X = 2, SHELF_Y = 15, SLOT_W = 27, SLOT_H = 19;
 const TOOLS = [
   { id: 'pour', icon: 'hand', label: 'Pour' },
   { id: 'ladle', icon: 'ladle', label: 'Stir' },
@@ -111,7 +111,7 @@ const UI = {
       rect(g, s.x + 1, s.y + 1, s.w - 1, s.h - 1, sel ? [255, 214, 110] : hov ? [196, 140, 92] : [176, 120, 76]);
       rect(g, s.x + 1, s.y + s.h - 2, s.w - 1, 2, [120, 76, 48]);
       const bobY = sel ? Math.round(Math.sin(Chef.t * 0.15)) : 0;
-      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 5, s.y + 2 + bobY);
+      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 5, s.y + 1 + bobY);
     });
     // Tool panel.
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);
@@ -185,6 +185,12 @@ const UI = {
     T.text('SERVE', SERVE.x + SERVE.w / 2, SERVE.y + 7, { size: 7, color: '#fff', align: 'center', shadow: true });
     T.text(Math.round(this.potTemp || 20) + '°C', 291, 208, { size: 6, color: '#fff2d8', align: 'center' });
     T.text('HEAT ' + Sim.dial.toFixed(1).replace('.0', ''), DIAL.x + 16, 222, { size: 6, color: '#d8dcf0' });
+    // Hints for whole items: crack on the rim, drop, or throw.
+    const held = Chef.held;
+    if (held && held.kind === 'whole' && this.tool === 'pour' && !Sim.lid && mx >= GX - 12 && mx < GX + GW + 12 && my >= 24 && my < GY + GH) {
+      const label = held.id === 'egg' ? (Chef.cracked ? 'drop' : Chef.onRim(my) ? 'crack' : 'throw') : 'throw';
+      T.text(label, mx + 6, my + 6, { size: 5, color: '#fff', shadow: true });
+    }
     if (this.hover && this.hover.type === 'ing') {
       const ing = SHELF[this.hover.n];
       T.bubble(ing.name, mx + 10, my - 6);
@@ -212,12 +218,14 @@ const UI = {
 
   drawJournalText(T) {
     T.text('JOURNAL  ' + Sim.discovered.size + ' / ' + DISCOVERIES.length, 36, 18, { size: 7, color: '#fff' });
+    const rows = Math.ceil(DISCOVERIES.length / 2);
     DISCOVERIES.forEach((d, n) => {
-      const col = n < 11 ? 0 : 1, row = n % 11;
-      const x = 36 + col * 128, y = 34 + row * 17;
+      const col = n < rows ? 0 : 1, row = n % rows;
+      const x = 36 + col * 128, y = 32 + row * 13;
       const got = Sim.discovered.has(d.id);
-      T.text(got ? d.name : '???', x, y, { size: 6, color: got ? '#3a2418' : '#a09080' });
-      T.text(got ? d.desc.slice(0, 40) + (d.desc.length > 40 ? '…' : '') : d.hint, x, y + 8, { size: 4, color: got ? '#6a5040' : '#b0a090' });
+      T.text(got ? d.name : '???', x, y, { size: 5, color: got ? '#3a2418' : '#a09080' });
+      const sub = got ? d.desc : d.hint;
+      T.text(sub.length > 44 ? sub.slice(0, 43) + '…' : sub, x, y + 6, { size: 3.5, color: got ? '#6a5040' : '#b0a090' });
     });
     T.text('click to close', 160, 216, { size: 5, color: '#a08070', align: 'center' });
   },

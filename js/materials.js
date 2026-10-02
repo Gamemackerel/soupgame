@@ -26,7 +26,8 @@ const C_NONE = 0, C_LIQUID = 1, C_POWDER = 2, C_CHUNK = 3, C_GAS = 4, C_FIRE = 5
 const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CHILI = 7,
       CUMIN = 8, SODA = 9, ONION = 10, GARLIC = 11, CARROT = 12, CELERY = 13, TOMATO = 14,
       MEAT = 15, HERB = 16, STEAM = 17, SMOKE = 18, FIRE = 19, FOAM = 20, ROUX = 21,
-      LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26;
+      LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26,
+      YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -36,8 +37,8 @@ function defMat(id, o) { MAT[id] = Object.assign({ id, cls: C_NONE, dens: 0, con
 defMat(EMPTY,   { name: 'air' });
 defMat(BROTH,   { name: 'broth',  cls: C_LIQUID, dens: 1.0,  cond: 0.22, col: [96, 150, 205] });
 defMat(OIL,     { name: 'oil',    cls: C_LIQUID, dens: 0.9,  cond: 0.16, col: [236, 196, 70] });
-defMat(EGG,     { name: 'egg',    cls: C_LIQUID, dens: 1.05, cond: 0.16, col: [250, 196, 52] });
-defMat(SALT,    { name: 'salt',   cls: C_POWDER, dens: 1.6,  cond: 0.08, col: [240, 240, 246], solu: flavorVec({ salty: 15 }) });
+defMat(EGG,     { name: 'egg white', cls: C_CHUNK, dens: 1.03, cond: 0.14, col: [236, 236, 222], alpha: 190 });
+defMat(SALT,    { name: 'salt',   cls: C_POWDER, dens: 1.6,  cond: 0.08, col: [240, 240, 246], solu: flavorVec({ salty: 19 }) });
 defMat(SUGAR,   { name: 'sugar',  cls: C_POWDER, dens: 1.5,  cond: 0.08, col: [252, 246, 228], solu: flavorVec({ sweet: 20 }) });
 defMat(FLOUR,   { name: 'flour',  cls: C_POWDER, dens: 1.3,  cond: 0.06, col: [236, 226, 204] });
 defMat(CHILI,   { name: 'chili',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [208, 44, 30], col2: [90, 30, 20], burnAt: 200,
@@ -68,9 +69,21 @@ defMat(CURD,    { name: 'curd',   cls: C_POWDER, dens: 0.97, cond: 0.1, col: [25
 defMat(RIBBON,  { name: 'egg ribbon', cls: C_POWDER, dens: 0.98, cond: 0.1, col: [255, 230, 120] });
 defMat(SCRAMBLE,{ name: 'scrambled egg', cls: C_CHUNK, dens: 1.02, cond: 0.1, col: [246, 214, 90] });
 defMat(BURNT,   { name: 'burnt bits', cls: C_POWDER, dens: 1.2, cond: 0.1, col: [36, 26, 22] });
+// Whole eggs and fish. `stops` = color by cook level: raw → cooked → browned → charred.
+defMat(YOLK,    { name: 'yolk', cls: C_CHUNK, dens: 1.04, cond: 0.14, col: [255, 186, 36] });
+defMat(WHITE_COOKED, { name: 'cooked egg white', cls: C_CHUNK, dens: 1.02, cond: 0.12, col: [252, 252, 246], col2: [200, 150, 80], burnAt: 200 });
+defMat(YOLK_COOKED,  { name: 'cooked yolk', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [250, 210, 96], col2: [190, 140, 60], burnAt: 200 });
+defMat(SHELL,   { name: 'eggshell', cls: C_CHUNK, dens: 1.3, cond: 0.08, col: [238, 222, 192] });
+defMat(FISH,    { name: 'fish', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [150, 172, 196], burnAt: 220,
+                  stops: [[0, [150, 172, 196]], [110, [236, 230, 220]], [190, [196, 136, 70]], [255, [40, 28, 22]]],
+                  leach: flavorVec({ umami: 0.07, rich: 0.05, aroma: 0.03 }), note: 'oceanic' });
+defMat(FISHFIN, { name: 'fish fin', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [104, 126, 160], burnAt: 200,
+                  stops: [[0, [104, 126, 160]], [110, [176, 172, 168]], [190, [150, 96, 46]], [255, [30, 22, 18]]] });
+defMat(FISHEYE, { name: 'fish eye', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [24, 24, 34],
+                  stops: [[0, [24, 24, 34]], [110, [230, 230, 220]], [255, [60, 50, 40]]] });
 
 // Global aroma notes the pot can develop.
-const NOTES = ['allium', 'toasty', 'caramel', 'herbal', 'earthy', 'spice', 'smoky', 'burnt', 'fermented'];
+const NOTES = ['allium', 'toasty', 'caramel', 'herbal', 'earthy', 'spice', 'smoky', 'burnt', 'fermented', 'oceanic'];
 
 // ---- Ingredient shelf ----
 // kind: how it's poured. icon: which art routine draws it.
@@ -97,7 +110,8 @@ const SHELF = [
   { id: 'celery',  name: 'Celery',      kind: 'chunk',  mat: CELERY,rate: 1, icon: 'celery', c: [150, 210, 90] },
   { id: 'tomato',  name: 'Tomato',      kind: 'chunk',  mat: TOMATO,rate: 1, icon: 'tomato', c: [228, 50, 44] },
   { id: 'meat',    name: 'Beef',        kind: 'chunk',  mat: MEAT,  rate: 1, icon: 'meat',   c: [206, 84, 96] },
-  { id: 'egg',     name: 'Egg',         kind: 'liquid', mat: EGG,   rate: 2, icon: 'egg',    c: [250, 246, 236] },
+  { id: 'egg',     name: 'Egg',         kind: 'whole',  mat: EGG,   rate: 1, icon: 'egg',    c: [250, 246, 236] },
+  { id: 'fish',    name: 'Whole Fish',  kind: 'whole',  mat: FISH,  rate: 1, icon: 'fish',   c: [150, 172, 196] },
   { id: 'herbs',   name: 'Fresh Herbs', kind: 'chunk',  mat: HERB,  rate: 1, icon: 'herb',   c: [70, 170, 70] },
 ];
 
@@ -123,5 +137,12 @@ const DISCOVERIES = [
   { id: 'greasefire', name: 'Grease Fire',    hint: 'Oil has a limit.',                desc: 'Oil past its smoke point ignites. LID smothers it; water makes it WORSE.' },
   { id: 'splatter',   name: 'Splatter',       hint: 'Water into very hot oil.',        desc: 'Water flashes to steam under oil and spits everywhere.' },
   { id: 'thicken',    name: 'Thickened',      hint: 'Body comes from starch.',         desc: 'Roux dissolved in simmering liquid makes it thick and velvety.' },
+  { id: 'crack',      name: 'Clean Crack',    hint: 'Eggs have a rim to meet.',        desc: 'Tap an egg on the pot rim, then drop it in: no shell in your soup.' },
+  { id: 'splat',      name: 'Splat!',         hint: 'What if you just… throw it?',     desc: 'A whole egg thrown into a shallow pot smashes on the bottom. Shell and all.' },
+  { id: 'hardboil',   name: 'Hard-Boiled',    hint: 'A soft landing, then a long bath.', desc: 'Thrown into deep water, an egg survives whole and cooks solid in its shell.' },
+  { id: 'poached',    name: 'Poached Egg',    hint: 'Leave a cracked egg alone in a simmer.', desc: 'An unstirred egg in simmering broth sets as one silky piece.' },
+  { id: 'friedegg',   name: 'Fried Egg',      hint: 'A cracked egg in hot oil.',       desc: 'Egg set in hot fat: crisp, browned edges.' },
+  { id: 'flake',      name: 'Flaky Fish',     hint: 'Fish needs only a gentle poach.', desc: 'Poached fish turns opaque and falls apart into tender flakes.' },
+  { id: 'crispyskin', name: 'Crispy Skin',    hint: 'Fish on a hot, dry pan.',          desc: 'Fish skin browns and crisps when it is seared without water.' },
   { id: 'herbloss',   name: 'Wilted Herbs',   hint: 'When should herbs go in?',        desc: 'Fresh herb aroma cooks away fast. Add them at the end.' },
 ];

@@ -115,7 +115,7 @@ Taste.analyzeBowl = function () {
   }
   const avgCook = (m) => counts[m] ? cooked[m] / counts[m] : 0;
   const solids = total - g.broth - g.oil;
-  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO];
+  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO, FISH];
   let chunks = 0, raw = 0;
   for (const m of chunkMats) {
     chunks += counts[m] || 0;
@@ -126,6 +126,9 @@ Taste.analyzeBowl = function () {
   const p = Taste.perceive(g, burntFrac);
   // Undissolved powder in the bowl is gritty.
   const grit = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[FLOUR] || 0) + (counts[SODA] || 0);
+  // Raw egg white left in the bowl is as bad as raw veg.
+  raw += counts[EGG] || 0;   // raw white is a flaw; a runny yolk is fine
+  chunks += (counts[EGG] || 0) + (counts[YOLK] || 0) + (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0);
   const flaws = {
     burnt: Math.min(1, burntFrac * 20),
     curdled: Math.min(1, (counts[CURD] || 0) / 40),
@@ -134,9 +137,10 @@ Taste.analyzeBowl = function () {
     raw: Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0)),
     gritty: Math.min(1, grit / 60),
     greasy: Math.min(1, Math.max(0, g.oil / Math.max(1, g.broth + g.oil) - 0.12) * 5),
+    shell: Math.min(1, (counts[SHELL] || 0) / 10),
   };
   const flawSum = flaws.burnt * 0.3 + flaws.curdled * 0.2 + flaws.lumps * 0.15 + flaws.scrambled * 0.1 +
-                  flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15;
+                  flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2;
   return {
     empty: g.broth < 200,
     volume: g.broth + g.oil,
@@ -144,6 +148,10 @@ Taste.analyzeBowl = function () {
     notes: Taste.topNotes(4),
     chunkiness: Math.min(1, chunks / Math.max(1, total) * 4),
     ribbons: counts[RIBBON] || 0,
+    eggPieces: (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0),
+    wholeEgg: (counts[SHELL] || 0) >= 12,
+    fish: counts[FISH] || 0,
+    fishCooked: counts[FISH] ? avgCook(FISH) : 0,
     caramelized: (counts[ONION] || 0) > 10 && avgCook(ONION) > 140,
     mirepoix: !!S.flags.mirepoix,
     deglazed: (S.flags.deglazed || 0) > 1,

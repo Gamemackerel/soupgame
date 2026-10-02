@@ -20,12 +20,18 @@ const Chef = {
   mood: 'idle', moodT: 0, hopT: 0, shakeT: 0, recoilT: 0,
   blinkT: 120, bubble: null, pouring: false, pourPhase: 0, sipT: 0, t: 0,
   hand: { x: 160, y: 96 },
+  cracked: false, crackT: 0, throwT: 0, aiming: false, hinted: false,
+
+  onRim(y) { return y >= POT_TOP - 9 && y <= POT_TOP + 5; },
+  crack() { this.crackT = 14; this.say(['Crack!', '*tap tap*'][(Math.random() * 2) | 0], 40); },
+  throwIt() { this.throwT = 18; if (Math.random() < 0.3) this.say(['Hup!', 'Catch!', 'Wheee!'][(Math.random() * 3) | 0], 40); },
 
   select(ing) {
     if (this.held === ing) return;
     this.prevHeld = this.held;
     this.held = ing;
     this.swapT = 24;
+    this.cracked = false;
   },
 
   say(text, frames = 70) { this.bubble = { text, t: frames }; },
@@ -53,6 +59,10 @@ const Chef = {
     this.tx = overPot ? Math.max(112, Math.min(208, cursorX)) : 160;
     this.x += (this.tx - this.x) * 0.12;
     this.pouring = pouring && this.held && this.swapT === 0;
+    this.aiming = overPot && this.held && this.held.kind === 'whole';
+    if (this.crackT > 0) { if (--this.crackT === 7) this.cracked = true; }
+    if (this.throwT > 0) this.throwT--;
+    if (this.aiming && this.held.id === 'egg' && !this.hinted && !this.cracked) { this.hinted = true; this.say('Tap it on the rim to crack!', 150); }
     if (this.pouring) this.pourPhase++;
     if (this.swapT > 0) this.swapT--;
     if (this.moodT > 0 && --this.moodT === 0) this.mood = 'idle';
@@ -68,6 +78,10 @@ const Chef = {
   // Where the held item sits (screen px).
   itemPos(cursorX) {
     const hx = Math.max(GX + 4, Math.min(GX + GW - 4, cursorX));
+    if (this.aiming) {
+      const tap = this.crackT ? Math.round(Math.sin((14 - this.crackT) / 14 * Math.PI) * 10) : 0;
+      return { x: hx, y: POT_TOP - 16 + tap };
+    }
     return { x: this.pouring ? hx : this.x + 20, y: this.pouring ? POT_TOP - 16 : 88 };
   },
 
@@ -156,8 +170,10 @@ const Chef = {
     // Left hand rests on the rim; right hand holds the item.
     arm(g, shL.x, shL.y, cx - 26, POT_TOP - 1);
     ball(g, cx - 26, POT_TOP - 2, 3, SKIN);
+    if (this.throwT > 6) { showItem = null; iy += 10; }     // just threw it
     if (showItem) {
-      const icon = Art.icon(showItem.icon, showItem.c);
+      const iconName = showItem.id === 'egg' && this.cracked ? 'eggcracked' : showItem.icon;
+      const icon = Art.icon(iconName, showItem.c);
       g.save(); g.translate(Math.round(ix), Math.round(iy)); g.rotate(ang); g.drawImage(icon, -8, -8); g.restore();
       arm(g, sh.x, sh.y, ix + 2, iy + 4);
       ball(g, ix + 2, iy + 5, 3, SKIN);

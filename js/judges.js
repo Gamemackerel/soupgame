@@ -21,6 +21,9 @@ const JUDGES = [
       if (a.flaws.greasy > 0.3) bad.push('An oil slick on top. Unacceptable.');
       if (a.flaws.raw > 0.4) bad.push('These vegetables are raw. Cook them!');
       if (a.flaws.gritty > 0.3) bad.push('Gritty! The seasoning never dissolved.');
+      if (a.flaws.shell > 0.2 && !a.wholeEgg) bad.push('Crunchy eggshell. Disgraceful.');
+      if (a.eggPieces > 15 && a.flaws.shell < 0.2) good.push('A perfectly set egg. Very refined.');
+      if (a.fish && a.fishCooked > 90 && a.fishCooked < 170) good.push('The fish is just cooked through. Bravo.');
       if (p.salty < 0.22) bad.push('Under-seasoned. Salt is not optional.');
       if (p.salty > 0.82) bad.push('Over-salted. A cardinal sin.');
       if (p.body < 0.08) bad.push('Thin as dishwater.');
@@ -48,6 +51,7 @@ const JUDGES = [
       if (p.aroma > 0.6) good.push('The aroma hit me from across the room.');
       if (a.notes.length >= 3) good.push('Layers! I taste ' + a.notes.slice(0, 3).join(', ') + '.');
       if (p.bitter > 0.35) bad.push('Bitter, and not the good kind.');
+      if (a.fish) good.push(a.fishCooked > 60 ? 'FISH! I can taste the ocean!' : 'Is this fish... alive?');
       const s = 10 * (0.3 * p.umami + 0.2 * Math.min(1, p.aroma * 1.4) + 0.15 * acid + 0.15 * heatMod +
                       0.2 * complexity) - p.bitter * 4 - a.flawSum * 4 + 1;
       return { score: s, good, bad };
@@ -70,6 +74,7 @@ const JUDGES = [
       if (p.salty > 0.75) bad.push('My blood pressure, dear!');
       if (p.sweet > 0.15 && p.sweet < 0.55) good.push('A gentle sweetness, just how I make it.');
       if (a.ribbons > 30) good.push('Egg ribbons! My mother used to make those.');
+      if (a.wholeEgg) (a.eggPieces > 10 ? good : bad).push(a.eggPieces > 10 ? 'A whole boiled egg, shell and all! How... rustic.' : 'There is a raw egg in here. Still in its shell.');
       const gentle = 1 - Math.max(0, p.heat - 0.35) * 2 - Math.max(0, p.sour - 0.35) * 2;
       const s = 10 * (0.25 * warm + 0.25 * Math.min(1, p.rich * 1.8) + 0.2 * Math.min(1, a.chunkiness * 3) +
                       0.15 * Math.max(0, gentle) + 0.15 * Taste.score(p)) - a.flawSum * 6;

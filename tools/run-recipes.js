@@ -83,6 +83,21 @@ function execStep(G, step, log) {
       runFrames(G, n * 8, (f) => { if (f % 8 === 0 && k < n) { Sim.pour(ing, Math.round(pos + (k % 2 ? 1 : -1) * (k * 3 % 24)), 1); k++; } });
       break;
     }
+    case 'crack':   // crack N eggs on the rim and drop them in, ~1s apart
+    case 'throw': { // throw N whole eggs or fish in
+      const n = parseInt(b, 10);
+      let k = 0;
+      runFrames(G, n * 60, (f) => {
+        if (f % 60 === 0 && k < n) {
+          const x = Math.round(pos + (k % 2 ? 1 : -1) * (k * 7 % 30));
+          if (cmd === 'crack') Sim.dropCrackedEgg(x); else if (a === 'fish') Sim.throwFish(x); else Sim.throwEgg(x);
+          if (cmd === 'crack') Sim.discover('crack');
+          k++;
+        }
+        if (withStir) stirFrame();
+      });
+      break;
+    }
     case 'heat': Sim.dial = parseFloat(a); break;
     case 'wait': runFrames(G, Math.round(secs(a) * FPS)); break;
     case 'stir': runFrames(G, Math.round(secs(a) * FPS), stirFrame); break;

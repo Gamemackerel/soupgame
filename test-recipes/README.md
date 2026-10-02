@@ -1,6 +1,6 @@
 # Test Recipes
 
-100 playtest recipes that only use the 20 pantry ingredients in the game. Each one says what *should* happen physically and chemically in the pot, and what flavor profile and notes should come out.
+105 playtest recipes that only use the 21 pantry ingredients in the game. Each one says what *should* happen physically and chemically in the pot, and what flavor profile and notes should come out.
 
 Use them to:
 - play through by hand and check the game feels right, or
@@ -10,10 +10,10 @@ Use them to:
 
 | File | Recipes | What it covers |
 |---|---|---|
-| `soups.json` | 65 | Broths, cream soups, stews, egg soups. The core of the game |
-| `frying.json` | 15 | Sautéing, searing, blooming spices in oil, pan sauces |
+| `soups.json` | 68 | Broths, cream soups, stews, egg soups. The core of the game |
+| `frying.json` | 16 | Sautéing, searing, blooming spices in oil, pan sauces |
 | `baking.json` | 10 | Batters, caramel, custard. "Baking" in a pot, which mostly exposes features the sim doesn't have yet |
-| `experiments.json` | 10 | Deliberate failures and chemistry demos (fires, volcano, curdling, lumps) |
+| `experiments.json` | 11 | Deliberate failures and chemistry demos (fires, volcano, curdling, lumps) |
 
 ## Recipe format
 
@@ -32,7 +32,7 @@ Each file is a JSON array with one recipe per line, so diffs stay readable. Fiel
     "physics": "What you should SEE happen in the pot.",
     "taste": { "sweet": [0.4, 0.8] },           // perceived 0..1 ranges for the axes that matter
     "notes": ["allium", "caramel"],             // aroma notes that should appear in the top notes
-    "flaws": [],                                // burnt | curdled | lumps | scrambled | raw | gritty | greasy
+    "flaws": [],                                // burnt | curdled | lumps | scrambled | raw | gritty | greasy | shell
     "verdict": "WINNER"                         // CHOPPED | SAFE | WINNER, or a range like "SAFE-WINNER"
   },
   "sim_gaps": ["Real-world behavior the sim doesn't model yet."]
@@ -45,7 +45,9 @@ Each file is a JSON array with one recipe per line, so diffs stay readable. Fiel
 |---|---|
 | `pour <ingredient> <n>s` | Hold-to-pour a liquid or powder for *n* seconds at the default rate. Optional `@left`, `@right` or `@center` (the default) |
 | `add <ingredient> <n>` | Drop *n* chunk clumps (onion, garlic, carrot, celery, tomato, beef, herbs) |
-| `pour egg <n>s +stir` | Adding `+stir` to any pour means stirring with the ladle while pouring |
+| `crack egg <n>` | Crack *n* eggs on the rim and drop them in, one per second |
+| `throw egg <n>` / `throw fish <n>` | Throw *n* whole eggs (in the shell) or whole fish into the pot |
+| `… +stir` | Adding `+stir` to any pour, crack or throw means stirring with the ladle at the same time |
 | `heat <0-10>` | Set the heat dial |
 | `wait <n>s` | Let the simulation run |
 | `stir <n>s` | Ladle-stir the pot for *n* seconds |
@@ -53,12 +55,12 @@ Each file is a JSON array with one recipe per line, so diffs stay readable. Fiel
 | `taste` | Use the taste spoon in the middle of the soup |
 | `serve` | Send the bowl to the judges |
 
-Ingredient ids match `SHELF` in `js/materials.js`: `water oil milk wine vinegar soy salt sugar flour chili cumin soda onion garlic carrot celery tomato meat egg herbs`.
+Ingredient ids match `SHELF` in `js/materials.js`: `water oil milk wine vinegar soy salt sugar flour chili cumin soda onion garlic carrot celery tomato meat egg fish herbs`.
 
 Discovery ids match `DISCOVERIES`:
-`dissolve boil sweat caramelize burn fond deglaze bloom roux lumps mirepoix tomato eggdrop scramble curdle fizz flambe greasefire splatter thicken herbloss`
+`dissolve boil sweat caramelize burn fond deglaze bloom roux lumps mirepoix tomato eggdrop scramble curdle fizz flambe greasefire splatter thicken crack splat hardboil poached friedegg flake crispyskin herbloss`
 
-Aroma notes: `allium toasty caramel herbal earthy spice smoky burnt fermented`.
+Aroma notes: `allium toasty caramel herbal earthy spice smoky burnt fermented oceanic`.
 
 ## Calibration assumptions
 
@@ -89,7 +91,7 @@ The `sim_gaps` fields roll up into this feature backlog:
 4. **No starch release from vegetables, and no blending.** Cream soups rely only on roux or milk for body.
 5. **The `toasty` note comes from any beef leach**, even when boiled. It should only come from seared or Maillard browning.
 6. **No pH model beyond sour vs. soda.** The soda-in-tomato trick works through the sour axis, but there's no color shift or "soapy" flaw label.
-7. **Egg in oil** cooks into ribbon or scramble cells. There's no "fried egg" solid with crispy edges.
+7. **Eggs** now have whole, cracked, poached, fried and hard-boiled states. There's still no runny yolk vs. set yolk distinction, and no peeling.
 8. **Raw (gazpacho-style) soups** get a `raw` flaw even when raw is the point. Dish context will need to override flaws (Phase 2).
 9. **Heat-sensitive dissolving.** Salt dissolves in cold water at much the same rate. That's realistic, but there's no visible "undissolved sugar in cold liquid" lesson.
 10. **Honeycomb/leavening.** Soda only reacts with acid. Thermal decomposition of soda (honeycomb toffee, soda bread rise) isn't modeled.
@@ -115,4 +117,4 @@ node tools/run-recipes.js all --seed=2                        # everything, diff
 
 **Iteration loop:** run one recipe with `--verbose --snap` → look at the failing checks and snapshots → change the sim → re-run with seeds 1–3.
 
-Recipes that pass so far: `s06-garlic-broth`.
+Recipes that pass so far: `s06` `s08` `s66` `s67` `s68` `f08` `f16` `x11`.

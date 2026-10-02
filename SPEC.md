@@ -454,3 +454,26 @@ When you're done cooking, press **SERVE**. The chef ladles a bowl and carries it
   - 7.5 or higher: **WINNER**.
 - **Phase 1:** the judges score general deliciousness through their own lenses.
 - **Phase 2:** the dish brief is added. Each judge also weighs how close the soup came to the target dish.
+
+## 12. Whole Items: Eggs and Fish (implemented)
+
+- **Egg:** the chef holds a whole egg. You use it one click at a time:
+  - **Click the rim** to crack it.
+  - **Then click over the pot** to drop the contents in: a soft blob of white with a yolk.
+  - **Click over the pot without cracking** to throw the whole egg in, shell and all.
+- **What happens to a thrown egg:**
+  - It cracks on a hard landing (dry or shallow pot): shell shards scatter (a crunchy flaw) and the insides spread out.
+  - Deep liquid cushions it, so it survives whole and can **hard-boil** in its shell.
+- **What happens to a cracked egg (a soft blob that holds together and slumps):**
+  - Left alone in simmering broth, it **poaches**.
+  - In hot oil, it **fries**.
+  - Stirring tears it into strands, which cook into **egg-drop ribbons**. Crowded strands **scramble**.
+- **Fish:** thrown in whole as one firm piece (body, fins, eye).
+  - Poached, it turns opaque, then **flakes** apart.
+  - Seared on a hot, dry pot, its skin goes **crispy**.
+  - It adds umami, richness and an `oceanic` note.
+
+## 13. Backlog (noted for later)
+
+- **Plated presentation at judging.** When you serve, show a plated version of everything that went into the dish: pieces, garnishes, a whole fish, eggs and so on, not just a tinted bowl of liquid. Base it on what's actually in the pot.
+- **Judge non-soup dishes.** Serving should work even with no water or liquid in the pot (a seared fish, fried eggs, sautéed onions). The judges should evaluate whatever is in front of them on its own terms (texture, browning, seasoning on the surface) instead of treating it as "an empty bowl". This replaces the current `empty` check (fewer than 200 broth cells) and the "side dish judged as soup" gaps in `test-recipes`.
