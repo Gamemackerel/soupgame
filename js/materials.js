@@ -1,0 +1,127 @@
+// Materials, flavor dimensions, and the ingredient shelf.
+
+// ---- Screen / grid geometry (internal pixel resolution) ----
+const W = 320, H = 240;
+const GW = 152, GH = 88;      // simulation grid (pot interior)
+const GX = 84, GY = 112;      // grid origin on screen
+
+// ---- Flavor dimensions (per liquid cell) ----
+const F_SALTY = 0, F_SWEET = 1, F_SOUR = 2, F_BITTER = 3, F_UMAMI = 4, F_RICH = 5,
+      F_HEAT = 6, F_AROMA = 7, F_BODY = 8, F_RED = 9, F_BROWN = 10, F_WHITE = 11,
+      F_ALCOHOL = 12, F_GOLD = 13;
+const NF = 14;
+const FLAVOR_KEYS = ['salty','sweet','sour','bitter','umami','rich','heat','aroma',
+                     'body','red','brown','white','alcohol','gold'];
+
+function flavorVec(obj) {
+  const v = new Float32Array(NF);
+  if (obj) for (const k in obj) v[FLAVOR_KEYS.indexOf(k)] = obj[k];
+  return v;
+}
+
+// ---- Movement classes ----
+const C_NONE = 0, C_LIQUID = 1, C_POWDER = 2, C_CHUNK = 3, C_GAS = 4, C_FIRE = 5, C_FOAM = 6;
+
+// ---- Material IDs ----
+const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CHILI = 7,
+      CUMIN = 8, SODA = 9, ONION = 10, GARLIC = 11, CARROT = 12, CELERY = 13, TOMATO = 14,
+      MEAT = 15, HERB = 16, STEAM = 17, SMOKE = 18, FIRE = 19, FOAM = 20, ROUX = 21,
+      LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26;
+
+// name, class, density, conductivity, base colors [raw, cooked/browned]
+const MAT = [];
+function defMat(id, o) { MAT[id] = Object.assign({ id, cls: C_NONE, dens: 0, cond: 0.02,
+  col: [0,0,0], col2: null, leach: null, burnAt: 999 }, o); }
+
+defMat(EMPTY,   { name: 'air' });
+defMat(BROTH,   { name: 'broth',  cls: C_LIQUID, dens: 1.0,  cond: 0.22, col: [96, 150, 205] });
+defMat(OIL,     { name: 'oil',    cls: C_LIQUID, dens: 0.9,  cond: 0.16, col: [236, 196, 70] });
+defMat(EGG,     { name: 'egg',    cls: C_LIQUID, dens: 1.05, cond: 0.16, col: [250, 196, 52] });
+defMat(SALT,    { name: 'salt',   cls: C_POWDER, dens: 1.6,  cond: 0.08, col: [240, 240, 246], solu: flavorVec({ salty: 15 }) });
+defMat(SUGAR,   { name: 'sugar',  cls: C_POWDER, dens: 1.5,  cond: 0.08, col: [252, 246, 228], solu: flavorVec({ sweet: 20 }) });
+defMat(FLOUR,   { name: 'flour',  cls: C_POWDER, dens: 1.3,  cond: 0.06, col: [236, 226, 204] });
+defMat(CHILI,   { name: 'chili',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [208, 44, 30], col2: [90, 30, 20], burnAt: 200,
+                  solu: flavorVec({ heat: 18, aroma: 4, red: 3 }) });
+defMat(CUMIN,   { name: 'cumin',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [170, 116, 52], col2: [70, 44, 24], burnAt: 200,
+                  solu: flavorVec({ aroma: 16, bitter: 0.6, brown: 2 }) });
+defMat(SODA,    { name: 'baking soda', cls: C_POWDER, dens: 1.5, cond: 0.08, col: [226, 236, 244] });
+defMat(ONION,   { name: 'onion',  cls: C_CHUNK, dens: 1.06, cond: 0.1, col: [244, 236, 214], col2: [150, 82, 30], burnAt: 200,
+                  leach: flavorVec({ sweet: 0.05, aroma: 0.05 }), note: 'allium' });
+defMat(GARLIC,  { name: 'garlic', cls: C_CHUNK, dens: 1.08, cond: 0.1, col: [250, 246, 230], col2: [196, 150, 70], burnAt: 165,
+                  leach: flavorVec({ aroma: 0.15 }), note: 'allium' });
+defMat(CARROT,  { name: 'carrot', cls: C_CHUNK, dens: 1.1, cond: 0.1, col: [244, 128, 32], col2: [176, 74, 22], burnAt: 210,
+                  leach: flavorVec({ sweet: 0.06, gold: 0.05 }), note: 'earthy' });
+defMat(CELERY,  { name: 'celery', cls: C_CHUNK, dens: 1.04, cond: 0.1, col: [150, 210, 90], col2: [110, 120, 50], burnAt: 210,
+                  leach: flavorVec({ aroma: 0.05, salty: 0.01 }), note: 'herbal' });
+defMat(TOMATO,  { name: 'tomato', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [228, 50, 44], col2: [180, 40, 30], burnAt: 190 });
+defMat(MEAT,    { name: 'meat',   cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [206, 84, 96], col2: [120, 66, 38], burnAt: 240,
+                  leach: flavorVec({ umami: 0.06, rich: 0.05, brown: 0.04 }), note: 'toasty' });
+defMat(HERB,    { name: 'herbs',  cls: C_CHUNK, dens: 0.9, cond: 0.1, col: [70, 170, 70], col2: [90, 100, 50], burnAt: 170,
+                  leach: flavorVec({ aroma: 0.25 }), note: 'herbal' });
+defMat(STEAM,   { name: 'steam',  cls: C_GAS,  dens: 0,   cond: 0.05, col: [230, 240, 250] });
+defMat(SMOKE,   { name: 'smoke',  cls: C_GAS,  dens: 0,   cond: 0.03, col: [90, 86, 90] });
+defMat(FIRE,    { name: 'fire',   cls: C_FIRE, dens: 0,   cond: 0.2,  col: [255, 150, 30] });
+defMat(FOAM,    { name: 'foam',   cls: C_FOAM, dens: 0.4, cond: 0.05, col: [244, 248, 236] });
+defMat(ROUX,    { name: 'roux',   cls: C_CHUNK, dens: 1.1, cond: 0.1, col: [230, 200, 140], col2: [140, 80, 34], burnAt: 220 });
+defMat(LUMP,    { name: 'flour lump', cls: C_CHUNK, dens: 1.08, cond: 0.06, col: [226, 218, 196] });
+defMat(CURD,    { name: 'curd',   cls: C_POWDER, dens: 0.97, cond: 0.1, col: [250, 248, 236] });
+defMat(RIBBON,  { name: 'egg ribbon', cls: C_POWDER, dens: 0.98, cond: 0.1, col: [255, 230, 120] });
+defMat(SCRAMBLE,{ name: 'scrambled egg', cls: C_CHUNK, dens: 1.02, cond: 0.1, col: [246, 214, 90] });
+defMat(BURNT,   { name: 'burnt bits', cls: C_POWDER, dens: 1.2, cond: 0.1, col: [36, 26, 22] });
+
+// Global aroma notes the pot can develop.
+const NOTES = ['allium', 'toasty', 'caramel', 'herbal', 'earthy', 'spice', 'smoky', 'burnt', 'fermented'];
+
+// ---- Ingredient shelf ----
+// kind: how it's poured. icon: which art routine draws it.
+const SHELF = [
+  { id: 'water',   name: 'Water',       kind: 'liquid', mat: BROTH, rate: 12, icon: 'jug',    c: [110, 170, 230] },
+  { id: 'oil',     name: 'Oil',         kind: 'liquid', mat: OIL,   rate: 4, icon: 'bottle', c: [236, 196, 70] },
+  { id: 'milk',    name: 'Milk',        kind: 'liquid', mat: BROTH, rate: 5, icon: 'carton', c: [246, 246, 250],
+    flavor: flavorVec({ rich: 1.4, white: 3, sweet: 0.3, body: 0.3 }) },
+  { id: 'wine',    name: 'Wine',        kind: 'liquid', mat: BROTH, rate: 4, icon: 'bottle', c: [150, 30, 60],
+    flavor: flavorVec({ alcohol: 3, sour: 1.2, sweet: 0.8, red: 2, aroma: 1.5 }) },
+  { id: 'vinegar', name: 'Vinegar',     kind: 'liquid', mat: BROTH, rate: 3, icon: 'bottle', c: [230, 220, 170],
+    flavor: flavorVec({ sour: 5, aroma: 0.3 }) },
+  { id: 'soy',     name: 'Soy Sauce',   kind: 'liquid', mat: BROTH, rate: 3, icon: 'bottle', c: [60, 30, 20],
+    flavor: flavorVec({ salty: 6, umami: 3, brown: 4 }), note: 'fermented' },
+  { id: 'salt',    name: 'Salt',        kind: 'powder', mat: SALT,  rate: 2, icon: 'shaker', c: [240, 240, 246] },
+  { id: 'sugar',   name: 'Sugar',       kind: 'powder', mat: SUGAR, rate: 2, icon: 'bag',    c: [252, 246, 228] },
+  { id: 'flour',   name: 'Flour',       kind: 'powder', mat: FLOUR, rate: 3, icon: 'bag',    c: [236, 226, 204] },
+  { id: 'chili',   name: 'Chili Flakes',kind: 'powder', mat: CHILI, rate: 2, icon: 'jar',    c: [208, 44, 30] },
+  { id: 'cumin',   name: 'Cumin',       kind: 'powder', mat: CUMIN, rate: 2, icon: 'jar',    c: [170, 116, 52] },
+  { id: 'soda',    name: 'Baking Soda', kind: 'powder', mat: SODA,  rate: 3, icon: 'box',    c: [240, 120, 60] },
+  { id: 'onion',   name: 'Onion',       kind: 'chunk',  mat: ONION, rate: 1, icon: 'onion',  c: [210, 160, 90] },
+  { id: 'garlic',  name: 'Garlic',      kind: 'chunk',  mat: GARLIC,rate: 1, icon: 'garlic', c: [250, 246, 230] },
+  { id: 'carrot',  name: 'Carrot',      kind: 'chunk',  mat: CARROT,rate: 1, icon: 'carrot', c: [244, 128, 32] },
+  { id: 'celery',  name: 'Celery',      kind: 'chunk',  mat: CELERY,rate: 1, icon: 'celery', c: [150, 210, 90] },
+  { id: 'tomato',  name: 'Tomato',      kind: 'chunk',  mat: TOMATO,rate: 1, icon: 'tomato', c: [228, 50, 44] },
+  { id: 'meat',    name: 'Beef',        kind: 'chunk',  mat: MEAT,  rate: 1, icon: 'meat',   c: [206, 84, 96] },
+  { id: 'egg',     name: 'Egg',         kind: 'liquid', mat: EGG,   rate: 2, icon: 'egg',    c: [250, 246, 236] },
+  { id: 'herbs',   name: 'Fresh Herbs', kind: 'chunk',  mat: HERB,  rate: 1, icon: 'herb',   c: [70, 170, 70] },
+];
+
+// ---- Discoveries (journal) ----
+const DISCOVERIES = [
+  { id: 'dissolve',   name: 'Seasoning',      hint: 'Some powders vanish into water…', desc: 'Salt and sugar dissolve, faster when it\'s hot. Stir or it stays patchy!' },
+  { id: 'boil',       name: 'Rolling Boil',   hint: 'Turn it up.',                     desc: 'Water can\'t pass 100°C. Extra heat becomes steam: the soup reduces and concentrates.' },
+  { id: 'sweat',      name: 'Sweating',       hint: 'Onions + fat + gentle heat',      desc: 'Aromatics soften and release sweetness in warm fat.' },
+  { id: 'caramelize', name: 'Caramelization', hint: 'Patience with onions… no water.', desc: 'Browning only happens above 100°C, so never in water. Deep sweet, toasty flavor.' },
+  { id: 'burn',       name: 'Burnt!',         hint: 'Too hot, too long.',              desc: 'Bitter, smoky, sad. Garlic burns fastest.' },
+  { id: 'fond',       name: 'Fond',           hint: 'Meat on a hot, dry pot…',         desc: 'Seared meat leaves brown bits stuck to the pot. That\'s flavor.' },
+  { id: 'deglaze',    name: 'Deglaze',        hint: 'What lifts what\'s stuck?',       desc: 'Liquid hitting fond dissolves it into a burst of savory flavor.' },
+  { id: 'bloom',      name: 'Bloomed Spice',  hint: 'Spices love hot oil.',            desc: 'Spices toasted in fat smell 3x stronger. Heat travels in fat.' },
+  { id: 'roux',       name: 'Roux',           hint: 'Flour behaves better with a friend.', desc: 'Flour cooked in fat thickens soup smoothly.' },
+  { id: 'lumps',      name: 'Lumps',          hint: 'Flour straight into water?',      desc: 'Raw flour in hot liquid clumps. That\'s why roux exists.' },
+  { id: 'mirepoix',   name: 'Mirepoix',       hint: 'Three humble vegetables, together.', desc: 'Onion, carrot, celery sweated together: the foundation of a thousand soups.' },
+  { id: 'tomato',     name: 'Tomato Melt',    hint: 'Tomatoes in the heat…',           desc: 'Cooked tomato collapses into sweet, sour, savory sauce.' },
+  { id: 'eggdrop',    name: 'Egg Ribbons',    hint: 'A thin stream into a swirl.',     desc: 'Egg drizzled into simmering, stirred broth makes silky ribbons.' },
+  { id: 'scramble',   name: 'Scrambled',      hint: 'Same egg, different technique.',  desc: 'Dump egg into a still pot and it clumps.' },
+  { id: 'curdle',     name: 'Curdled',        hint: 'Dairy and acid don\'t like heat.', desc: 'Milk + acid + heat splits into curds. Add acid last, keep it gentle.' },
+  { id: 'fizz',       name: 'Volcano!',       hint: 'A white powder meets something sour.', desc: 'Baking soda + acid = foaming overflow.' },
+  { id: 'flambe',     name: 'Flambé',         hint: 'Wine… and fire…',                 desc: 'Alcohol burns off in a sheet of flame, leaving mellow sweetness.' },
+  { id: 'greasefire', name: 'Grease Fire',    hint: 'Oil has a limit.',                desc: 'Oil past its smoke point ignites. LID smothers it; water makes it WORSE.' },
+  { id: 'splatter',   name: 'Splatter',       hint: 'Water into very hot oil.',        desc: 'Water flashes to steam under oil and spits everywhere.' },
+  { id: 'thicken',    name: 'Thickened',      hint: 'Body comes from starch.',         desc: 'Roux dissolved in simmering liquid makes it thick and velvety.' },
+  { id: 'herbloss',   name: 'Wilted Herbs',   hint: 'When should herbs go in?',        desc: 'Fresh herb aroma cooks away fast. Add them at the end.' },
+];
