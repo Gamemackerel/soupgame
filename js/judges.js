@@ -14,11 +14,15 @@ const JUDGES = [
       if (a.deglazed) { tech += 0.3; good.push('You deglazed the fond. I can taste it. Très bien.'); }
       if (a.caramelized) { tech += 0.3; good.push('The onions are deeply caramelized. That takes discipline.'); }
       if (a.ribbons > 30) { tech += 0.2; good.push('Delicate egg ribbons. Precise technique.'); }
-      if (p.body > 0.25 && p.body < 0.7 && a.flaws.lumps < 0.2) { tech += 0.2; good.push('The texture is velvety. Well done.'); }
+      const plate = a.type === 'plate';
+      if (!plate && p.body > 0.25 && p.body < 0.7 && a.flaws.lumps < 0.2) { tech += 0.2; good.push('The texture is velvety. Well done.'); }
+      // A plate is judged on its sear and doneness instead of its broth.
+      if (plate && a.crust > 0.25 && a.flaws.burnt < 0.2) { tech += 0.4; good.push('A beautiful golden crust. Magnifique.'); }
+      if (plate && a.crust < 0.05 && a.doneness > 0.5) { tech -= 0.1; bad.push('No sear at all. Where is the color?'); }
       if (a.flaws.burnt > 0.2) bad.push('I taste carbon. A cook must watch the flame.');
       if (a.flaws.curdled > 0.2) bad.push('The dairy has split. Patience, always patience.');
       if (a.flaws.lumps > 0.2) bad.push('Lumps of raw flour. Did no one teach you a roux?');
-      if (a.flaws.greasy > 0.3) bad.push('An oil slick on top. Unacceptable.');
+      if (a.flaws.greasy > 0.3) bad.push(plate ? 'It is swimming in oil.' : 'An oil slick on top. Unacceptable.');
       if (a.flaws.raw > 0.4) bad.push('These vegetables are raw. Cook them!');
       if (a.flaws.gritty > 0.3) bad.push('Gritty! The seasoning never dissolved.');
       if (a.flaws.shell > 0.2 && !a.wholeEgg) bad.push('Crunchy eggshell. Disgraceful.');
@@ -26,10 +30,10 @@ const JUDGES = [
       if (a.fish && a.fishCooked > 90 && a.fishCooked < 170) good.push('The fish is just cooked through. Bravo.');
       if (p.salty < 0.22) bad.push('Under-seasoned. Salt is not optional.');
       if (p.salty > 0.82) bad.push('Over-salted. A cardinal sin.');
-      if (p.body < 0.08) bad.push('Thin as dishwater.');
-      const bal = Taste.score(p);
-      if (!good.length && bal > 0.6) good.push('A balanced bowl. Classic.');
-      const s = 10 * (0.6 * bal + 0.25 * Math.min(1, tech) + 0.15) - a.flawSum * 12;
+      if (!plate && p.body < 0.08) bad.push('Thin as dishwater.');
+      const bal = Taste.score(p, { plate });
+      if (!good.length && bal > 0.6) good.push(plate ? 'A balanced plate. Classic.' : 'A balanced bowl. Classic.');
+      const s = 10 * (0.6 * bal + 0.25 * Math.max(0, Math.min(1, tech)) + 0.15) - a.flawSum * 12;
       return { score: s, good, bad };
     },
   },
@@ -67,7 +71,8 @@ const JUDGES = [
       if (!warm) bad.push('Oh dear, it\'s gone stone cold.');
       else if (a.temp > 70) good.push('Nice and piping hot, just right.');
       if (p.rich > 0.35) good.push('Rich and cozy, like a hug.');
-      if (a.chunkiness > 0.25) good.push('Lovely hearty bits in here.');
+      if (a.type === 'plate') good.push('A proper plate of food. How lovely.');
+      else if (a.chunkiness > 0.25) good.push('Lovely hearty bits in here.');
       else if (a.chunkiness < 0.05) bad.push('A bit thin for me. Where\'s the good stuff?');
       if (p.heat > 0.5) bad.push('Oh my! Too spicy for this old tongue.');
       if (p.sour > 0.5) bad.push('Goodness, that\'s sour!');
@@ -77,7 +82,7 @@ const JUDGES = [
       if (a.wholeEgg) (a.eggPieces > 10 ? good : bad).push(a.eggPieces > 10 ? 'A whole boiled egg, shell and all! How... rustic.' : 'There is a raw egg in here. Still in its shell.');
       const gentle = 1 - Math.max(0, p.heat - 0.35) * 2 - Math.max(0, p.sour - 0.35) * 2;
       const s = 10 * (0.25 * warm + 0.25 * Math.min(1, p.rich * 1.8) + 0.2 * Math.min(1, a.chunkiness * 3) +
-                      0.15 * Math.max(0, gentle) + 0.15 * Taste.score(p)) - a.flawSum * 6;
+                      0.15 * Math.max(0, gentle) + 0.15 * Taste.score(p, { plate: a.type === 'plate' })) - a.flawSum * 6;
       return { score: s, good, bad };
     },
   },
@@ -89,8 +94,9 @@ const Judging = {
   start() {
     this.analysis = Taste.analyzeBowl();
     const a = this.analysis;
+    if (typeof Plating !== 'undefined' && typeof document !== 'undefined') Plating.build(a);
     this.results = JUDGES.map((j) => {
-      if (a.empty) return { score: 1, line: pick(['...Where is the soup?', 'You served me an empty bowl.', 'Is this a joke?']) };
+      if (a.empty) return { score: 1, line: pick(['...Where is the food?', 'You served me an empty plate.', 'Is this a joke?']) };
       const r = j.evaluate(a);
       const score = Math.max(1, Math.min(10, Math.round(r.score)));
       // Lead with praise or criticism depending on how it went.
@@ -160,7 +166,8 @@ const Judging = {
     if (this.phase === 'walk') bx = -30 + Math.min(1, this.t / 60) * 190;
     else if (this.phase === 'taste' || this.phase === 'speak') bx = JUDGES[this.k].x;
     if (this.phase === 'walk') bob = Math.round(Math.abs(Math.sin(this.t * 0.3)) * -2);
-    drawBowl(g, bx, 140 + bob, a);
+    if (Plating.plate) Plating.draw(g, bx, 138 + bob, this.t);
+    else drawBowl(g, bx, 140 + bob, a);
 
     // Score cards for judges who have spoken.
     for (let n = 0; n < 3; n++) {

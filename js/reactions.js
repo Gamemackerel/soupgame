@@ -80,6 +80,8 @@ function deglaze(S, x, i, o, fl, t) {
 
 // Water flashing to steam under hot oil: droplets fly, oil jumps, and a burning pot flares up.
 function splatter(S, x, y, i, j) {
+  // The water flashes off, but what was dissolved in it stays behind as a glaze.
+  S.glaze(i, x, y);
   S.setCell(i, STEAM, 120);
   for (let k = 0; k < 3; k++) {
     S.particle({ x: GX + x, y: GY + y, vx: (rnd() - 0.5) * 3, vy: -2 - rnd() * 2.5,
@@ -300,13 +302,20 @@ function reactChunk(S, x, y, i, m) {
       if (m === HERB && c >= 40) { /* wilted herbs have nothing left */ }
       else {
         const browned = c >= 150 ? 2 : 1;
-        S.addFlavor(j, M.leach, browned * LEACH_K);
+        if (S.mat[j] === OIL) {
+          // Fat pulls out aromatics, but barely any of the water-soluble savoriness.
+          const o = j * NF;
+          for (let k = 0; k < NF; k++) S.fl[o + k] += M.leach[k] * browned * LEACH_K * (k === F_AROMA ? 0.3 : 0.03);
+        } else S.addFlavor(j, M.leach, browned * LEACH_K);
         if (browned > 1) { S.fl[j * NF + F_BROWN] += 0.05; S.fl[j * NF + F_SWEET] += 0.04; }
         S.life[i] -= 1;
         if (M.note) S.addNote(M.note, 0.0008);
       }
     }
   }
+
+  // Sizzling on a hot pan perfumes the kitchen even with no liquid to carry it.
+  if (M.note && t > 100 && !pieceWet && rnd() < 0.02) S.addNote(M.note, 0.002);
 
   // Cooking progression.
   if (pieceWet && t > 85) {
@@ -315,7 +324,7 @@ function reactChunk(S, x, y, i, m) {
   } else if (pieceOily && t > 90 && t <= 125) {
     if (c < 120 && rnd() < 0.3) c++;                // sweating in fat
   } else if (!pieceWet && t > 120) {
-    if (c < 255 && rnd() < (t - 110) / 60) c++;     // browning (only when dry)
+    if (c < 255 && rnd() < (t - 110) / 60 * (M.brownRate || 0.25)) c++;   // browning (only when dry)
   }
   if (m === HERB && c >= 40 && S.cook[i] < 40) S.discover('herbloss');
   if (c >= 80 && S.cook[i] < 80 && pieceOily && m !== MEAT && m !== HERB) S.discover('sweat');

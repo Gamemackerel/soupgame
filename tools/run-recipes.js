@@ -239,6 +239,7 @@ for (const r of chosen) {
     const p = out.analysis.p;
     console.log('   taste  ' + Object.entries(p).map(([k, v]) => `${k} ${v.toFixed(2)}`).join('  '));
     console.log('   notes  ' + (out.analysis.notes.join(', ') || '-') + '   discovered: ' + out.discovered.join(', '));
+    console.log('   dish   ' + out.analysis.type + '  ' + JSON.stringify(out.analysis.debug));
     console.log('   mix    ' + Object.entries(out.mix).map(([k, v]) => `${k} ${typeof v === 'number' ? +v.toFixed(2) : v}`).join('  '));
     out.judges.forEach((j, n) => console.log(`   judge${n} ${j.score}: ${j.line}`));
     if (SNAP) console.log('   snapshots: ' + path.relative(ROOT, path.join(__dirname, 'out', r.id)));

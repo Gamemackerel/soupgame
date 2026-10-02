@@ -46,7 +46,7 @@ defMat(CHILI,   { name: 'chili',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [2
 defMat(CUMIN,   { name: 'cumin',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [170, 116, 52], col2: [70, 44, 24], burnAt: 200,
                   solu: flavorVec({ aroma: 16, bitter: 0.6, brown: 2 }) });
 defMat(SODA,    { name: 'baking soda', cls: C_POWDER, dens: 1.5, cond: 0.08, col: [226, 236, 244] });
-defMat(ONION,   { name: 'onion',  cls: C_CHUNK, dens: 1.06, cond: 0.1, col: [244, 236, 214], col2: [150, 82, 30], burnAt: 200,
+defMat(ONION,   { brownRate: 0.2, name: 'onion',  cls: C_CHUNK, dens: 1.06, cond: 0.1, col: [244, 236, 214], col2: [150, 82, 30], burnAt: 200,
                   leach: flavorVec({ sweet: 0.05, aroma: 0.05 }), note: 'allium' });
 defMat(GARLIC,  { name: 'garlic', cls: C_CHUNK, dens: 1.08, cond: 0.1, col: [250, 246, 230], col2: [196, 150, 70], burnAt: 165,
                   leach: flavorVec({ aroma: 0.15 }), note: 'allium' });
@@ -55,7 +55,7 @@ defMat(CARROT,  { name: 'carrot', cls: C_CHUNK, dens: 1.1, cond: 0.1, col: [244,
 defMat(CELERY,  { name: 'celery', cls: C_CHUNK, dens: 1.04, cond: 0.1, col: [150, 210, 90], col2: [110, 120, 50], burnAt: 210,
                   leach: flavorVec({ aroma: 0.05, salty: 0.01 }), note: 'herbal' });
 defMat(TOMATO,  { name: 'tomato', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [228, 50, 44], col2: [180, 40, 30], burnAt: 190 });
-defMat(MEAT,    { name: 'meat',   cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [206, 84, 96], col2: [120, 66, 38], burnAt: 240,
+defMat(MEAT,    { brownRate: 0.15, name: 'meat',   cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [206, 84, 96], col2: [120, 66, 38], burnAt: 240,
                   leach: flavorVec({ umami: 0.06, rich: 0.05, brown: 0.04 }), note: 'toasty' });
 defMat(HERB,    { name: 'herbs',  cls: C_CHUNK, dens: 0.9, cond: 0.1, col: [70, 170, 70], col2: [90, 100, 50], burnAt: 170,
                   leach: flavorVec({ aroma: 0.25 }), note: 'herbal' });
@@ -74,13 +74,38 @@ defMat(YOLK,    { name: 'yolk', cls: C_CHUNK, dens: 1.04, cond: 0.14, col: [255,
 defMat(WHITE_COOKED, { name: 'cooked egg white', cls: C_CHUNK, dens: 1.02, cond: 0.12, col: [252, 252, 246], col2: [200, 150, 80], burnAt: 200 });
 defMat(YOLK_COOKED,  { name: 'cooked yolk', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [250, 210, 96], col2: [190, 140, 60], burnAt: 200 });
 defMat(SHELL,   { name: 'eggshell', cls: C_CHUNK, dens: 1.3, cond: 0.08, col: [238, 222, 192] });
-defMat(FISH,    { name: 'fish', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [150, 172, 196], burnAt: 220,
+defMat(FISH,    { brownRate: 0.15, name: 'fish', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [150, 172, 196], burnAt: 220,
                   stops: [[0, [150, 172, 196]], [110, [236, 230, 220]], [190, [196, 136, 70]], [255, [40, 28, 22]]],
                   leach: flavorVec({ umami: 0.07, rich: 0.05, aroma: 0.03 }), note: 'oceanic' });
-defMat(FISHFIN, { name: 'fish fin', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [104, 126, 160], burnAt: 200,
+defMat(FISHFIN, { brownRate: 0.15, name: 'fish fin', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [104, 126, 160], burnAt: 200,
                   stops: [[0, [104, 126, 160]], [110, [176, 172, 168]], [190, [150, 96, 46]], [255, [30, 22, 18]]] });
 defMat(FISHEYE, { name: 'fish eye', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [24, 24, 34],
                   stops: [[0, [24, 24, 34]], [110, [230, 230, 220]], [255, [60, 50, 40]]] });
+
+// What a solid tastes like when you bite it (before cooking adjustments in Taste.eatFlavor).
+// Powders sitting on dry food are seasoning: a few grains spread over a plate.
+const EAT = [];
+EAT[ONION] = flavorVec({ sweet: 0.35, aroma: 0.3, umami: 0.05 });
+EAT[GARLIC] = flavorVec({ aroma: 0.8, sweet: 0.05 });
+EAT[CARROT] = flavorVec({ sweet: 0.4, aroma: 0.1 });
+EAT[CELERY] = flavorVec({ aroma: 0.25, salty: 0.05 });
+EAT[TOMATO] = flavorVec({ sour: 0.45, umami: 0.4, sweet: 0.2 });
+EAT[MEAT] = flavorVec({ umami: 0.7, rich: 0.5, aroma: 0.15 });
+EAT[FISH] = flavorVec({ umami: 0.6, rich: 0.35, aroma: 0.15 });
+EAT[FISHFIN] = flavorVec({ umami: 0.3, rich: 0.15 });
+EAT[HERB] = flavorVec({ aroma: 0.7 });
+EAT[EGG] = flavorVec({ rich: 0.25 });
+EAT[YOLK] = flavorVec({ rich: 0.5 });
+EAT[WHITE_COOKED] = flavorVec({ rich: 0.2, umami: 0.15 });
+EAT[YOLK_COOKED] = flavorVec({ rich: 0.6, umami: 0.2 });
+EAT[SCRAMBLE] = flavorVec({ rich: 0.35, umami: 0.15 });
+EAT[RIBBON] = flavorVec({ rich: 0.25, umami: 0.1 });
+EAT[ROUX] = flavorVec({ rich: 0.4, body: 0.3 });
+EAT[LUMP] = flavorVec({ bitter: 0.2, body: 0.3 });
+EAT[CURD] = flavorVec({ rich: 0.4, sour: 0.1 });
+EAT[FLOUR] = flavorVec({ bitter: 0.1, body: 0.2 });
+EAT[SODA] = flavorVec({ bitter: 2 });
+for (const m of [SALT, SUGAR, CHILI, CUMIN]) EAT[m] = MAT[m].solu;   // a grain is just as salty dissolved or not
 
 // Global aroma notes the pot can develop.
 const NOTES = ['allium', 'toasty', 'caramel', 'herbal', 'earthy', 'spice', 'smoky', 'burnt', 'fermented', 'oceanic'];

@@ -463,7 +463,7 @@ Sim.rotateBody = function (b, cells, sh, step, cx, cy) {
   if (targets.size < cells.length * 0.75) return false;
   // Remember each part's state (cook level, temperature…) so it survives the move.
   const state = new Map();
-  for (const i of cells) state.set(bodyPart[i], [mat[i], temp[i], cook[i], life[i], shade[i]]);
+  for (const i of cells) state.set(bodyPart[i], [mat[i], temp[i], cook[i], life[i], shade[i], this.fl.slice(i * NF, i * NF + NF)]);
   const any = state.values().next().value;
   const vacated = cells.filter((i) => !targets.has(i));
   for (const j of targets.keys()) {
@@ -474,8 +474,9 @@ Sim.rotateBody = function (b, cells, sh, step, cx, cy) {
   for (const v of vacated) this.setCell(v, EMPTY);
   for (const [j, p] of targets) {
     // A part hidden by the last raster comes back as itself (an eye stays an eye), warmed like its neighbours.
-    const st = state.get(p) || [sh.mats[p], any[1], any[2], any[3], any[4]];
+    const st = state.get(p) || [sh.mats[p], any[1], any[2], any[3], any[4], null];
     mat[j] = st[0]; temp[j] = st[1]; cook[j] = st[2]; life[j] = st[3]; shade[j] = st[4];
+    if (st[5]) this.fl.set(st[5], j * NF); else this.fl.fill(0, j * NF, j * NF + NF);
     body[j] = b; bodyPart[j] = p; this.stamp[j] = this.tag;
   }
   sh.count = targets.size;
@@ -775,14 +776,23 @@ Sim.heatPass = function () {
 };
 
 Sim.makeBubble = function (i, x, y) {
-  // Hand this cell's flavor to a liquid neighbour so boiling concentrates the soup.
+  // Hand this cell's flavor to a liquid neighbour so boiling concentrates the soup;
+  // the last of the liquid boiling away leaves it as a glaze on the food instead.
   const j = this.findNb(x, y, (m) => m === BROTH);
   if (j >= 0) {
     const a = i * NF, b = j * NF;
     for (let k = 0; k < NF; k++) this.fl[b + k] += this.fl[a + k] * (k === F_AROMA ? 0.97 : k === F_ALCOHOL ? 0.8 : 1);
-  }
+  } else this.glaze(i, x, y);
   this.setCell(i, STEAM, 100);
   this.bubbles++;
+};
+
+// Leave a cell's dissolved flavor on whatever food or oil it touches (sauce reducing onto meat).
+Sim.glaze = function (i, x, y) {
+  const j = this.findNb(x, y, (m) => CLS[m] === C_CHUNK || m === OIL);
+  if (j < 0) return;
+  const a = i * NF, b = j * NF;
+  for (let k = 0; k < NF; k++) if (k !== F_ALCOHOL) this.fl[b + k] += this.fl[a + k];
 };
 
 // ---------------- Diffusion ----------------

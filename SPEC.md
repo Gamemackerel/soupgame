@@ -473,7 +473,24 @@ When you're done cooking, press **SERVE**. The chef ladles a bowl and carries it
   - Seared on a hot, dry pot, its skin goes **crispy**.
   - It adds umami, richness and an `oceanic` note.
 
-## 13. Backlog (noted for later)
+## 13. Plating and Non-Soup Judging (implemented)
 
-- **Plated presentation at judging.** When you serve, show a plated version of everything that went into the dish: pieces, garnishes, a whole fish, eggs and so on, not just a tinted bowl of liquid. Base it on what's actually in the pot.
-- **Judge non-soup dishes.** Serving should work even with no water or liquid in the pot (a seared fish, fried eggs, sautéed onions). The judges should evaluate whatever is in front of them on its own terms (texture, browning, seasoning on the surface) instead of treating it as "an empty bowl". This replaces the current `empty` check (fewer than 200 broth cells) and the "side dish judged as soup" gaps in `test-recipes`.
+- **Plated presentation.** At serve time, every piece in the pot is captured with its real shape and cooked color (`js/plating.js`).
+  - **Soups and stews:** the pieces float in a bowl over the broth's actual average color, half-submerged.
+  - **Dry dishes:** the pieces are piled on a flat plate over any oil sheen or pan sauce.
+  - Loose bits (ribbons, seasoning grains, shell) are scattered as specks.
+- **Judging any dish.** `Taste.analyzeBowl` tastes every edible cell, not just the broth:
+  - **Pieces** carry their own flavor (`EAT` in `materials.js`), adjusted for browning or rawness and for how much they've already leached into the broth.
+  - **Glaze:** a sauce that reduces or splatters onto food leaves its flavor there.
+  - **Weighting:** pieces count 4× as much as a broth cell.
+  - **Seasoning:** a grain of salt counts as fully salty whether or not it dissolved.
+  - **Dish types:** `soup`, `stew`, `plate` or `empty`.
+  - **Plates** are judged on sear (crust) and doneness instead of body. They can carry more oil before reading greasy, and salt on a plate is seasoning, not grit.
+- **Supporting chemistry:**
+  - Fat extracts aromatics but little umami or salt.
+  - Browning speed is set per ingredient: meat and fish sear slowly, so there's a real window between seared and overcooked.
+  - Anything sizzling on a hot pan releases its aroma note.
+
+## 14. Backlog
+
+- **Tune frying amounts for plates.** Oil pours about 280 cells in 1.5 s, which drowns a small plate. A 0.2 s salt pinch (about 24 grains) over-salts a 150-cell plate. Options: a slower oil bottle and a smaller shaker pinch, or rescaling the `frying.json` amounts. 12 of the 16 fry recipes currently fail, mostly on greasy, rich or salty targets.

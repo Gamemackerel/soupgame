@@ -63,13 +63,14 @@ Taste.topNotes = function (n = 3) {
 // Generic deliciousness 0..1 with a breakdown.
 Taste.score = function (p, extra = {}) {
   let bal = 0;
-  for (const k of TASTE_AXES) {
+  const axes = extra.plate ? TASTE_AXES.filter((k) => k !== 'body') : TASTE_AXES;
+  for (const k of axes) {
     const [ideal, tol] = IDEAL[k];
     let d = Math.abs(p[k] - ideal) - tol;
     if (k === 'umami' && p[k] > ideal) d = 0;  // more savory is rarely bad
     bal += 1 - Math.max(0, Math.min(1, d / 0.4));
   }
-  bal /= TASTE_AXES.length;
+  bal /= axes.length;
   const notes = Object.values(Sim.notes).filter((v) => v > 0.05).length;
   const complexity = Math.min(1, notes / 5) - Math.max(0, notes - 8) * 0.1;
   const flaws = extra.flaws || 0;
@@ -101,34 +102,83 @@ Taste.sip = function (gx, gy) {
   return { p, score: Taste.score(p), line: Taste.feedback(p), notes: Taste.topNotes(), temp: g.temp };
 };
 
-// Whole-pot analysis for serving to the judges.
+// What one solid cell tastes like: base flavor, adjusted for how it's been cooked
+// and how much it has already given up to the broth.
+// A cell of food is more food than a cell of broth: pieces weigh this much in the bite average.
+const SOLID_WEIGHT = 4;
+
+// Adds what one solid cell tastes like (base flavor adjusted for cooking and for what it has
+// already given to the broth, plus any glaze on it). Returns its weight in the average, or 0.
+Taste.eatFlavor = function (i, out) {
+  const S = Sim, m = S.mat[i], base = EAT[m];
+  if (!base) return 0;
+  const grain = CLS[m] === C_POWDER, w = grain ? 1 : SOLID_WEIGHT;
+  const c = S.cook[i], meaty = m === MEAT || m === FISH || m === FISHFIN;
+  const spent = CLS[m] === C_CHUNK && MAT[m].leach ? 0.4 + 0.6 * S.life[i] / 255 : 1;
+  for (let k = 0; k < NF; k++) out[k] += (grain ? base[k] : base[k] * spent * w) + S.fl[i * NF + k];
+  if (c >= 150 && c < 215 && !grain) {   // browned: Maillard depth and sweetness
+    out[F_UMAMI] += (base[F_UMAMI] * 0.4 + 0.1) * w; out[F_SWEET] += base[F_SWEET] * 0.5 * w;
+    out[F_AROMA] += 0.3 * w; out[F_BROWN] += 0.3 * w;
+  } else if (c >= 215 && !grain && CLS[m] === C_CHUNK) {   // past a sear: dry and charred
+    out[F_BITTER] += 0.25 * w; out[F_AROMA] += 0.1 * w;
+  } else if (meaty && c < 30) {          // raw meat/fish tastes of little
+    out[F_UMAMI] -= base[F_UMAMI] * 0.5 * spent * w;
+  }
+  return w;
+};
+
+// Whole-pot analysis for serving to the judges: tastes every edible thing, not just the broth,
+// and works out what kind of dish it is.
 Taste.analyzeBowl = function () {
   const S = Sim, g = Taste.gather(0, 0, 0);
-  const counts = {}, cooked = {};
-  let total = 0;
+  const counts = {}, cooked = {}, bite = new Float32Array(NF);
+  let total = 0, edible = 0, weight = 0, temp = 0, solidCells = 0, crust = 0, done = 0, oilHeat = 0;
   for (let i = 0; i < N; i++) {
     const m = S.mat[i];
-    if (m === EMPTY || CLS[m] === C_GAS || m === FIRE) continue;
+    if (m === EMPTY || CLS[m] === C_GAS || m === FIRE || m === FOAM) continue;
     total++;
     counts[m] = (counts[m] || 0) + 1;
     cooked[m] = (cooked[m] || 0) + S.cook[i];
+    const o = i * NF;
+    let w = 1;
+    if (m === BROTH) { for (let k = 0; k < NF; k++) bite[k] += S.fl[o + k]; }
+    else if (m === OIL) {
+      // Oil carries whatever reduced into it (a pan sauce); its aroma and chili heat come through too.
+      for (let k = 0; k < NF; k++) if (k !== F_HEAT) bite[k] += S.fl[o + k] * (k === F_AROMA ? 0.5 : 1);
+      oilHeat += S.fl[o + F_HEAT];
+    }
+    else if ((w = Taste.eatFlavor(i, bite))) {
+      solidCells++;
+      if (CLS[m] === C_CHUNK) { const c = S.cook[i]; if (c >= 140 && c < 215) crust++; if (c >= 60) done++; }
+    } else if (m !== SHELL && m !== BURNT && m !== FISHEYE) continue;
+    else w = 1;
+    edible++;
+    if (m !== OIL) weight += w;
+    temp += S.temp[i];
   }
   const avgCook = (m) => counts[m] ? cooked[m] / counts[m] : 0;
-  const solids = total - g.broth - g.oil;
+  const nonOil = Math.max(1, weight);
+  for (let k = 0; k < NF; k++) bite[k] /= nonOil;
+  const brothShare = g.broth / Math.max(1, edible);
+  const type = edible < 25 ? 'empty' : g.broth >= 400 && brothShare >= 0.55 ? 'soup' : g.broth >= 150 && brothShare >= 0.25 ? 'stew' : 'plate';
+  const plate = type === 'plate';
+
   const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO, FISH];
   let chunks = 0, raw = 0;
   for (const m of chunkMats) {
     chunks += counts[m] || 0;
     if (counts[m] && avgCook(m) < 30 && m !== HERB) raw += counts[m];
   }
-  const burnt = counts[BURNT] || 0;
-  const burntFrac = burnt / Math.max(1, total);
-  const p = Taste.perceive(g, burntFrac);
-  // Undissolved powder in the bowl is gritty.
-  const grit = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[FLOUR] || 0) + (counts[SODA] || 0);
-  // Raw egg white left in the bowl is as bad as raw veg.
-  raw += counts[EGG] || 0;   // raw white is a flaw; a runny yolk is fine
-  chunks += (counts[EGG] || 0) + (counts[YOLK] || 0) + (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0);
+  const burntFrac = (counts[BURNT] || 0) / Math.max(1, total);
+  const p = Taste.perceive({ raw: bite, broth: nonOil, oil: g.oil, oilHeat: oilHeat / Math.max(1, edible) }, burntFrac);
+  if (plate) p.body = 0;
+  // Undissolved powder is gritty in a soup; on a plate, salt and spice are just seasoning.
+  const seasoning = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[CHILI] || 0) + (counts[CUMIN] || 0);
+  const grit = (counts[FLOUR] || 0) + (counts[SODA] || 0) + (plate ? Math.max(0, seasoning - edible * 0.25) : (counts[SALT] || 0) + (counts[SUGAR] || 0));
+  // Raw egg white left in the bowl is as bad as raw veg (a runny yolk is fine).
+  raw += counts[EGG] || 0;
+  chunks += (counts[EGG] || 0) + (counts[YOLK] || 0) + (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0) + (counts[FISHFIN] || 0);
+  const oilShare = g.oil / Math.max(1, edible);
   const flaws = {
     burnt: Math.min(1, burntFrac * 20),
     curdled: Math.min(1, (counts[CURD] || 0) / 40),
@@ -136,17 +186,21 @@ Taste.analyzeBowl = function () {
     scrambled: Math.min(1, (counts[SCRAMBLE] || 0) / 40),
     raw: Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0)),
     gritty: Math.min(1, grit / 60),
-    greasy: Math.min(1, Math.max(0, g.oil / Math.max(1, g.broth + g.oil) - 0.12) * 5),
+    // A plate can carry some oil; a soup with an oil slick is greasy much sooner.
+    greasy: Math.min(1, Math.max(0, oilShare - (plate ? 0.35 : 0.12)) * (plate ? 3 : 5)),
     shell: Math.min(1, (counts[SHELL] || 0) / 10),
   };
   const flawSum = flaws.burnt * 0.3 + flaws.curdled * 0.2 + flaws.lumps * 0.15 + flaws.scrambled * 0.1 +
                   flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2;
   return {
-    empty: g.broth < 200,
+    type, empty: type === 'empty',
+    debug: { edible, broth: g.broth, oil: g.oil, solids: solidCells, rawSalty: +bite[F_SALTY].toFixed(2), rawSweet: +bite[F_SWEET].toFixed(2), rawUmami: +bite[F_UMAMI].toFixed(2) },
     volume: g.broth + g.oil,
-    p, temp: g.temp,
+    p, temp: temp / Math.max(1, edible),
     notes: Taste.topNotes(4),
-    chunkiness: Math.min(1, chunks / Math.max(1, total) * 4),
+    chunkiness: plate ? 1 : Math.min(1, chunks / Math.max(1, total) * 4),
+    crust: crust / Math.max(1, solidCells),
+    doneness: done / Math.max(1, solidCells),
     ribbons: counts[RIBBON] || 0,
     eggPieces: (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0),
     wholeEgg: (counts[SHELL] || 0) >= 12,
@@ -157,7 +211,7 @@ Taste.analyzeBowl = function () {
     deglazed: (S.flags.deglazed || 0) > 1,
     discoveries: S.discovered.size,
     flaws, flawSum,
-    score: Taste.score(p, { flaws: flawSum }),
-    solids,
+    score: Taste.score(p, { flaws: flawSum, plate }),
+    solids: solidCells,
   };
 };

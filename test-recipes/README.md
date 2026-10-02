@@ -117,4 +117,4 @@ node tools/run-recipes.js all --seed=2                        # everything, diff
 
 **Iteration loop:** run one recipe with `--verbose --snap` → look at the failing checks and snapshots → change the sim → re-run with seeds 1–3.
 
-Recipes that pass so far: `s06` `s08` `s66` `s67` `s68` `f08` `f16` `x11`.
+Recipes that pass so far: `s06` `s08` `s66` `s67` `s68` `f05` `f07` `f08` `f16` `x02` `x03` `x04` `x05` `x11`.

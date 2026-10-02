@@ -165,7 +165,20 @@ function loop() {
 Sim.reset();
 Chef.select(SHELF[0]);
 // Dev: #demo pre-cooks a pot; #judge also jumps to judging.
-if (/^#(demo|judge|speak|verdict|eggs)/.test(location.hash)) {
+if (location.hash === '#plate') {
+  // Dev: a dry dish (seared beef, fish, fried egg) served on a plate.
+  const ing = (id) => SHELF.find((s) => s.id === id);
+  for (let f = 0; f < 24; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }
+  Sim.dial = 7; for (let f = 0; f < 900; f++) Sim.step();
+  for (let k = 0; k < 8; k++) { Sim.pour(ing('meat'), 40 + k * 10, 1); for (let f = 0; f < 8; f++) Sim.step(); }
+  Sim.throwFish(110); Sim.dropCrackedEgg(50); for (let f = 0; f < 60; f++) Sim.step();
+  Sim.pour(ing('garlic'), 70, 1); Sim.pour(ing('herbs'), 90, 1);
+  for (let f = 0; f < 1800; f++) Sim.step();
+  for (let f = 0; f < 6; f++) { Sim.pour(ing('soy'), 76, 3); Sim.step(); }
+  for (let f = 0; f < 300; f++) Sim.step();
+  Sim.events.length = 0;
+  Judging.start(); Judging.k = 3; Judging.next('done');
+} else if (/^#(demo|judge|speak|verdict|eggs)/.test(location.hash)) {
   const ing = (id) => SHELF.find((s) => s.id === id);
   for (let f = 0; f < 60; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }
   for (let f = 0; f < 160; f++) { if (f % 8 === 0) Sim.pour(ing('onion'), 30 + (f * 3) % 90, 1); if (f % 8 === 4) Sim.pour(ing('carrot'), 50 + (f * 5) % 70, 1); Sim.step(); }
