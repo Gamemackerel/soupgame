@@ -45,7 +45,8 @@ Taste.perceive = function (g, burntFrac = 0, plate = false) {
     bitter: n('bitter', Math.max(0, r[F_BITTER] + burntFrac * 12 - salty * 0.15)),   // salt takes the edge off char too
     umami: n('umami', r[F_UMAMI] * (1 + salty * 0.5)),
     rich: n('rich', r[F_RICH] + oilFrac * 2.5),
-    heat: n('heat', r[F_HEAT] * 0.5 + g.oilHeat * 1.2 - r[F_SWEET] * 0.1),
+    // Water's poor capsaicin extraction is modeled when chili dissolves, so heat in broth counts in full here.
+    heat: n('heat', (r[F_HEAT] + g.oilHeat * 1.2) * (1 - Math.min(0.4, r[F_SWEET] * 0.3))),   // sweetness softens heat
     aroma: n('aroma', r[F_AROMA] * (1 + sour * 0.6)),
     body: n('body', r[F_BODY]),
   };

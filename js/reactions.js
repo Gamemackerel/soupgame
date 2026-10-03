@@ -7,7 +7,7 @@ const isLiquid = (m) => CLS[m] === C_LIQUID;
 const isEmpty = (m) => m === EMPTY;
 const isFire = (m) => m === FIRE;
 
-const TOMATO_MELT = flavorVec({ sour: 5, umami: 7, red: 10, sweet: 0.8, body: 1.5 });
+const TOMATO_MELT = flavorVec({ sour: 2, umami: 5, red: 10, sweet: 0.5, body: 1.5 });
 const LEACH_K = 2; // how strongly chunks flavor the soup
 const BURNT_TASTE = flavorVec({ bitter: 2.5, brown: 1.5 });   // a little char goes a long way
 
@@ -74,7 +74,7 @@ function reactBroth(S, x, y, i) {
 // Liquid on the fond at the bottom lifts it into the broth.
 function deglaze(S, x, i, o, fl, t) {
   const f = S.fond[x];
-  fl[o + F_UMAMI] += f * 2.5; fl[o + F_BROWN] += f * 3; fl[o + F_AROMA] += f * 2; fl[o + F_RICH] += f * 0.5;
+  fl[o + F_UMAMI] += f * 1.5; fl[o + F_BROWN] += f * 3; fl[o + F_AROMA] += f * 2; fl[o + F_RICH] += f * 0.5;
   S.fond[x] = 0;
   S.addNote('toasty', f * 0.15);
   S.flags.deglazed = (S.flags.deglazed || 0) + f;
@@ -253,7 +253,7 @@ function reactSpice(S, x, y, i, m) {
 
 function reactRoux(S, x, y, i) {
   const t = S.temp[i];
-  if (t > 110 && S.cook[i] < 255 && rnd() < 0.3) S.cook[i]++;
+  if (t > 110 && S.cook[i] < 255 && rnd() < 0.025 * (t - 100) / 20) S.cook[i]++;   // blond in about a minute, brown takes minutes
   if (t > MAT[ROUX].burnAt && rnd() < 0.01) { burn(S, x, y, i); return true; }
   const j = S.findNb(x, y, isBroth);
   if (j >= 0 && S.temp[j] > 70 && rnd() < 0.03 * (S.stirT[i] ? 3 : 1)) {
@@ -264,7 +264,7 @@ function reactRoux(S, x, y, i) {
     S.fl[o + F_AROMA] += c * 0.8;
     if (c > 0.3) S.addNote('toasty', 0.003);
     S.flags.thick = (S.flags.thick || 0) + 1;
-    if (S.flags.thick > 40) S.discover('thicken');
+    if (S.flags.thick > 25) S.discover('thicken');
     S.setCell(i, EMPTY);
     return true;
   }
@@ -332,7 +332,8 @@ function reactChunk(S, x, y, i, m) {
     if (j >= 0) {
       if (m === HERB && c >= 120) { /* fully wilted herbs have nothing left */ }
       else {
-        const browned = c >= 150 ? 2 : 1;
+        // Release slows as the piece gives up its flavor (proportional to what's left in it).
+        const browned = (c >= 150 ? 2 : 1) * (S.life[i] / 255);
         const intoOil = S.mat[j] === OIL;
         if (intoOil) {
           // Fat pulls out aromatics, but barely any of the water-soluble savoriness.
@@ -340,7 +341,7 @@ function reactChunk(S, x, y, i, m) {
           for (let k = 0; k < NF; k++) S.fl[o + k] += M.leach[k] * browned * LEACH_K * (k === F_AROMA ? 0.3 : 0.03);
         } else S.addFlavor(j, M.leach, browned * LEACH_K);
         // Browned food gives up the good stuff: sweetness, savoriness and roasty aroma.
-        if (browned > 1) { const o = j * NF; S.fl[o + F_BROWN] += 0.05; S.fl[o + F_SWEET] += 0.025; S.fl[o + F_UMAMI] += 0.02; S.fl[o + F_AROMA] += 0.04; }
+        if (c >= 150) { const o = j * NF, left = S.life[i] / 255; S.fl[o + F_BROWN] += 0.05 * left; S.fl[o + F_SWEET] += 0.025 * left; S.fl[o + F_UMAMI] += 0.02 * left; S.fl[o + F_AROMA] += 0.04 * left; }
         if (!intoOil || rnd() < 0.2) S.life[i] -= 1;   // frying barely depletes it: the flavor waits for the broth
         if (M.note) S.addNote(M.note, 0.0008);
       }
@@ -351,7 +352,8 @@ function reactChunk(S, x, y, i, m) {
   if (M.note && t > 100 && !pieceWet && rnd() < 0.02) S.addNote(M.note, 0.002);
 
   // Cooking progression.
-  if (m === HERB && t > 65 && c < 255 && rnd() < (t - 60) / 120) c++;   // herbs wilt from ~65°C, faster the hotter it is
+  // Herbs wilt from ~65°C over tens of seconds; an actively bubbling simmer finishes them off ~4× faster.
+  if (m === HERB && t > 65 && c < 255 && rnd() < (t - 60) / 600 * (pieceWet && S.turb > 0.1 ? 4 : 1)) c++;
   if (pieceWet && t > 85) {
     if (c < 110 && rnd() < 0.15) c++;               // simmered soft
   } else if (pieceOily && t > 75 && t <= 125 && c < 120) {

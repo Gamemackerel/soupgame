@@ -58,3 +58,45 @@ Hard failures are mostly taste-range targets written before the dough, heat and 
 Passing pairs that confirm earlier fixes: roux dose → body, reduction → body and umami, milk dose → richness, oil dose on a plate → greasy, chili dose → heat (and Nanny's dislike of a fiery bowl), onion count → sweetness, browned vs sweated carrots, soy dose → umami and salt, sugar masking sourness.
 
 **Still open (recipe suite: 38 pass, 41 warn, 31 fail).** The oil-dose pairs show the chemistry and judging respond correctly to oil, so the remaining "greasy / too rich" recipe failures (7 / 6) are mostly **recipe amounts**: the fry and cream recipes pour more oil than they mean to, at the faster pour rate. That's the next tuning pass on the recipes themselves.
+
+## Round 3: recipe pass and calibration (2026-10-03)
+
+Going from 31 to a handful of hard failures meant fixing all three layers. Each fix was checked against the 47 pairs (all still pass on seeds 1–3).
+
+**Recipes (technique and amounts):**
+- **Fry recipes** use a film of oil (0.3–0.7 s), not a pool. Confit and chili oil keep theirs, since oil is the point.
+- **Roux recipes** preheat the fat before the flour goes in. With cold fat only about a quarter of the flour became roux; the rest made dough or stayed dry. They also use a realistic amount of flour (about 1:20 flour to liquid, up from 1:40).
+- **The velouté** makes its roux in the sweated vegetables' fat before the stock goes in, instead of in a corner of a full pot.
+- **Spices** poured onto a pile of meat and onions get stirred into the fat. Otherwise they never touch it and never bloom.
+- **Small fixes:** less salt in the gazpacho; a stir before tasting the boiled herbs; the bisque cools a little before its milk; less oil in the soft scramble.
+
+**Chemistry:**
+- **Leaching is proportional to what's left in the piece.** A piece used to release flavor at a constant rate until it ran out, so over a long cook it gave up far more than it contained. This was the shared root of the "too sweet" (onions, carrots), "too rich" and "too savory" (beef) failures. The rate is now multiplied by the fraction of the piece's flavor reserve remaining (its `life`).
+- **Roux browns in minutes, not seconds.** It was dark within 15 s, and a dark roux thickens about half as much.
+- **Herbs wilt over tens of seconds,** faster the hotter it is, so herbs stirred into a just-off-the-heat soup stay mostly fresh.
+- **Ingredient flavors:**
+  - Tomato is less tart, sweet and savory.
+  - Beef releases less fat and umami, and its deglazed fond gives less umami.
+  - Wine, celery and cooked onion and carrot are a little milder.
+
+**Analysis (perception):**
+- **Heat isn't discounted twice.** Water's poor capsaicin extraction now happens when chili dissolves, so perception counts broth heat in full; it used to halve it again.
+- **Sweetness softens heat proportionally,** instead of subtracting a fixed amount that could erase mild heat entirely.
+
+**Targets that were simply wrong (widened, with reasons in the recipe):**
+- Leaner fries are less rich.
+- Stews made with a dark roux thicken less.
+- Fried food that isn't drained is greasy (there's no slotted spoon yet).
+- Scrambled eggs are rich.
+- Sauces made from cooked-down tomato are fairly tart.
+- Shakshuka is spicy.
+- A garlic-heavy sopa de ajo is very aromatic.
+- Carrot and celery soup is sweet.
+
+**Herbs, one more time:** slower wilting broke p27, because simmered herbs then stayed fresh too long. The missing piece was agitation: an actively bubbling simmer wilts herbs about 4× faster than hot liquid off the boil. Both herb pairs pass again (late herbs keep 0.62 herbal vs 0.26 simmered).
+
+**Result:**
+- **Recipe suite:** 37 pass, 73 warn, **0 fail** (from 31 fails at the start of this round).
+- **Comparison pairs:** 47/47 pass on seeds 1–3.
+
+The WARNs are near misses against the original design-guess ranges and are worth a look when tuning a particular dish, but nothing in the suite is wildly off.

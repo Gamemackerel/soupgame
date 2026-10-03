@@ -15,7 +15,7 @@
 
 {"id": "p08-egg-drop-stir-vs-still", "why": "Drizzling egg into stirred broth makes ribbons; dropping it in still water makes a poached lump.", "a": "s08-egg-drop", "b": {"from": "s08-egg-drop", "name": "Same, not stirred", "replace": {"crack egg 2 +stir": "crack egg 2"}}, "events": {"a": ["eggdrop"]}, "claims": [{"metric": "count.egg_ribbon", "op": ">"}]},
 
-{"id": "p09-roux-vs-no-roux", "why": "A roux should thicken the bisque.", "a": "s15-tomato-bisque", "b": {"from": "s15-tomato-bisque", "name": "Same, no flour", "remove": ["pour flour 1s"]}, "events": {"a": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
+{"id": "p09-roux-vs-no-roux", "why": "A roux should thicken the bisque.", "a": "s15-tomato-bisque", "b": {"from": "s15-tomato-bisque", "name": "Same, no flour", "remove": ["pour flour 2s"]}, "events": {"a": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
 
 {"id": "p10-lumps-hot-vs-cold", "why": "Flour dumped into hot water lumps; stirred into cold water it disperses.", "a": "x06-flour-lumps", "b": {"from": "x06-flour-lumps", "name": "Flour stirred into cold water", "remove": ["heat 7", "wait 40s"], "replace": {"pour flour 1.5s": "pour flour 1.5s +stir"}}, "events": {"a": ["lumps"]}, "claims": [{"metric": "flaw.lumps", "op": ">"}]},
 
@@ -63,11 +63,11 @@
 
 {"id": "p32-flatbread-vs-pancake-texture", "why": "A wet batter makes a softer, moister bake than a stiff dough.", "a": "b01-pancakes", "b": "b02-flatbread", "claims": [{"metric": "bake.water", "op": ">"}]},
 
-{"id": "p33-roux-dose", "why": "More roux, thicker soup.", "a": {"from": "s15-tomato-bisque", "name": "Bisque, lots of roux", "replace": {"pour flour 1s": "pour flour 2s", "pour oil 1.5s": "pour oil 2.5s"}}, "b": {"from": "s15-tomato-bisque", "name": "Bisque, a little roux", "replace": {"pour flour 1s": "pour flour 0.4s"}}, "events": {"a": ["roux"], "b": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
+{"id": "p33-roux-dose", "why": "More roux, thicker soup.", "a": {"from": "s15-tomato-bisque", "name": "Bisque, lots of roux", "replace": {"pour flour 2s": "pour flour 3.5s", "pour oil 1.5s": "pour oil 2.5s"}}, "b": {"from": "s15-tomato-bisque", "name": "Bisque, a little roux", "replace": {"pour flour 2s": "pour flour 0.6s"}}, "events": {"a": ["roux"], "b": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
 
 {"id": "p34-reduced-sauce-vs-watered-soup", "why": "Tomatoes cooked down with no water make a thicker, more concentrated sauce than the same tomatoes in water.", "a": "f11-tomato-sauce", "b": "s11-tomato-soup", "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "raw.umami", "op": ">"}]},
 
-{"id": "p35-stew-roux-vs-none", "why": "The roux is what makes a stew thick.", "a": "s47-thick-beef-stew", "b": {"from": "s47-thick-beef-stew", "name": "Same, no flour", "remove": ["pour flour 0.8s"]}, "events": {"a": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
+{"id": "p35-stew-roux-vs-none", "why": "The roux is what makes a stew thick.", "a": "s47-thick-beef-stew", "b": {"from": "s47-thick-beef-stew", "name": "Same, no flour", "remove": ["pour flour 1.6s"]}, "events": {"a": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
 
 {"id": "p36-cold-slurry-thickens", "why": "Flour whisked into cold water disperses and thickens the liquid once it's hot.", "a": {"name": "Flour slurry, then simmered", "steps": ["pour water 10s", "pour flour 0.8s +stir", "stir 4s", "heat 6", "wait 40s", "stir 2s", "serve"]}, "b": {"name": "Plain water, simmered", "steps": ["pour water 10s", "heat 6", "wait 40s", "serve"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "flaw.lumps", "op": "<=", "why": "stirred into cold water, it shouldn't lump"}]},
 

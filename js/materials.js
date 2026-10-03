@@ -56,10 +56,10 @@ defMat(GARLIC,  { name: 'garlic', cls: C_CHUNK, dens: 1.08, cond: 0.1, col: [250
 defMat(CARROT,  { name: 'carrot', cls: C_CHUNK, dens: 1.1, cond: 0.1, col: [244, 128, 32], col2: [176, 74, 22], burnAt: 210,
                   leach: flavorVec({ sweet: 0.017, gold: 0.05 }), note: 'earthy' });
 defMat(CELERY,  { name: 'celery', cls: C_CHUNK, dens: 1.04, cond: 0.1, col: [150, 210, 90], col2: [110, 120, 50], burnAt: 210,
-                  leach: flavorVec({ aroma: 0.05, salty: 0.01 }), note: 'herbal' });
+                  leach: flavorVec({ aroma: 0.02, salty: 0.01 }), note: 'herbal' });
 defMat(TOMATO,  { name: 'tomato', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [228, 50, 44], col2: [180, 40, 30], burnAt: 190 });
 defMat(MEAT,    { brownRate: 0.15, name: 'meat',   cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [206, 84, 96], col2: [120, 66, 38], burnAt: 240,
-                  leach: flavorVec({ umami: 0.06, rich: 0.03, brown: 0.04, aroma: 0.01 }), note: 'toasty' });
+                  leach: flavorVec({ umami: 0.04, rich: 0.012, brown: 0.04, aroma: 0.01 }), note: 'toasty' });
 defMat(HERB,    { name: 'herbs',  cls: C_CHUNK, dens: 0.9, cond: 0.1, col: [70, 170, 70], col2: [90, 100, 50], burnAt: 170,
                   leach: flavorVec({ aroma: 0.25 }), note: 'herbal' });
 defMat(STEAM,   { name: 'steam',  cls: C_GAS,  dens: 0,   cond: 0.05, col: [230, 240, 250] });
@@ -97,12 +97,12 @@ defMat(FISHEYE, { name: 'fish eye', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [
 // What a solid tastes like when you bite it (before cooking adjustments in Taste.eatFlavor).
 // Powders sitting on dry food are seasoning: a few grains spread over a plate.
 const EAT = [];
-EAT[ONION] = flavorVec({ sweet: 0.35, aroma: 0.3, umami: 0.05 });
+EAT[ONION] = flavorVec({ sweet: 0.25, aroma: 0.3, umami: 0.05 });
 EAT[GARLIC] = flavorVec({ aroma: 0.8, sweet: 0.05 });
-EAT[CARROT] = flavorVec({ sweet: 0.4, aroma: 0.1 });
+EAT[CARROT] = flavorVec({ sweet: 0.3, aroma: 0.1 });
 EAT[CELERY] = flavorVec({ aroma: 0.25, salty: 0.05 });
 EAT[TOMATO] = flavorVec({ sour: 0.45, umami: 0.4, sweet: 0.2 });
-EAT[MEAT] = flavorVec({ umami: 0.7, rich: 0.5, aroma: 0.15 });
+EAT[MEAT] = flavorVec({ umami: 0.6, rich: 0.35, aroma: 0.15 });
 EAT[FISH] = flavorVec({ umami: 0.6, rich: 0.35, aroma: 0.15 });
 EAT[FISHFIN] = flavorVec({ umami: 0.3, rich: 0.15 });
 EAT[HERB] = flavorVec({ aroma: 2.0 });   // fresh herbs are intensely aromatic per bite
@@ -134,7 +134,7 @@ const SHELF = [
   { id: 'milk',    name: 'Milk',        kind: 'liquid', mat: BROTH, rate: 5, icon: 'carton', c: [246, 246, 250],
     flavor: flavorVec({ rich: 1.4, white: 3, sweet: 0.3, body: 0.3 }) },
   { id: 'wine',    name: 'Wine',        kind: 'liquid', mat: BROTH, rate: 4, icon: 'bottle', c: [150, 30, 60],
-    flavor: flavorVec({ alcohol: 3, sour: 1.2, sweet: 0.8, red: 2, aroma: 1.5 }) },
+    flavor: flavorVec({ alcohol: 3, sour: 1.2, sweet: 0.4, red: 2, aroma: 1.5 }) },
   { id: 'vinegar', name: 'Vinegar',     kind: 'liquid', mat: BROTH, rate: 3, icon: 'bottle', c: [230, 220, 170],
     flavor: flavorVec({ sour: 5, aroma: 0.3 }) },
   { id: 'soy',     name: 'Soy Sauce',   kind: 'liquid', mat: BROTH, rate: 3, icon: 'bottle', c: [60, 30, 20],
