@@ -1,7 +1,7 @@
 // Probe egg and fish behavior in a few scenarios; prints outcomes and writes PNGs with --snap.
 //   node tools/probe-eggs.js [--snap]
 const fs = require('fs'), vm = require('vm'), path = require('path'), zlib = require('zlib');
-const src = ['materials', 'sim', 'reactions', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
+const src = ['materials', 'sim', 'reactions', 'dough', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
 const SNAP = process.argv.includes('--snap');
 
 function world() {

@@ -8,10 +8,12 @@ const GX = 84, GY = 112;      // grid origin on screen
 // ---- Flavor dimensions (per liquid cell) ----
 const F_SALTY = 0, F_SWEET = 1, F_SOUR = 2, F_BITTER = 3, F_UMAMI = 4, F_RICH = 5,
       F_HEAT = 6, F_AROMA = 7, F_BODY = 8, F_RED = 9, F_BROWN = 10, F_WHITE = 11,
-      F_ALCOHOL = 12, F_GOLD = 13;
-const NF = 14;
+      F_ALCOHOL = 12, F_GOLD = 13,
+      // Dough composition (only meaningful in dough/bread cells): water, egg, leavening, gluten, unreacted soda.
+      F_WATER = 14, F_EGG = 15, F_LEAVEN = 16, F_GLUTEN = 17, F_SODA = 18;
+const NF = 19;
 const FLAVOR_KEYS = ['salty','sweet','sour','bitter','umami','rich','heat','aroma',
-                     'body','red','brown','white','alcohol','gold'];
+                     'body','red','brown','white','alcohol','gold','water','egg','leaven','gluten','soda'];
 
 function flavorVec(obj) {
   const v = new Float32Array(NF);
@@ -28,7 +30,7 @@ const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CH
       MEAT = 15, HERB = 16, STEAM = 17, SMOKE = 18, FIRE = 19, FOAM = 20, ROUX = 21,
       LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26,
       YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33,
-      EXTPOWDER = 34;
+      EXTPOWDER = 34, DOUGH = 35, BREAD = 36, BAKEPOWDER = 37;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -82,6 +84,13 @@ defMat(FISHFIN, { brownRate: 0.15, name: 'fish fin', cls: C_CHUNK, dens: 1.05, c
                   stops: [[0, [104, 126, 160]], [110, [176, 172, 168]], [190, [150, 96, 46]], [255, [30, 22, 18]]] });
 defMat(EXTPOWDER, { name: 'extinguisher powder', cls: C_POWDER, dens: 0.95, cond: 0.05, col: [246, 246, 250],
                     solu: flavorVec({ bitter: 1.5, salty: 0.3 }) });
+// Dough: flour that has soaked up liquid. How it behaves depends on its water (F_WATER, per flour):
+// crumbly < 0.35 < dough < 0.9 < sticky < 1.6 < batter < 4 (then it thins into the soup).
+defMat(DOUGH,   { name: 'dough', cls: C_CHUNK, dens: 1.2, cond: 0.1, col: [240, 226, 196] });
+// Baked: set dough. Color runs pale crumb → golden → brown crust → burnt with cook.
+defMat(BREAD,   { name: 'baked dough', cls: C_CHUNK, dens: 0.9, cond: 0.08, col: [246, 230, 190], burnAt: 235, brownRate: 0.05,
+                  stops: [[0, [246, 230, 190]], [100, [240, 220, 170]], [150, [222, 168, 96]], [195, [168, 100, 46]], [255, [52, 36, 26]]] });
+defMat(BAKEPOWDER, { name: 'baking powder', cls: C_POWDER, dens: 1.4, cond: 0.08, col: [250, 250, 244] });
 defMat(FISHEYE, { name: 'fish eye', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [24, 24, 34],
                   stops: [[0, [24, 24, 34]], [110, [230, 230, 220]], [255, [60, 50, 40]]] });
 
@@ -107,6 +116,9 @@ EAT[ROUX] = flavorVec({ rich: 0.4, body: 0.3 });
 EAT[LUMP] = flavorVec({ bitter: 0.2, body: 0.3 });
 EAT[CURD] = flavorVec({ rich: 0.4, sour: 0.1 });
 EAT[FLOUR] = flavorVec({ bitter: 0.1, body: 0.2 });
+EAT[DOUGH] = flavorVec({ bitter: 0.12, body: 0.3 });        // raw dough: pasty, floury
+EAT[BREAD] = flavorVec({ aroma: 0.15, sweet: 0.05, body: 0.3 });
+EAT[BAKEPOWDER] = flavorVec({ bitter: 1.5, salty: 0.5 });
 EAT[SODA] = flavorVec({ bitter: 2 });
 EAT[EXTPOWDER] = flavorVec({ bitter: 3 });
 for (const m of [SALT, SUGAR, CHILI, CUMIN]) EAT[m] = MAT[m].solu;   // a grain is just as salty dissolved or not
@@ -133,6 +145,7 @@ const SHELF = [
   { id: 'chili',   name: 'Chili Flakes',kind: 'powder', mat: CHILI, rate: 2, icon: 'jar',    c: [208, 44, 30] },
   { id: 'cumin',   name: 'Cumin',       kind: 'powder', mat: CUMIN, rate: 2, icon: 'jar',    c: [170, 116, 52] },
   { id: 'soda',    name: 'Baking Soda', kind: 'powder', mat: SODA,  rate: 3, icon: 'box',    c: [240, 120, 60] },
+  { id: 'powder',  name: 'Baking Powder', kind: 'powder', mat: BAKEPOWDER, rate: 3, icon: 'box', c: [90, 140, 220] },
   { id: 'onion',   name: 'Onion',       kind: 'chunk',  mat: ONION, rate: 1, icon: 'onion',  c: [210, 160, 90] },
   { id: 'garlic',  name: 'Garlic',      kind: 'chunk',  mat: GARLIC,rate: 1, icon: 'garlic', c: [250, 246, 230] },
   { id: 'carrot',  name: 'Carrot',      kind: 'chunk',  mat: CARROT,rate: 1, icon: 'carrot', c: [244, 128, 32] },
@@ -175,5 +188,15 @@ const DISCOVERIES = [
   { id: 'flake',      name: 'Flaky Fish',     hint: 'Fish needs only a gentle poach.', desc: 'Poached fish turns opaque and falls apart into tender flakes.' },
   { id: 'crispyskin', name: 'Crispy Skin',    hint: 'Fish on a hot, dry pan.',          desc: 'Fish skin browns and crisps when it is seared without water.' },
   { id: 'extinguish', name: "Fire's Out!",    hint: 'Every kitchen needs a red cylinder.', desc: 'The extinguisher smothers and cools a fire. Your dish will taste of chemicals.' },
+  { id: 'saturated',  name: 'Saturated',      hint: 'Can water hold endless salt?',     desc: 'Water can only dissolve so much. Past that, salt and sugar settle out as gritty sediment.' },
+  { id: 'dough',      name: 'Dough!',         hint: 'Flour and a little liquid…',      desc: 'Flour soaks up liquid and holds together. More flour stiffens it, more liquid loosens it.' },
+  { id: 'batter',     name: 'Batter',         hint: 'Dough, but much wetter.',          desc: 'With lots of liquid, dough becomes a pourable batter: pancakes, crêpes, cake.' },
+  { id: 'knead',      name: 'Kneading',       hint: 'Work the dough.',                  desc: 'Stirring dough builds gluten: stretchy structure that traps gas and makes bread chewy.' },
+  { id: 'rise',       name: 'It Rises!',      hint: 'Something in the dough makes gas.', desc: 'Baking powder (or soda + acid) releases gas in the heat. Strong dough holds it and puffs up.' },
+  { id: 'baked',      name: 'Fresh Bake',     hint: 'Heat sets dough.',                 desc: 'Hot dough sets into a baked good. Underbaked middles stay gummy.' },
+  { id: 'crust',      name: 'Golden Crust',   hint: 'Dry heat on the outside.',         desc: 'Dough baking against hot, dry metal browns into a crust.' },
+  { id: 'potoven',    name: 'Pot Oven',       hint: 'Trap the heat around it.',         desc: 'With the lid on, the air in the pot gets hot: dough bakes from all sides, like a Dutch oven.' },
+  { id: 'dumpling',   name: 'Dumplings',      hint: 'Dough in boiling water.',          desc: 'Dough cooked in simmering liquid sets soft and pale: dumplings.' },
+  { id: 'soapy',      name: 'Soapy',          hint: 'Soda needs a partner.',            desc: 'Baking soda without any acid barely rises and tastes soapy. Add vinegar or sour milk.' },
   { id: 'herbloss',   name: 'Wilted Herbs',   hint: 'When should herbs go in?',        desc: 'Fresh herb aroma cooks away fast. Add them at the end.' },
 ];

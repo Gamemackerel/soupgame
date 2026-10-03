@@ -23,7 +23,7 @@ function makeGame(seed) {
   let s = seed >>> 0;
   const rand = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const math = Object.create(Math); math.random = rand;
-  const files = ['materials', 'sim', 'reactions', 'taste', 'judges'];
+  const files = ['materials', 'sim', 'reactions', 'dough', 'taste', 'judges'];
   const src = files.map((f) => fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8')).join('\n;\n');
   // Compile the game as one function in this context (a vm sandbox makes every global lookup ~10x slower).
   const body = src + '\n;return { Sim, SHELF, Taste, JUDGES, Judging, MAT, CLS, GW, GH, N, NF, F_SALTY, BROTH, OIL, C_LIQUID, C_CHUNK, C_POWDER, C_GAS, EMPTY, DISCOVERIES };';
@@ -198,6 +198,15 @@ function check(recipe, G, log) {
     const has = v > 0.2;
     if (want || has) res.push({ ok: want === has, what: `flaw ${f}`, detail: `${v.toFixed(2)}${want ? ' (expected)' : ' (unexpected)'}` });
   }
+  if (e.bake) {
+    const b = a.bake;
+    if (!b) res.push({ ok: false, what: 'bake', detail: 'nothing baked' });
+    else {
+      if (e.bake.kind) res.push({ ok: [].concat(e.bake.kind).includes(b.kind), what: 'bake kind', detail: `${b.kind} (want ${e.bake.kind})` });
+      if (e.bake.rise) res.push({ ok: inRange(b.rise, e.bake.rise), what: 'bake rise', detail: `x${b.rise.toFixed(2)} (want ${e.bake.rise[0]}–${e.bake.rise[1]})` });
+      if (e.bake.doneness) res.push({ ok: b.doneness >= e.bake.doneness, what: 'bake doneness', detail: `${b.doneness.toFixed(2)} (want ≥ ${e.bake.doneness})` });
+    }
+  }
   const allowed = e.verdict.split('-');
   res.push({ ok: allowed.includes(verdict), what: 'verdict', detail: `${verdict} avg ${G.Judging.avg.toFixed(1)} [${G.Judging.results.map((r) => r.score).join(', ')}] (want ${e.verdict})` });
   return { res, analysis: a, discovered: got, judges: G.Judging.results };
@@ -242,6 +251,7 @@ for (const r of chosen) {
     console.log('   taste  ' + Object.entries(p).map(([k, v]) => `${k} ${v.toFixed(2)}`).join('  '));
     console.log('   notes  ' + (out.analysis.notes.join(', ') || '-') + '   discovered: ' + out.discovered.join(', '));
     console.log('   dish   ' + out.analysis.type + '  ' + JSON.stringify(out.analysis.debug));
+    if (out.analysis.bake) console.log('   bake   ' + JSON.stringify(out.analysis.bake, (k, v) => typeof v === 'number' ? +v.toFixed(2) : v));
     console.log('   mix    ' + Object.entries(out.mix).map(([k, v]) => `${k} ${typeof v === 'number' ? +v.toFixed(2) : v}`).join('  '));
     out.judges.forEach((j, n) => console.log(`   judge${n} ${j.score}: ${j.line}`));
     if (SNAP) console.log('   snapshots: ' + path.relative(ROOT, path.join(__dirname, 'out', r.id)));

@@ -1,7 +1,7 @@
 // Probe a rolling boil and overflow: do pieces get carried around, does a brim-full pot spill?
 //   node tools/probe-boil.js
 const fs = require('fs'), vm = require('vm'), path = require('path');
-const src = ['materials', 'sim', 'reactions', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
+const src = ['materials', 'sim', 'reactions', 'dough', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
 const ctx = { console };
 vm.runInNewContext(src + '\n;this.G={Sim,SHELF,GW,GH,N,BROTH};', ctx);
 const { Sim, SHELF, GW, GH, N, BROTH } = ctx.G;

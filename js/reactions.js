@@ -19,13 +19,14 @@ Sim.react = function (x, y, i, m) {
     case SALT: case SUGAR: return reactSeasoning(this, x, y, i, m);
     case EXTPOWDER: return reactExtinguisher(this, x, y, i);
     case CHILI: case CUMIN: return reactSpice(this, x, y, i, m);
-    case FLOUR: return reactFlour(this, x, y, i);
+    case FLOUR: return reactFlourDough(this, x, y, i);
+    case DOUGH: return reactDough(this, x, y, i);
     case ROUX: return reactRoux(this, x, y, i);
     case LUMP: return reactLump(this, x, y, i);
     case SODA: return reactSoda(this, x, y, i);
     case TOMATO: return reactChunk(this, x, y, i, m) || reactTomato(this, x, y, i);
     case ONION: case GARLIC: case CARROT: case CELERY: case MEAT: case HERB:
-    case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED:
+    case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED: case BREAD:
       return reactChunk(this, x, y, i, m);
   }
   return false;
@@ -192,10 +193,16 @@ function reactExtinguisher(S, x, y, i) {
   return false;
 }
 
+// How much salt or sugar one cell of water can hold before it won't take any more.
+const SATURATION = { [SALT]: [F_SALTY, 15], [SUGAR]: [F_SWEET, 25] };
+
 function reactSeasoning(S, x, y, i, m) {
   const j = S.findNb(x, y, isBroth);
   if (j >= 0) {
-    if (rnd() < 0.02 * (1 + S.temp[j] / 40) * (S.stirT[i] ? 3 : 1)) {
+    // Dissolving slows as the water nearby gets concentrated, and stops when it's saturated.
+    const [dim, cap] = SATURATION[m], room = 1 - S.fl[j * NF + dim] / cap;
+    if (room <= 0) { if (rnd() < 0.01 && S.frame > 60) S.discover('saturated'); return false; }
+    if (rnd() < 0.02 * room * (1 + S.temp[j] / 40) * (S.stirT[i] ? 3 : 1)) {
       S.addFlavor(j, MAT[m].solu);
       S.setCell(i, EMPTY);
       S.discover('dissolve');
@@ -236,24 +243,6 @@ function reactSpice(S, x, y, i, m) {
       S.setCell(i, EMPTY);
       return true;
     }
-  }
-  return false;
-}
-
-function reactFlour(S, x, y, i) {
-  if (S.findNb(x, y, isOil) >= 0 && S.temp[i] > 80 && rnd() < 0.05) {
-    S.setCell(i, ROUX, S.temp[i]); S.discover('roux'); return true;
-  }
-  const j = S.findNb(x, y, isBroth);
-  if (j >= 0 && rnd() < 0.03) {
-    if (S.temp[j] > 60 && !S.stirT[i]) {
-      S.setCell(i, LUMP, S.temp[j]); S.discover('lumps');
-    } else {
-      // Cold or well-stirred: disperses as a slurry.
-      S.fl[j * NF + F_BODY] += 0.8; S.fl[j * NF + F_BITTER] += 0.03;
-      S.setCell(i, EMPTY);
-    }
-    return true;
   }
   return false;
 }
@@ -358,14 +347,15 @@ function reactChunk(S, x, y, i, m) {
     if (m === HERB && c < 255 && rnd() < 0.3) c++;  // herbs wilt in heat
   } else if (pieceOily && t > 90 && t <= 125) {
     if (c < 120 && rnd() < 0.3) c++;                // sweating in fat
-  } else if (!pieceWet && t > 120) {
-    if (c < 255 && rnd() < (t - 110) / 60 * (M.brownRate || 0.25)) c++;   // browning (only when dry)
+  } else if (!pieceWet && t > 120 && !(m === BREAD && insideLoaf(S, x, y))) {
+    if (c < 255 && rnd() < (t - 110) / 60 * (M.brownRate || 0.25)) c++;   // browning (only when dry; bread only on its crust)
   }
   if (m === HERB && c >= 40 && S.cook[i] < 40) S.discover('herbloss');
   if (c >= 80 && S.cook[i] < 80 && pieceOily && m !== MEAT && m !== HERB) S.discover('sweat');
   if (c >= 150 && S.cook[i] < 150) {
     if (m === ONION) { S.discover('caramelize'); S.addNote('caramel', 0.03); }
     else if (m === FISH || m === FISHFIN) { S.discover('crispyskin'); S.addNote('toasty', 0.02); }
+    else if (m === BREAD) { S.discover('crust'); S.addNote('toasty', 0.02); }
     else S.addNote('toasty', 0.02);
   }
   S.cook[i] = c;
@@ -383,6 +373,13 @@ function reactChunk(S, x, y, i, m) {
     S.cook[i] = Math.max(c, 200);
   }
   return false;
+}
+
+// A baked cell surrounded by more loaf on all sides is crumb, not crust: it doesn't brown.
+function insideLoaf(S, x, y) {
+  const i = y * GW + x, m = S.mat;
+  const c = (j) => m[j] === BREAD || m[j] === DOUGH;
+  return y > 0 && y < GH - 1 && x > 0 && x < GW - 1 && c(i - GW) && c(i + GW) && c(i - 1) && c(i + 1);
 }
 
 function reactTomato(S, x, y, i) {
@@ -456,6 +453,8 @@ Sim.render = function (data) {
       } else {
         c[0] = M.col[0]; c[1] = M.col[1]; c[2] = M.col[2];
         const k = cook[i];
+        if (m === DOUGH) doughColor(this, i, c);
+        if (m === BREAD && (shade[i] & 15) < 3 && k < 170) { c[0] *= 0.82; c[1] *= 0.8; c[2] *= 0.76; }   // crumb with air pockets
         if (M.alpha) a = M.alpha;
         if (M.stops) {
           const st = M.stops;

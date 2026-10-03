@@ -494,3 +494,32 @@ When you're done cooking, press **SERVE**. The chef ladles a bowl and carries it
 ## 14. Backlog
 
 - **Tune frying amounts for plates.** Oil pours about 280 cells in 1.5 s, which drowns a small plate. A 0.2 s salt pinch (about 24 grains) over-salts a 150-cell plate. Options: a slower oil bottle and a smaller shaker pinch, or rescaling the `frying.json` amounts. 12 of the 16 fry recipes currently fail, mostly on greasy, rich or salty targets.
+
+## 15. Dough, Baking and Saturation (implemented, `js/dough.js`)
+
+- **Saturation.** A cell of water holds only so much salt (about 15) or sugar (about 25). Dissolving slows as nearby water concentrates, and past saturation the grains settle out as sediment ("Saturated" discovery).
+- **Flour doesn't dissolve, it hydrates.** A flour grain touching any liquid (water, milk, wine, soy, vinegar, raw egg, soured-milk curds) becomes a **dough** cell. The dough takes the liquid's dissolved flavors with it and uses up the liquid as it soaks it in. Dry flour pulls water from wetter dough, so adding flour stiffens it. Cold oil rubbed into flour makes a crumbly shortcrust.
+- **Dough composition** lives in each cell: `F_WATER`, `F_EGG`, `F_LEAVEN`, `F_GLUTEN`, `F_SODA`, plus salt, sugar, fat and so on. Neighboring dough evens out its make-up, much faster while stirred. Its texture comes from water per flour:
+
+| Water per flour | Texture | How it moves |
+|---|---|---|
+| < 0.35 | Crumbly | Trickles like sand |
+| 0.35–0.9 | Dough | Sticks together and slowly slumps into a mound |
+| 0.9–1.6 | Sticky | Slumps faster |
+| 1.6–4 | Batter | Pours and spreads |
+| > 4 | Too thin | Melts into the soup as a thickener |
+
+- **Absorbing more:** dough takes in more liquid, oil (fat), egg (water, structure, yolk fat), salt and sugar. Salt is ~10x stronger than sugar by weight. Shaped dough soaks up water only slowly, and in hot liquid it forms a skin, so dumplings hold together.
+- **Kneading:** stirring dough builds gluten.
+- **Leavening:**
+  - Baking powder releases gas with heat.
+  - Baking soda needs acid in the dough (vinegar, soured milk) to make gas. Heated without acid, it breaks down into a little lift and a soapy taste ("Soapy").
+  - Gas pushes the dough up and outward. How much it holds depends on gluten and egg; thin batter lets it escape. The gas is conserved, not duplicated.
+- **Baking:**
+  - Dough over 90°C sets into **BREAD**, and connected cells join into one solid piece.
+  - Only the outer surface browns into a crust; the inside stays pale crumb with air pockets.
+  - **Pot oven:** with the lid on, the air in the pot reaches about 85% of the pot's temperature, so dough bakes from all sides.
+  - Dough set in simmering liquid becomes **dumplings**: pale, soft and puffy.
+- **Judging bakes:** dishes that are mostly dough or bread get the `baked` type, with a report covering rise, doneness, crust, burnt bottom, texture (water), sweetness, richness, egg, gluten and leftover soda. Each bake is named by its make-up and cooking method: bread, flatbread, cake, cookie, pancake, crêpe or dumplings. Each judge has their own take on it, and bakes are served on a plate.
+- **New pantry item:** Baking Powder.
+- **New discoveries:** Saturated, Dough!, Batter, Kneading, It Rises!, Fresh Bake, Golden Crust, Pot Oven, Dumplings, Soapy.

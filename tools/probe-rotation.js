@@ -1,7 +1,7 @@
 // Probe piece rotation: a fish and veg pieces in a dry pot get smacked, then dropped in soup and swirled.
 //   node tools/probe-rotation.js [--snap]   → tools/out/probe-rotation/*.png
 const fs = require('fs'), vm = require('vm'), path = require('path'), zlib = require('zlib');
-const src = ['materials', 'sim', 'reactions', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
+const src = ['materials', 'sim', 'reactions', 'dough', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
 const ctx = { console };
 vm.runInNewContext(src + '\n;this.G={Sim,SHELF,GW,GH,N};', ctx);
 const { Sim, SHELF, GW, GH, N } = ctx.G;

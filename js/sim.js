@@ -286,12 +286,12 @@ Sim.swirlPass = function () {
       const x = Math.round(v.cx - v.ax + rnd() * v.ax * 2), y = Math.round(v.cy - v.ay + rnd() * v.ay * 2);
       if (x < 0 || x >= GW || y < top || y >= GH) continue;
       const i = y * GW + x, m = this.mat[i];
-      if (m === EMPTY || CLS[m] === C_GAS || this.body[i]) continue;
+      if (m === EMPTY || CLS[m] === C_GAS || this.body[i] || m === DOUGH) continue;   // a ball of dough stays a ball
       const [vx, vy] = swirlDir(x, y, v.cx, v.cy, v.ax, v.ay, dir), step = 1 + rint(4);
       const tx = x + vx * step + rint(3) - 1, ty = y + vy * step;
       if (tx < 0 || tx >= GW || ty < top || ty >= GH) continue;
       const j = ty * GW + tx, mj = this.mat[j];
-      if (mj === EMPTY || CLS[mj] === C_GAS || this.body[j]) continue;
+      if (mj === EMPTY || CLS[mj] === C_GAS || this.body[j] || mj === DOUGH) continue;
       this.swap(i, j);
       this.stirT[i] = this.stirT[j] = 20;
     }
@@ -323,8 +323,10 @@ Sim.spill = function (i) {
   this.emit('overflow', x, 0, 60);
 };
 
-// A brim-full pot sloshes over when it boils or swirls.
+// A brim-full pot sloshes over when it boils or swirls. Only when the liquid body itself reaches
+// the rim: water still falling in from a pour passes through the top row and must not count.
 Sim.overflowPass = function () {
+  if (this.surface > 1) return;
   const slosh = 0.01 + this.turb * 0.12 + Math.abs(this.swirl) * 0.1;
   for (let x = 0; x < GW; x++) {
     const m = this.mat[x];
@@ -851,10 +853,12 @@ Sim.heatPass = function () {
   }
   // Ambient cooling + boiling.
   const loss = this.lid ? 0.0012 : 0.004;
+  const airT = this.lid ? 20 + (this.panT - 20) * 0.85 : 20;
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const i = y * GW + x, m = mat[i];
-      if (m === EMPTY) { temp[i] += (20 - temp[i]) * 0.08; continue; }
+      // Open pot: air stays near room temperature. Lid on: the trapped air heats up like an oven.
+      if (m === EMPTY) { temp[i] += (airT - temp[i]) * 0.08; continue; }
       if (y === 0 || mat[i - GW] === EMPTY) temp[i] += (20 - temp[i]) * loss;
       if (m === BROTH && temp[i] > 100) {
         const acc = cook[i] + (temp[i] - 100) * 1.2;
@@ -941,7 +945,7 @@ Sim.step = function () {
       switch (CLS[m]) {
         case C_LIQUID: moveLiquid(x, y, i, m); break;
         case C_POWDER: moveGrain(x, y, i, m, 0.9); break;
-        case C_CHUNK:  if (!this.body[i]) moveGrain(x, y, i, m, 0.15); break;
+        case C_CHUNK:  if (m === DOUGH) moveDough(x, y, i); else if (!this.body[i]) moveGrain(x, y, i, m, 0.15); break;
         case C_GAS:    moveGas(x, y, i, m); break;
         case C_FIRE:   moveFire(x, y, i); break;
         case C_FOAM:   moveFoam(x, y, i); break;
@@ -993,7 +997,7 @@ Sim.pour = function (ing, x, amount) {
     for (let n = 0; n < amount; n++) {
       const px = Math.max(0, Math.min(GW - 1, Math.round(x + (rnd() * 2 - 1) * spread)));
       const py = rint(3), i = py * GW + px;
-      if (py === 0 && CLS[this.mat[i]] === C_LIQUID) this.spill(i);   // brim-full: it goes over the side
+      if (py === 0 && this.surface <= 1 && CLS[this.mat[i]] === C_LIQUID) this.spill(i);   // brim-full: it goes over the side
       if (this.mat[i] !== EMPTY && CLS[this.mat[i]] !== C_GAS) continue;
       this.setCell(i, ing.mat, 20);
       if (ing.flavor) this.addFlavor(i, ing.flavor);
@@ -1015,6 +1019,10 @@ Sim.stir = function (cx, cy, dx, dy, r) {
       if ((x - cx) ** 2 + (y - cy) ** 2 > r * r) continue;
       const i = y * GW + x, m = this.mat[i];
       this.stirT[i] = 30;
+      if (m === DOUGH && this.fl[i * NF + F_GLUTEN] < 1) {   // working the dough builds gluten
+        this.fl[i * NF + F_GLUTEN] += 0.01;
+        if (this.fl[i * NF + F_GLUTEN] > 0.2) this.discover('knead');
+      }
       if (this.body[i]) {
         // The ladle tears a raw egg apart; anything firmer gets shoved as a whole.
         if (this.bodyKind[this.body[i]] === BK_SOFT && rnd() < 0.6) this.body[i] = 0;

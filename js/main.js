@@ -176,7 +176,16 @@ function loop() {
 Sim.reset();
 Chef.select(SHELF[0]);
 // Dev: #demo pre-cooks a pot; #judge also jumps to judging.
-if (location.hash === '#fire') {
+if (location.hash === '#bread') {
+  // Dev: a kneaded, leavened loaf baking in the pot oven (lid on).
+  const ing = (id) => SHELF.find((s) => s.id === id);
+  const pour = (id, secs) => { const g = ing(id); for (let f = 0; f < secs * 60; f++) { Sim.pour(g, 76 + ((f * 5) % 7) - 3, g.rate); Sim.step(); } };
+  pour('flour', 3); pour('water', 1); pour('salt', 0.08); pour('powder', 0.2);
+  let ph = 0, prev = null;
+  for (let f = 0; f < 480; f++) { ph += 0.12; const p = { x: Math.round(76 + Math.cos(ph) * 45), y: Math.round(80 + Math.sin(ph) * 4) }; if (prev) Sim.stir(p.x, p.y, p.x - prev.x, p.y - prev.y, 6); prev = p; Sim.step(); }
+  Sim.lid = true; Sim.dial = 6; for (let f = 0; f < 60 * 40; f++) Sim.step();
+  Sim.lid = false; Sim.events.length = 0; Chef.select(ing('flour'));
+} else if (location.hash === '#fire') {
   // Dev: a grease fire in full swing.
   const ing = (id) => SHELF.find((s) => s.id === id);
   for (let f = 0; f < 90; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }

@@ -8,6 +8,7 @@ const JUDGES = [
     fur: [192, 194, 210], dark: [128, 130, 152], belly: [246, 246, 252], theme: [110, 120, 170],
     sounds: { good: ['*purrs*', 'Mrrow.'], bad: ['Hsss!', '*flicks tail*'] },
     evaluate(a) {
+      if (a.type === 'baked') return judgeBakeClassic(a);
       const p = a.p, good = [], bad = [];
       let tech = 0;
       if (a.mirepoix) { tech += 0.3; good.push('A proper mirepoix base. Bon.'); }
@@ -43,6 +44,7 @@ const JUDGES = [
     fur: [238, 184, 110], dark: [170, 104, 58], belly: [253, 238, 210], theme: [220, 120, 60],
     sounds: { good: ['WOOF!', '*tail wags*'], bad: ['*whimper*', 'Grrr.'] },
     evaluate(a) {
+      if (a.type === 'baked') return judgeBakeFlavor(a);
       const p = a.p, good = [], bad = [];
       const heatMod = p.heat > 0.15 && p.heat < 0.85 ? 1 : p.heat >= 0.85 ? 0.6 : p.heat / 0.15 * 0.5;
       const acid = p.sour > 0.1 && p.sour < 0.6 ? 1 : p.sour >= 0.6 ? 0.4 : 0.2;
@@ -67,6 +69,7 @@ const JUDGES = [
     fur: [248, 244, 236], dark: [208, 186, 154], belly: [255, 255, 255], theme: [200, 120, 170],
     sounds: { good: ['Baa~!', '*happy bleat*'], bad: ['Baaah...', '*chews thoughtfully*'] },
     evaluate(a) {
+      if (a.type === 'baked') return judgeBakeComfort(a);
       const p = a.p, good = [], bad = [];
       const warm = a.temp > 60 ? 1 : a.temp > 40 ? 0.5 : 0;
       if (!warm) bad.push('Oh dear, it\'s gone stone cold.');
@@ -88,6 +91,53 @@ const JUDGES = [
     },
   },
 ];
+
+// ---- Baked goods: each judge has their own take on a bake.
+function judgeBakeClassic(a) {
+  const b = a.bake, good = [], bad = [];
+  let s = 4;
+  if (b.doneness > 0.95) { s += 2; good.push(`A properly baked ${b.kind}.`); }
+  else if (b.doneness < 0.7) { s -= 2; bad.push('Raw in the middle. Gummy. Non.'); }
+  if (b.wantsRise) {
+    if (b.rise >= 1.3 && b.rise <= 2.4) { s += 2; good.push('Light, with a lovely open crumb.'); }
+    else if (b.rise < 1.15) { s -= 1.5; bad.push('Dense as a brick. Where is the lift?'); }
+    else if (b.rise > 2.6) { s -= 1; bad.push('Over-risen: big holes, no structure.'); }
+  }
+  if (b.wantsCrust) {
+    if (b.crust > 0.25) { s += 1.5; good.push('A beautiful golden crust.'); }
+    else if (b.crust < 0.08) { s -= 0.5; bad.push('Pale. It needed more color.'); }
+  }
+  if (b.burnt > 0.2) { s -= 2; bad.push('The bottom is burnt black.'); }
+  if (b.water > 1.8 && b.kind !== 'pancake' && b.kind !== 'crêpe') { s -= 1; bad.push('Soggy and gummy inside.'); }
+  if (b.water < 0.4) { s -= 1; bad.push('Dry and crumbly.'); }
+  if (b.soda > 0.08) { s -= 2; bad.push('Soapy. Too much baking soda, no acid.'); }
+  if (b.gluten > 0.25 && (b.kind === 'bread' || b.kind === 'flatbread')) { s += 0.5; good.push('Good chew. It was kneaded properly.'); }
+  return { score: s - a.flawSum * 4, good, bad };
+}
+function judgeBakeFlavor(a) {
+  const b = a.bake, p = a.p, good = [], bad = [];
+  let s = 3;
+  const sweetKind = b.kind === 'cake' || b.kind === 'cookie' || b.kind === 'pancake';
+  if (!sweetKind && p.salty < 0.15) { bad.push(`Bland ${b.kind}! It needs salt.`); s -= 1; }
+  else if (!sweetKind && p.salty < 0.7) { good.push('Well seasoned. I can taste the salt.'); s += 2; }
+  if (p.salty > 0.8) { bad.push('Way too salty!'); s -= 2; }
+  if (sweetKind) { if (p.sweet > 0.3) { good.push('Sweet and delicious!'); s += 2; } else bad.push(`A ${b.kind} with no sugar? Sad.`); }
+  if (a.notes.includes('toasty') || b.crust > 0.2) { good.push('That toasty crust smell!'); s += 1.5; }
+  if (b.rich > 0.3 || b.egg > 0.2) { good.push('Rich. Is that egg? Butter?'); s += 1; }
+  if (p.bitter > 0.35) { bad.push('Bitter. Soapy, almost.'); s -= 2; }
+  return { score: s + Math.min(2, a.notes.length * 0.5) - a.flawSum * 4, good, bad };
+}
+function judgeBakeComfort(a) {
+  const b = a.bake, p = a.p, good = [], bad = [];
+  let s = 5;
+  if (a.temp > 50) { good.push(`Warm fresh ${b.kind}, like my own kitchen.`); s += 2; }
+  else bad.push(`This ${b.kind} has gone cold.`);
+  if (b.water >= 0.5 && b.water <= 1.6 && b.doneness > 0.85) { good.push('So soft and tender.'); s += 1.5; }
+  if (b.doneness < 0.7) { bad.push('Oh dear, the inside is still raw.'); s -= 2; }
+  if (p.sweet > 0.3 && (b.kind === 'cake' || b.kind === 'cookie')) { good.push('A treat! You spoil me.'); s += 1.5; }
+  if (b.burnt > 0.2) { bad.push('A little scorched, dear.'); s -= 1; }
+  return { score: s - a.flawSum * 5, good, bad };
+}
 
 const Judging = {
   active: false, t: 0, phase: 'walk', k: 0, results: [], verdict: null, analysis: null, typed: 0,

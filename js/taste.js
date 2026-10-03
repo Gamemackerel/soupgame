@@ -113,10 +113,12 @@ const SOLID_WEIGHT = 4;
 Taste.eatFlavor = function (i, out) {
   const S = Sim, m = S.mat[i], base = EAT[m];
   if (!base) return 0;
-  const grain = CLS[m] === C_POWDER, w = grain ? 1 : SOLID_WEIGHT;
+  // Dough and bread are mostly flour: their seasoning is what's mixed into them, not diluted further.
+  const grain = CLS[m] === C_POWDER, w = grain || m === DOUGH || m === BREAD ? 1 : SOLID_WEIGHT;
   const c = S.cook[i], meaty = m === MEAT || m === FISH || m === FISHFIN;
   const spent = CLS[m] === C_CHUNK && MAT[m].leach ? 0.4 + 0.6 * S.life[i] / 255 : 1;
   for (let k = 0; k < NF; k++) out[k] += (grain ? base[k] : base[k] * spent * w) + S.fl[i * NF + k];
+  out[F_BITTER] += S.fl[i * NF + F_SODA] * 0.5;   // unreacted soda tastes soapy
   if (c >= 150 && c < 215 && !grain) {   // browned: Maillard depth and sweetness
     out[F_UMAMI] += (base[F_UMAMI] * 0.4 + 0.1) * w; out[F_SWEET] += base[F_SWEET] * 0.5 * w;
     out[F_AROMA] += 0.3 * w; out[F_BROWN] += 0.3 * w;
@@ -128,18 +130,58 @@ Taste.eatFlavor = function (i, out) {
   return w;
 };
 
+// What came out of the oven (or pot): rise, doneness, crust, texture, and what kind of bake it is.
+Taste.bakeReport = function (counts) {
+  const S = Sim, baked = counts[BREAD] || 0, raw = counts[DOUGH] || 0;
+  let water = 0, sweet = 0, rich = 0, egg = 0, gluten = 0, soda = 0, surface = 0, crust = 0, burnt = 0, wet = 0;
+  for (let i = 0; i < N; i++) {
+    const m = S.mat[i];
+    if (m !== BREAD && m !== DOUGH) continue;
+    const o = i * NF;
+    water += S.fl[o + F_WATER]; sweet += S.fl[o + F_SWEET]; rich += S.fl[o + F_RICH]; egg += S.fl[o + F_EGG];
+    gluten += S.fl[o + F_GLUTEN]; soda += S.fl[o + F_SODA];
+    if (m !== BREAD) continue;
+    const x = i % GW, y = (i / GW) | 0;
+    let outside = false;
+    for (const j of [i - GW, i + GW, i - 1, i + 1]) {
+      if (j < 0 || j >= N || (j === i - 1 && x === 0) || (j === i + 1 && x === GW - 1)) { if (y === GH - 1) outside = true; continue; }
+      if (S.mat[j] !== BREAD && S.mat[j] !== DOUGH) outside = true;
+      if (S.mat[j] === BROTH) wet++;
+    }
+    if (outside) { surface++; const c = S.cook[i]; if (c >= 140 && c < 215) crust++; else if (c >= 215) burnt++; }
+  }
+  const n = Math.max(1, baked + raw), r = {
+    cells: baked + raw,
+    doneness: baked / n,
+    rise: 1 + (S.flags.risen || 0) / Math.max(1, S.flags.doughMade || 1),
+    crust: crust / Math.max(1, surface), burnt: burnt / Math.max(1, surface),
+    water: water / n, sweet: sweet / n, rich: rich / n, egg: egg / n, gluten: gluten / n, soda: soda / n,
+    boiled: wet > surface * 0.3,
+  };
+  // Name it the way a baker would.
+  // Fried in an open pan or baked under the lid (a pot oven)?
+  const panFried = (S.flags.panSets || 0) > (S.flags.lidSets || 0);
+  const sweetRich = r.sweet > 0.6 && (r.egg > 0.15 || r.rich > 0.3);
+  r.kind = r.boiled ? 'dumplings'
+         : panFried ? (r.water >= 0.9 ? (r.rise > 1.2 ? 'pancake' : 'crêpe') : sweetRich ? 'cookie' : 'flatbread')
+         : sweetRich ? (r.rise > 1.3 ? 'cake' : 'cookie')
+         : r.rise > 1.3 ? 'bread' : 'flatbread';
+  r.wantsRise = r.kind === 'bread' || r.kind === 'cake' || r.kind === 'pancake' || r.kind === 'dumplings';
+  r.wantsCrust = r.kind === 'bread' || r.kind === 'flatbread' || r.kind === 'cookie';
+  return r;
+};
+
 // Whole-pot analysis for serving to the judges: tastes every edible thing, not just the broth,
 // and works out what kind of dish it is.
 Taste.analyzeBowl = function () {
   const S = Sim, g = Taste.gather(0, 0, 0);
   const counts = {}, cooked = {}, bite = new Float32Array(NF);
   let total = 0, edible = 0, weight = 0, temp = 0, solidCells = 0, crust = 0, done = 0, oilHeat = 0;
-  const surface = S.findSurface();
   // Seasoning still in the air when you serve hasn't landed yet: not grit.
   for (let i = 0; i < N; i++) {
     const m = S.mat[i];
     if (m === EMPTY || CLS[m] === C_GAS || m === FIRE || m === FOAM) continue;
-    if (CLS[m] === C_POWDER && i < surface * GW && (m === SALT || m === SUGAR)) continue;
+    if (CLS[m] === C_POWDER && (m === SALT || m === SUGAR) && i + GW < N && S.mat[i + GW] === EMPTY) continue;   // mid-air
     total++;
     counts[m] = (counts[m] || 0) + 1;
     cooked[m] = (cooked[m] || 0) + S.cook[i];
@@ -164,8 +206,12 @@ Taste.analyzeBowl = function () {
   const nonOil = Math.max(1, weight);
   for (let k = 0; k < NF; k++) bite[k] /= nonOil;
   const brothShare = g.broth / Math.max(1, edible);
-  const type = edible < 25 ? 'empty' : g.broth >= 400 && brothShare >= 0.55 ? 'soup' : g.broth >= 150 && brothShare >= 0.25 ? 'stew' : 'plate';
-  const plate = type === 'plate';
+  const bakedN = counts[BREAD] || 0, rawDough = counts[DOUGH] || 0, doughy = bakedN + rawDough;
+  const type = edible < 25 ? 'empty' :
+               doughy >= 40 && doughy >= solidCells * 0.5 && g.broth < Math.max(400, doughy * 1.5) ? 'baked' :
+               g.broth >= 400 && brothShare >= 0.55 ? 'soup' : g.broth >= 150 && brothShare >= 0.25 ? 'stew' : 'plate';
+  const plate = type === 'plate' || type === 'baked';
+  const bake = doughy ? Taste.bakeReport(counts) : null;
 
   const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO, FISH];
   let chunks = 0, raw = 0;
@@ -178,14 +224,15 @@ Taste.analyzeBowl = function () {
   if (plate) p.body = 0;
   // Undissolved powder is gritty in a soup; on a plate, salt and spice are just seasoning.
   const seasoning = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[CHILI] || 0) + (counts[CUMIN] || 0);
-  const grit = (counts[FLOUR] || 0) + (counts[SODA] || 0) + (plate ? Math.max(0, seasoning - edible * 0.25) : (counts[SALT] || 0) + (counts[SUGAR] || 0));
+  const flourGrit = Math.max(0, (counts[FLOUR] || 0) - (type === 'baked' ? doughy * 0.15 : 0));   // a dusting of flour on a loaf is fine
+  const grit = flourGrit + (counts[SODA] || 0) + (plate ? Math.max(0, seasoning - edible * 0.25) : (counts[SALT] || 0) + (counts[SUGAR] || 0));
   // Raw egg white left in the bowl is as bad as raw veg (a runny yolk is fine).
-  raw += counts[EGG] || 0;
-  chunks += (counts[EGG] || 0) + (counts[YOLK] || 0) + (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0) + (counts[FISHFIN] || 0);
+  raw += (counts[EGG] || 0) + (counts[DOUGH] || 0);
+  chunks += (counts[DOUGH] || 0) + (counts[BREAD] || 0) + (counts[EGG] || 0) + (counts[YOLK] || 0) + (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0) + (counts[FISHFIN] || 0);
   const oilShare = g.oil / Math.max(1, edible);
   const flaws = {
     burnt: Math.min(1, burntFrac * 20),
-    curdled: Math.min(1, (counts[CURD] || 0) / 40),
+    curdled: type === 'baked' ? 0 : Math.min(1, (counts[CURD] || 0) / 40),   // buttermilk curds belong in a bake
     lumps: Math.min(1, (counts[LUMP] || 0) / 30),
     scrambled: Math.min(1, (counts[SCRAMBLE] || 0) / 40),
     raw: Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0)),
@@ -193,13 +240,13 @@ Taste.analyzeBowl = function () {
     // A plate can carry some oil; a soup with an oil slick is greasy much sooner.
     greasy: Math.min(1, Math.max(0, oilShare - (plate ? 0.35 : 0.12)) * (plate ? 3 : 5)),
     shell: Math.min(1, (counts[SHELL] || 0) / 10),
-    chemical: Math.min(1, (counts[EXTPOWDER] || 0) / 15 + Math.max(0, bite[F_BITTER] - 0.6)),
+    chemical: Math.min(1, (counts[EXTPOWDER] || 0) / 15),
   };
   const flawSum = flaws.burnt * 0.3 + flaws.curdled * 0.2 + flaws.lumps * 0.15 + flaws.scrambled * 0.1 +
                   flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2 + flaws.chemical * 0.4;
   return {
-    type, empty: type === 'empty',
-    debug: { edible, broth: g.broth, oil: g.oil, solids: solidCells, rawSalty: +bite[F_SALTY].toFixed(2), rawSweet: +bite[F_SWEET].toFixed(2), rawUmami: +bite[F_UMAMI].toFixed(2) },
+    type, empty: type === 'empty', bake,
+    debug: { edible, broth: g.broth, oil: g.oil, solids: solidCells, grains: { flour: counts[FLOUR] || 0, salt: counts[SALT] || 0, sugar: counts[SUGAR] || 0, soda: counts[SODA] || 0, curd: counts[CURD] || 0, lump: counts[LUMP] || 0 }, rawSalty: +bite[F_SALTY].toFixed(2), rawSweet: +bite[F_SWEET].toFixed(2), rawUmami: +bite[F_UMAMI].toFixed(2) },
     volume: g.broth + g.oil,
     p, temp: temp / Math.max(1, edible),
     notes: Taste.topNotes(4),

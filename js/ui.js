@@ -34,7 +34,7 @@ const T = {
   },
 };
 
-const SHELF_X = 2, SHELF_Y = 15, SLOT_W = 27, SLOT_H = 19;
+const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 27, SLOT_H = 17;
 const TOOLS = [
   { id: 'pour', icon: 'hand', label: 'Pour' },
   { id: 'ladle', icon: 'ladle', label: 'Stir' },
@@ -111,7 +111,7 @@ const UI = {
       rect(g, s.x + 1, s.y + 1, s.w - 1, s.h - 1, sel ? [255, 214, 110] : hov ? [196, 140, 92] : [176, 120, 76]);
       rect(g, s.x + 1, s.y + s.h - 2, s.w - 1, 2, [120, 76, 48]);
       const bobY = sel ? Math.round(Math.sin(Chef.t * 0.15)) : 0;
-      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 5, s.y + 1 + bobY);
+      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 5, s.y + bobY);
     });
     // Tool panel.
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);
@@ -218,14 +218,14 @@ const UI = {
 
   drawJournalText(T) {
     T.text('JOURNAL  ' + Sim.discovered.size + ' / ' + DISCOVERIES.length, 36, 18, { size: 7, color: '#fff' });
-    const rows = Math.ceil(DISCOVERIES.length / 2);
+    const cols = 3, rows = Math.ceil(DISCOVERIES.length / cols);
     DISCOVERIES.forEach((d, n) => {
-      const col = n < rows ? 0 : 1, row = n % rows;
-      const x = 36 + col * 128, y = 32 + row * 13;
+      const col = (n / rows) | 0, row = n % rows;
+      const x = 35 + col * 86, y = 30 + row * 13;
       const got = Sim.discovered.has(d.id);
       T.text(got ? d.name : '???', x, y, { size: 5, color: got ? '#3a2418' : '#a09080' });
       const sub = got ? d.desc : d.hint;
-      T.text(sub.length > 44 ? sub.slice(0, 43) + '…' : sub, x, y + 6, { size: 3.5, color: got ? '#6a5040' : '#b0a090' });
+      T.text(sub.length > 30 ? sub.slice(0, 29) + '…' : sub, x, y + 6, { size: 3.5, color: got ? '#6a5040' : '#b0a090' });
     });
     T.text('click to close', 160, 216, { size: 5, color: '#a08070', align: 'center' });
   },

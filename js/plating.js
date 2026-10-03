@@ -42,7 +42,7 @@ const Plating = {
     pieces.sort((a, b) => b.n - a.n);
     pieces.length = Math.min(pieces.length, 28);
 
-    const type = analysis.type === 'plate' ? 'plate' : 'bowl';
+    const type = analysis.type === 'plate' || analysis.type === 'baked' ? 'plate' : 'bowl';
     const liquid = ln ? [lr / ln, lg / ln, lb / ln] : null;
     // Arrange: bowls float pieces across the surface; plates pile them up in the middle.
     const placed = [];

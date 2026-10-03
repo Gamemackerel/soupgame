@@ -2,7 +2,7 @@
 //   node tools/debug-bodies.js            both scenarios
 //   node tools/debug-bodies.js --snap     also write PNG frames to tools/out/probe-*/
 const fs = require('fs'), vm = require('vm'), path = require('path'), zlib = require('zlib');
-const src = ['materials', 'sim', 'reactions', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
+const src = ['materials', 'sim', 'reactions', 'dough', 'taste'].map((f) => fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8')).join('\n');
 const ctx = { console };
 vm.runInNewContext(src + '\n;this.G={Sim,SHELF,GW,GH,N};', ctx);
 const { Sim, SHELF, GW, GH, N } = ctx.G;

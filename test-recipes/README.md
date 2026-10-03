@@ -12,7 +12,7 @@ Use them to:
 |---|---|---|
 | `soups.json` | 68 | Broths, cream soups, stews, egg soups. The core of the game |
 | `frying.json` | 16 | Sautéing, searing, blooming spices in oil, pan sauces |
-| `baking.json` | 10 | Batters, caramel, custard. "Baking" in a pot, which mostly exposes features the sim doesn't have yet |
+| `baking.json` | 15 | Dough, batter and baking: pot-oven bread, soda bread, flatbread, pancakes, crêpes, cookies, sponge cake, dumplings, plus caramel and custard gaps |
 | `experiments.json` | 11 | Deliberate failures and chemistry demos (fires, volcano, curdling, lumps) |
 
 ## Recipe format
@@ -85,7 +85,7 @@ The taste ranges are **design targets**, not measured outputs. A recipe that lan
 
 The `sim_gaps` fields roll up into this feature backlog:
 
-1. **No batter or dough model.** Flour + egg + milk should set into a solid (pancake, cake) when hot. It currently becomes lumps, ribbons and scrambled egg.
+1. ~~No batter or dough model.~~ Done: see `SPEC.md` §15. Bakes can carry an optional `"bake": {kind, rise, doneness}` expectation.
 2. **No dry-sugar caramel stage.** Sugar on a hot, dry pot only adds a little `caramel` note before burning. There's no melted-caramel material or color.
 3. **Stock clarity isn't tracked.** Rolling boil vs. gentle simmer and skimming don't affect cloudiness, and meat scum isn't simulated.
 4. **No starch release from vegetables, and no blending.** Cream soups rely only on roux or milk for body.
@@ -94,7 +94,7 @@ The `sim_gaps` fields roll up into this feature backlog:
 7. **Eggs** now have whole, cracked, poached, fried and hard-boiled states. There's still no runny yolk vs. set yolk distinction, and no peeling.
 8. **Raw (gazpacho-style) soups** get a `raw` flaw even when raw is the point. Dish context will need to override flaws (Phase 2).
 9. **Heat-sensitive dissolving.** Salt dissolves in cold water at much the same rate. That's realistic, but there's no visible "undissolved sugar in cold liquid" lesson.
-10. **Honeycomb/leavening.** Soda only reacts with acid. Thermal decomposition of soda (honeycomb toffee, soda bread rise) isn't modeled.
+10. **Honeycomb.** Soda in dough now breaks down with heat, but there's still no molten-sugar caramel for it to foam.
 
 ## Running them
 
@@ -117,6 +117,6 @@ node tools/run-recipes.js all --seed=2                        # everything, diff
 
 **Iteration loop:** run one recipe with `--verbose --snap` → look at the failing checks and snapshots → change the sim → re-run with seeds 1–3.
 
-Recipes that pass (seed 1): `s01` `s02` `s03` `s06` `s08` `s10` `s12` `s21` `s26` `s29` `s36` `s55` `s66` `s67` `s68` `f07` `f08` `f16` `x02` `x03` `x04` `x05` `x10` `x11`.
+Recipes that pass (seed 1): all 15 in `baking.json`, plus `s01` `s02` `s03` `s06` `s08` `s10` `s12` `s21` `s26` `s28` `s29` `s36` `s39` `s55` `s66` `s67` `s68` `f01` `f05` `f07` `f08` `f16` `x02` `x03` `x04` `x05` `x10` `x11`.
 
 `--scale=0.5` / `--scale=2` replays a recipe with every ingredient amount halved or doubled, to check that tuning holds regardless of how full the pot is.
