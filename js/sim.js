@@ -211,7 +211,7 @@ function moveLiquid(x, y, i, m) {
   // Convection: hot liquid rises through cooler liquid of the same kind (broth rolls, oil shimmers).
   if (y > 0) {
     const j = i - GW;
-    if (S.mat[j] === m && S.temp[i] > S.temp[j] + 2 && rnd() < 0.2) { S.swap(i, j); return; }
+    if (S.mat[j] === m && S.temp[i] > S.temp[j] + 1 && rnd() < 0.35) { S.swap(i, j); return; }
   }
   // Deep inside the liquid there's nowhere to flow sideways: skip the spreading work.
   if (y > 0 && CLS[mat[i - GW]] === C_LIQUID && DENS[mat[i - GW]] >= d && m === BROTH) return;
@@ -740,7 +740,7 @@ Sim.findSurface = function () {
 function leaveTop(x, i, m) {
   const S = Sim;
   if (S.lid) {
-    if (m === STEAM && rnd() < 0.04) S.setCell(i, BROTH, 95);  // condensation drips back
+    if (m === STEAM && rnd() < 0.3) S.setCell(i, BROTH, 95);   // steam beads on the lid and drips back
     else if (m === FIRE) S.life[i] = Math.max(0, S.life[i] - 6); // lid smothers fire
     return;
   }
@@ -758,9 +758,11 @@ function moveGas(x, y, i, m) {
   const j = i - GW, mj = mat[j];
   if (mj === EMPTY) {
     // Bubble reaching the surface: mostly re-condenses, sometimes escapes (reduction).
-    if (m === STEAM && y < GH - 1 && CLS[mat[i + GW]] === C_LIQUID) {
+    // A fresh boiling bubble (still at full life) reaching air: it pops at the surface. Whether bubbles
+    // are stacked or not, this is its one chance to re-condense instead of escaping as steam.
+    if (m === STEAM && S.life[i] >= 80) {
       S.bubblePops++;
-      if (rnd() > 0.014) {
+      if (rnd() > 0.009) {    // nearly every bubble re-condenses; a few escape as steam (slow reduction)
         S.setCell(i, BROTH, 99);
         // Bursting bubbles fling droplets up off the surface, and over the rim of a full pot.
         if (rnd() < S.turb * 0.4) {
@@ -771,10 +773,15 @@ function moveGas(x, y, i, m) {
         return;
       }
     }
-    if (!S.lid || m !== STEAM) { if (--S.life[i] === 0) { S.setCell(i, EMPTY); return; } }
+    if (S.lid && m === STEAM) { if (rnd() < 0.03) { S.setCell(i, BROTH, 95); return; } }   // fogs and condenses under the lid
+    else if (--S.life[i] === 0) { S.setCell(i, EMPTY); return; }
   }
   if (mj === EMPTY || CLS[mj] === C_LIQUID || CLS[mj] === C_FOAM) {
-    if (CLS[mj] === C_LIQUID && rnd() < 0.25) return;
+    if (CLS[mj] === C_LIQUID) {
+      // A rising steam bubble dumps heat into cooler liquid around it: this is what heats a pot through.
+      if (m === STEAM && S.temp[j] < 100) S.temp[j] += (100 - S.temp[j]) * 0.35;
+      if (rnd() < 0.25) return;
+    }
     S.swap(i, j); return;
   }
   const dx = rnd() < 0.5 ? -1 : 1, nx = x + dx;
@@ -852,7 +859,7 @@ Sim.heatPass = function () {
     }
   }
   // Ambient cooling + boiling.
-  const loss = this.lid ? 0.0012 : 0.004;
+  const loss = this.lid ? 0.0008 : 0.0018;
   const airT = this.lid ? 20 + (this.panT - 20) * 0.85 : 20;
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
@@ -903,8 +910,11 @@ Sim.diffuse = function () {
       if (CLS[m] !== C_LIQUID) continue;
       const o = i * NF;
       if (m === BROTH) {
-        fl[o + F_AROMA] *= boilLoss;
+        // Aroma is volatile: it steams off hot liquid (faster when boiling), so aromatics added late stay vivid.
+        fl[o + F_AROMA] *= boilLoss * (temp[i] > 70 && !this.lid ? 1 - (temp[i] - 70) * 0.000008 : 1);
         if (temp[i] > 78) fl[o + F_ALCOHOL] *= 0.996;
+      } else if (m === OIL && temp[i] > 70 && !this.lid) {
+        fl[o + F_AROMA] *= 1 - (temp[i] - 70) * 0.000004;   // fat holds aroma better, but hot oil still loses it
       }
       let j;
       if (rnd() < 0.5) { if (x === GW - 1) continue; j = i + 1; }
@@ -955,6 +965,11 @@ Sim.step = function () {
   this.overflowPass();
   if (this.frame % 2 === 0) this.diffuse();
   if (this.frame % 60 === 0) this.checkCombos();
+  // Aroma notes fade from a hot, open pot (fresh herbal notes fastest), so what you add late stays vivid.
+  if (this.frame % 30 === 0 && !this.lid && this.panT > 80) {
+    const k = 0.002 + this.turb * 0.01;
+    for (const n in this.notes) this.notes[n] *= 1 - k * (n === 'herbal' ? 3 : 1);
+  }
   if (this.bubbles > 4 && this.dial >= 6) this.discover('boil');
   this.updateParticles();
 };

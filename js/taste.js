@@ -34,14 +34,15 @@ Taste.gather = function (cx, cy, r) {
 // Apply perception rules (salt suppresses bitter, fat carries heat, acid brightens…).
 Taste.perceive = function (g, burntFrac = 0, plate = false) {
   const r = g.raw, oilFrac = g.oil / Math.max(1, g.broth + g.oil) * (plate ? 0.4 : 1);   // pan oil on a plate is mostly left behind
-  const n = (k, v) => Math.max(0, Math.min(1, v / NORM[k]));
+  // Linear up to 0.8, then a soft ceiling: stronger is still a bit stronger, never past 1.
+  const n = (k, v) => { const x = Math.max(0, v / NORM[k]); return x <= 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); };
   const salty = n('salty', r[F_SALTY]);
   const sour = n('sour', r[F_SOUR]);
   const p = {
     salty,
     sweet: n('sweet', r[F_SWEET] * (1 + salty * 0.3)),
     sour: n('sour', r[F_SOUR] - r[F_SWEET] * 0.15),
-    bitter: n('bitter', Math.max(0, r[F_BITTER] - salty * 0.15) + burntFrac * 2),
+    bitter: n('bitter', Math.max(0, r[F_BITTER] - salty * 0.15) + burntFrac * 12),
     umami: n('umami', r[F_UMAMI] * (1 + salty * 0.5)),
     rich: n('rich', r[F_RICH] + oilFrac * 2.5),
     heat: n('heat', r[F_HEAT] * 0.5 + g.oilHeat * 1.2 - r[F_SWEET] * 0.1),
@@ -119,7 +120,9 @@ Taste.eatFlavor = function (i, out) {
   const spent = CLS[m] === C_CHUNK && MAT[m].leach ? 0.4 + 0.6 * S.life[i] / 255 : 1;
   for (let k = 0; k < NF; k++) out[k] += (grain ? base[k] : base[k] * spent * w) + S.fl[i * NF + k];
   out[F_BITTER] += S.fl[i * NF + F_SODA] * 0.5;   // unreacted soda tastes soapy
-  if (c >= 150 && c < 215 && !grain) {   // browned: Maillard depth and sweetness
+  if (m === HERB) {                      // herbs track wilting, not browning: the more wilted, the less aroma left
+    out[F_AROMA] -= base[F_AROMA] * spent * w * 0.8 * Math.min(1, c / 120);
+  } else if (c >= 150 && c < 215 && !grain) {   // browned: Maillard depth and sweetness
     out[F_UMAMI] += (base[F_UMAMI] * 0.4 + 0.1) * w; out[F_SWEET] += base[F_SWEET] * 0.5 * w;
     out[F_AROMA] += 0.3 * w; out[F_BROWN] += 0.3 * w;
   } else if (c >= 215 && !grain && CLS[m] === C_CHUNK) {   // past a sear: dry and charred
@@ -187,7 +190,7 @@ Taste.analyzeBowl = function () {
     cooked[m] = (cooked[m] || 0) + S.cook[i];
     const o = i * NF;
     let w = 1;
-    if (m === BROTH) { for (let k = 0; k < NF; k++) bite[k] += S.fl[o + k]; }
+    if (m === BROTH) { for (let k = 0; k < NF; k++) bite[k] += S.fl[o + k]; bite[F_BITTER] += S.fl[o + F_SODA] * 0.05; }
     else if (m === OIL) {
       // Oil carries whatever reduced into it (a pan sauce); its aroma and chili heat come through too.
       for (let k = 0; k < NF; k++) if (k !== F_HEAT) bite[k] += S.fl[o + k] * (k === F_AROMA ? 0.5 : 1);
@@ -233,7 +236,7 @@ Taste.analyzeBowl = function () {
   const flaws = {
     burnt: Math.min(1, burntFrac * 20),
     curdled: type === 'baked' ? 0 : Math.min(1, (counts[CURD] || 0) / 40),   // buttermilk curds belong in a bake
-    lumps: Math.min(1, (counts[LUMP] || 0) / 30),
+    lumps: Math.min(1, ((counts[LUMP] || 0) + (type === 'baked' ? 0 : counts[DOUGH] || 0)) / 30),   // raw dough in soup = lumps
     scrambled: Math.min(1, (counts[SCRAMBLE] || 0) / 40),
     raw: Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0)),
     gritty: Math.min(1, grit / 60),
@@ -246,6 +249,7 @@ Taste.analyzeBowl = function () {
                   flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2 + flaws.chemical * 0.4;
   return {
     type, empty: type === 'empty', bake,
+    rawBite: bite,   // flavor actually in the food, before perception (for diagnosing tuning)
     debug: { edible, broth: g.broth, oil: g.oil, solids: solidCells, grains: { flour: counts[FLOUR] || 0, salt: counts[SALT] || 0, sugar: counts[SUGAR] || 0, soda: counts[SODA] || 0, curd: counts[CURD] || 0, lump: counts[LUMP] || 0 }, rawSalty: +bite[F_SALTY].toFixed(2), rawSweet: +bite[F_SWEET].toFixed(2), rawUmami: +bite[F_UMAMI].toFixed(2) },
     volume: g.broth + g.oil,
     p, temp: temp / Math.max(1, edible),

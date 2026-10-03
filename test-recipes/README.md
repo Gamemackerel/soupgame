@@ -99,24 +99,49 @@ The `sim_gaps` fields roll up into this feature backlog:
 ## Running them
 
 ```bash
-node tools/run-recipes.js s06-garlic-broth --verbose --snap   # one recipe, per-step mix metrics + PNG snapshots
-node tools/run-recipes.js soups                               # a whole file
-node tools/run-recipes.js all --seed=2                        # everything, different RNG seed
+node tools/run-recipes.js all              # every recipe, graded PASS / WARN / FAIL (parallel, ~2 min)
+node tools/run-recipes.js s06 --snap       # one recipe in detail: checks, raw vs perceived taste, judges, PNG per step
+node tools/run-pairs.js                    # comparison pairs, with automatic diagnosis when one goes wrong
+node tools/run-pairs.js --seeds=3          # each side on 3 seeds; claims pass on the majority
 ```
 
-- Runs are deterministic for a given `--seed`. Check a recipe against two or three seeds before calling it fixed.
-- `--snap` writes a PNG of the pot after every step to `tools/out/<id>/`.
-- The `mix` line is the physics health check:
+### Grading (`run-recipes.js`)
 
-| Metric | What it measures | Good soup |
+Only things that are wildly off **FAIL**: an expected discovery that never happens, an unexpected flaw ≥ 0.4, a taste more than 0.2 outside its range, a verdict two steps off (CHOPPED vs WINNER), or bake doneness or rise far off. Near misses are **WARN**. The taste ranges are design guesses, so a WARN is a prompt to look, not a bug.
+
+### Comparison pairs (`comparisons.json`, `run-pairs.js`)
+
+Each pair cooks two dishes and checks claims about how they should differ, for example "sautéed onion soup scores higher and is browner than boiled".
+
+- **Sides:** a side can be a recipe id, or a **variant** of one: `{ "from": "s62-lidded-onion", "remove": ["lid on", "lid off"] }`. Variants also support `replace`, `insertAfter`, `insertBefore`, `append`, `steps` and `scale`.
+- **Metrics:**
+
+| Metric | What it reads |
+|---|---|
+| `score` | Average judge score |
+| `judge.pounce` / `judge.biscuit` / `judge.nanny` | One judge's score |
+| `taste.<axis>` | Perceived taste |
+| `raw.<axis>` | Flavor actually in the food, before perception |
+| `flaw.<name>` | A flaw's strength |
+| `bake.<field>` | A bake-report field |
+| `count.<material>` | Number of cells of a material |
+| `disc.<id>` | Whether a discovery triggered |
+| `note.<id>` | An aroma note's level |
+
+- **Operators:** `>`, `<`, `>=`, `<=`, `≈` (with `tol`).
+
+When a claim fails, the runner diagnoses which layer is to blame:
+
+| Suspect | Meaning | What to change |
 |---|---|---|
-| `chunkBottomFrac` | Share of solids in the bottom 20% of the liquid | Below ~0.5 while simmering or stirred |
-| `chunkColumnSpread` | Share of the pot's width that has solids in it | Rises after stirring |
-| `oilSubmergedFrac` | Oil folded into the broth rather than floating on top | Rises with boiling or stirring, then falls back |
-| `saltCV` | How uneven the seasoning is (0 = perfectly even) | Drops after stirring |
+| **RECIPE** | A key event listed in the pair's `events` (e.g. `caramelize`) never happened | The recipe, or the chemistry that should trigger it |
+| **CHEMISTRY** | The raw, physical quantity is backwards or too small | The simulation rules (`js/reactions.js`, `dough.js`, `sim.js`) |
+| **ANALYSIS** | Raw goes the right way but perceived taste or the judges flip it | `js/taste.js` (perception) or `js/judges.js` |
 
-**Iteration loop:** run one recipe with `--verbose --snap` → look at the failing checks and snapshots → change the sim → re-run with seeds 1–3.
+Always sanity-check the verdict. Sometimes the claim itself is wrong (see `TUNING-LOG.md`).
 
-Recipes that pass (seed 1): all 15 in `baking.json`, plus `s01` `s02` `s03` `s06` `s08` `s10` `s12` `s21` `s26` `s28` `s29` `s36` `s39` `s55` `s66` `s67` `s68` `f01` `f05` `f07` `f08` `f16` `x02` `x03` `x04` `x05` `x10` `x11`.
+### The loop
 
-`--scale=0.5` / `--scale=2` replays a recipe with every ingredient amount halved or doubled, to check that tuning holds regardless of how full the pot is.
+Run pairs → read the diagnosis → confirm with a targeted trace (most fixes in `TUNING-LOG.md` started with one) → fix the right layer → re-run pairs **and** the full suite (fixes interact) → log it in `TUNING-LOG.md`.
+
+`--scale=0.5` / `--scale=2` replays a recipe at half or double quantities, to check that tuning holds regardless of how full the pot is.

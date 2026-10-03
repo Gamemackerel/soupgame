@@ -37,7 +37,7 @@ const MAT = [];
 function defMat(id, o) { MAT[id] = Object.assign({ id, cls: C_NONE, dens: 0, cond: 0.02,
   col: [0,0,0], col2: null, leach: null, burnAt: 999 }, o); }
 
-defMat(EMPTY,   { name: 'air' });
+defMat(EMPTY,   { name: 'air', cond: 0.006 });   // air insulates: a pot's surface stays hot
 defMat(BROTH,   { name: 'broth',  cls: C_LIQUID, dens: 1.0,  cond: 0.22, col: [96, 150, 205] });
 defMat(OIL,     { name: 'oil',    cls: C_LIQUID, dens: 0.9,  cond: 0.16, col: [236, 196, 70] });
 defMat(EGG,     { name: 'egg white', cls: C_CHUNK, dens: 1.03, cond: 0.14, col: [236, 236, 222], alpha: 190 });
@@ -50,11 +50,11 @@ defMat(CUMIN,   { name: 'cumin',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [1
                   solu: flavorVec({ aroma: 16, bitter: 0.6, brown: 2 }) });
 defMat(SODA,    { name: 'baking soda', cls: C_POWDER, dens: 1.5, cond: 0.08, col: [226, 236, 244] });
 defMat(ONION,   { brownRate: 0.2, name: 'onion',  cls: C_CHUNK, dens: 1.06, cond: 0.1, col: [244, 236, 214], col2: [150, 82, 30], burnAt: 200,
-                  leach: flavorVec({ sweet: 0.022, aroma: 0.05 }), note: 'allium' });
+                  leach: flavorVec({ sweet: 0.012, aroma: 0.05 }), note: 'allium' });
 defMat(GARLIC,  { name: 'garlic', cls: C_CHUNK, dens: 1.08, cond: 0.1, col: [250, 246, 230], col2: [196, 150, 70], burnAt: 165,
                   leach: flavorVec({ aroma: 0.15 }), note: 'allium' });
 defMat(CARROT,  { name: 'carrot', cls: C_CHUNK, dens: 1.1, cond: 0.1, col: [244, 128, 32], col2: [176, 74, 22], burnAt: 210,
-                  leach: flavorVec({ sweet: 0.03, gold: 0.05 }), note: 'earthy' });
+                  leach: flavorVec({ sweet: 0.017, gold: 0.05 }), note: 'earthy' });
 defMat(CELERY,  { name: 'celery', cls: C_CHUNK, dens: 1.04, cond: 0.1, col: [150, 210, 90], col2: [110, 120, 50], burnAt: 210,
                   leach: flavorVec({ aroma: 0.05, salty: 0.01 }), note: 'herbal' });
 defMat(TOMATO,  { name: 'tomato', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [228, 50, 44], col2: [180, 40, 30], burnAt: 190 });
@@ -105,7 +105,7 @@ EAT[TOMATO] = flavorVec({ sour: 0.45, umami: 0.4, sweet: 0.2 });
 EAT[MEAT] = flavorVec({ umami: 0.7, rich: 0.5, aroma: 0.15 });
 EAT[FISH] = flavorVec({ umami: 0.6, rich: 0.35, aroma: 0.15 });
 EAT[FISHFIN] = flavorVec({ umami: 0.3, rich: 0.15 });
-EAT[HERB] = flavorVec({ aroma: 0.7 });
+EAT[HERB] = flavorVec({ aroma: 2.0 });   // fresh herbs are intensely aromatic per bite
 EAT[EGG] = flavorVec({ rich: 0.25 });
 EAT[YOLK] = flavorVec({ rich: 0.5 });
 EAT[WHITE_COOKED] = flavorVec({ rich: 0.2, umami: 0.15 });

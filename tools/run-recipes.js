@@ -1,261 +1,104 @@
 #!/usr/bin/env node
-// Headless recipe runner: replays test-recipes through the real simulation and checks expectations.
+// Recipe checks: replays test-recipes through the real simulation and grades each against its expectations.
 //
-//   node tools/run-recipes.js s06-garlic-broth          run one recipe (by id or id prefix)
-//   node tools/run-recipes.js soups                      run a whole file
-//   node tools/run-recipes.js all                        run everything
-// Options:
-//   --snap        write PNG snapshots of the pot after each step to tools/out/<id>/
-//   --seed=N      RNG seed (default 1) — runs are deterministic for a given seed
-//   --verbose     print every step as it runs
+//   node tools/run-recipes.js s06-garlic-broth     one recipe in detail (id or prefix)
+//   node tools/run-recipes.js soups                one file
+//   node tools/run-recipes.js all                  everything (in parallel)
+// Options: --seed=N (default 1)  --scale=X (multiply ingredient amounts)  --snap (PNG per step, single recipe)
+//
+// Grading: FAIL only when something is wildly off; near misses are WARN.
+//   FAIL  expected discovery missing · unexpected flaw ≥ 0.4 · taste more than 0.2 outside its range ·
+//         verdict two steps off (CHOPPED vs WINNER) · bake doneness/rise far off
+//   WARN  taste/verdict/bake slightly off · expected flaw or aroma note missing · small unexpected flaw
 'use strict';
-const fs = require('fs'), path = require('path'), vm = require('vm'), zlib = require('zlib');
+const fs = require('fs'), path = require('path'), zlib = require('zlib');
+const K = require('./kitchen');
 
-const ROOT = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const opt = (k, d) => { const a = args.find((s) => s.startsWith('--' + k)); return a ? (a.includes('=') ? a.split('=')[1] : true) : d; };
 const target = args.find((a) => !a.startsWith('--')) || 'all';
-const SNAP = opt('snap', false), SEED = +opt('seed', 1), VERBOSE = opt('verbose', false), SCALE = +opt('scale', 1);
-const FPS = 60;
+const SEED = +opt('seed', 1), SCALE = +opt('scale', 1), SNAP = opt('snap', false);
+const LEVELS = ['CHOPPED', 'SAFE', 'WINNER'];
 
-// ---------- Load the game's simulation code into a sandbox ----------
-function makeGame(seed) {
-  let s = seed >>> 0;
-  const rand = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  const math = Object.create(Math); math.random = rand;
-  const files = ['materials', 'sim', 'reactions', 'dough', 'taste', 'judges'];
-  const src = files.map((f) => fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8')).join('\n;\n');
-  // Compile the game as one function in this context (a vm sandbox makes every global lookup ~10x slower).
-  const body = src + '\n;return { Sim, SHELF, Taste, JUDGES, Judging, MAT, CLS, GW, GH, N, NF, F_SALTY, BROTH, OIL, C_LIQUID, C_CHUNK, C_POWDER, C_GAS, EMPTY, DISCOVERIES };';
-  return new Function('Math', 'Chef', 'Plating', body)(math, { t: 0 }, undefined);
-}
-
-// ---------- Recipes ----------
-function loadRecipes() {
-  const dir = path.join(ROOT, 'test-recipes'), out = [];
-  for (const f of ['soups', 'frying', 'baking', 'experiments']) {
-    for (const r of JSON.parse(fs.readFileSync(path.join(dir, f + '.json'), 'utf8'))) { r._file = f; out.push(r); }
+function grade(recipe, res) {
+  const e = recipe.expect, out = [];
+  const add = (level, what, detail) => out.push({ level, what, detail });
+  for (const d of e.discoveries) add(res.discovered.includes(d) ? 'ok' : 'fail', `discovery ${d}`, res.discovered.includes(d) ? '' : 'not triggered');
+  for (const [ax, [lo, hi]] of Object.entries(e.taste)) {
+    const v = res.taste[ax], off = v < lo ? lo - v : v > hi ? v - hi : 0;
+    add(off === 0 ? 'ok' : off > 0.2 ? 'fail' : 'warn', `taste ${ax}`, `${v.toFixed(2)} (want ${lo}–${hi})`);
   }
-  return out;
-}
-
-// ---------- Step execution ----------
-function surfaceY(G) { return G.Sim.findSurface();
-}
-function surfaceYOld(G) {
-  const { Sim, GW, GH, CLS, C_LIQUID } = G;
-  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x += 4) if (CLS[Sim.mat[y * GW + x]] === C_LIQUID) return y;
-  return GH - 1;
-}
-
-function runFrames(G, n, perFrame) {
-  for (let f = 0; f < n; f++) { if (perFrame) perFrame(f); G.Sim.step(); G.Sim.events.length = 0; }
-}
-
-function execStep(G, step, log) {
-  const { Sim, SHELF, GW, GH } = G;
-  const [cmd, a, b, ...rest] = step.split(' ');
-  const mods = step.split(' ');
-  const pos = mods.includes('@left') ? GW * 0.25 : mods.includes('@right') ? GW * 0.75 : GW / 2;
-  const withStir = mods.includes('+stir');
-  const secs = (s) => parseFloat(s);
-  // --scale multiplies every ingredient amount (pot fullness test); times and heat stay the same.
-  const amt = (s) => parseFloat(s) * (cmd === 'pour' ? SCALE : 1);
-  const count = (s) => Math.max(1, Math.round(parseInt(s, 10) * SCALE));
-  let stirPhase = 0, prev = null;
-  const stirFrame = () => {
-    // Ladle sweeps an ellipse through the liquid.
-    const top = surfaceY(G), cy = (top + GH) / 2, ry = Math.max(3, (GH - top) / 2 - 4), rx = GW * 0.35;
-    stirPhase += 0.12;
-    const p = { x: Math.round(GW / 2 + Math.cos(stirPhase) * rx), y: Math.round(cy + Math.sin(stirPhase) * ry) };
-    if (prev) Sim.stir(p.x, p.y, p.x - prev.x, p.y - prev.y, 6);
-    prev = p;
-  };
-  switch (cmd) {
-    case 'pour': {
-      const ing = SHELF.find((s) => s.id === a);
-      const frames = Math.round(amt(b) * FPS);
-      runFrames(G, frames, (f) => { Sim.pour(ing, Math.round(pos + ((f * 5) % 7) - 3), ing.rate); if (withStir) stirFrame(); });
-      break;
-    }
-    case 'add': {
-      const ing = SHELF.find((s) => s.id === a);
-      const n = count(b);
-      let k = 0;
-      runFrames(G, n * 8, (f) => { if (f % 8 === 0 && k < n) { Sim.pour(ing, Math.round(pos + (k % 2 ? 1 : -1) * (k * 3 % 24)), 1); k++; } });
-      break;
-    }
-    case 'crack':   // crack N eggs on the rim and drop them in, ~1s apart
-    case 'throw': { // throw N whole eggs or fish in
-      const n = count(b);
-      let k = 0;
-      runFrames(G, n * 60, (f) => {
-        if (f % 60 === 0 && k < n) {
-          const x = Math.round(pos + (k % 2 ? 1 : -1) * (k * 7 % 30));
-          if (cmd === 'crack') Sim.dropCrackedEgg(x); else if (a === 'fish') Sim.throwFish(x); else Sim.throwEgg(x);
-          if (cmd === 'crack') Sim.discover('crack');
-          k++;
-        }
-        if (withStir) stirFrame();
-      });
-      break;
-    }
-    case 'heat': Sim.dial = parseFloat(a); break;
-    case 'wait': runFrames(G, Math.round(secs(a) * FPS)); break;
-    case 'stir': runFrames(G, Math.round(secs(a) * FPS), stirFrame); break;
-    case 'lid': Sim.lid = a === 'on'; break;
-    case 'taste': {
-      const top = surfaceY(G);
-      const r = G.Taste.sip(Math.round(GW / 2), Math.round((top + GH) / 2));
-      log.tastes.push(r);
-      break;
-    }
-    case 'serve': break;
-    default: throw new Error('Unknown step: ' + step);
-  }
-}
-
-// ---------- Metrics about how well things mix ----------
-function mixMetrics(G) {
-  const { Sim, GW, GH, CLS, C_LIQUID, C_CHUNK, OIL, BROTH, NF, F_SALTY } = G;
-  const top = surfaceY(G), depth = Math.max(1, GH - top);
-  let chunks = 0, chunkBottom = 0, chunkYSum = 0, oil = 0, oilSubmerged = 0;
-  const salts = [];
-  const colOcc = new Set();
-  for (let y = top; y < GH; y++) for (let x = 0; x < GW; x++) {
-    const i = y * GW + x, m = Sim.mat[i];
-    if (CLS[m] === C_CHUNK) {
-      chunks++; chunkYSum += (y - top) / depth;
-      if (y >= GH - Math.max(2, depth * 0.2)) chunkBottom++;
-      colOcc.add(x >> 3);
-    }
-    if (m === OIL) { oil++; if (y > top + 3) oilSubmerged++; }
-    if (m === BROTH) salts.push(Sim.fl[i * NF + F_SALTY]);
-  }
-  const mean = salts.reduce((s, v) => s + v, 0) / Math.max(1, salts.length);
-  const sd = Math.sqrt(salts.reduce((s, v) => s + (v - mean) ** 2, 0) / Math.max(1, salts.length));
-  return {
-    liquidDepth: depth,
-    chunks,
-    chunkBottomFrac: chunks ? chunkBottom / chunks : 0,      // share of solids in the bottom 20% of the liquid
-    chunkMeanDepth: chunks ? chunkYSum / chunks : 0,         // 0 = surface, 1 = floor
-    chunkColumnSpread: colOcc.size / Math.ceil(GW / 8),      // share of 8px columns containing solids
-    oil,
-    oilSubmergedFrac: oil ? oilSubmerged / oil : 0,
-    saltCV: mean > 0.001 ? sd / mean : 0,                    // seasoning unevenness (0 = perfectly even)
-  };
-}
-
-// ---------- PNG snapshots ----------
-function crc32(buf) {
-  let c, crc = 0xffffffff;
-  for (let n = 0; n < buf.length; n++) { c = (crc ^ buf[n]) & 0xff; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; crc = (crc >>> 8) ^ c; }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-function png(w, h, rgba) {
-  const chunk = (type, data) => {
-    const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
-    const td = Buffer.concat([Buffer.from(type), data]);
-    const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td));
-    return Buffer.concat([len, td, crc]);
-  };
-  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6;
-  const raw = Buffer.alloc((w * 4 + 1) * h);
-  for (let y = 0; y < h; y++) { raw[y * (w * 4 + 1)] = 0; rgba.copy(raw, y * (w * 4 + 1) + 1, y * w * 4, (y + 1) * w * 4); }
-  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
-}
-function snapshot(G, file, scale = 4) {
-  const { Sim, GW, GH } = G;
-  const data = new Uint8ClampedArray(GW * GH * 4);
-  Sim.render(data);
-  const W2 = GW * scale, H2 = GH * scale, out = Buffer.alloc(W2 * H2 * 4);
-  for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++) {
-    const s = ((y / scale | 0) * GW + (x / scale | 0)) * 4, d = (y * W2 + x) * 4, a = data[s + 3] / 255;
-    const bg = [70, 74, 92];
-    for (let k = 0; k < 3; k++) out[d + k] = data[s + k] * a + bg[k] * (1 - a);
-    out[d + 3] = 255;
-  }
-  fs.writeFileSync(file, png(W2, H2, out));
-}
-
-// ---------- Checking ----------
-function inRange(v, [lo, hi], slack = 0) { return v >= lo - slack && v <= hi + slack; }
-
-function check(recipe, G, log) {
-  const e = recipe.expect, res = [];
-  const a = G.Taste.analyzeBowl();
-  G.Judging.start();
-  const verdict = G.Judging.verdict;
-  const got = [...G.Sim.discovered];
-  for (const d of e.discoveries) res.push({ ok: got.includes(d), what: `discovery ${d}`, detail: got.includes(d) ? '' : 'not triggered' });
-  for (const [ax, rg] of Object.entries(e.taste)) {
-    const v = a.p[ax];
-    res.push({ ok: inRange(v, rg), what: `taste ${ax}`, detail: `${v.toFixed(2)} (want ${rg[0]}–${rg[1]})` });
-  }
-  for (const n of e.notes) res.push({ ok: a.notes.includes(n), what: `note ${n}`, detail: a.notes.includes(n) ? '' : `top notes: ${a.notes.join(', ') || 'none'}` });
-  for (const [f, v] of Object.entries(a.flaws)) {
+  for (const n of e.notes) add(res.notes.includes(n) ? 'ok' : 'warn', `note ${n}`, res.notes.includes(n) ? '' : `top notes: ${res.notes.join(', ') || 'none'}`);
+  for (const [f, v] of Object.entries(res.flaws)) {
     const want = e.flaws.includes(f);
-    const has = v > 0.2;
-    if (want || has) res.push({ ok: want === has, what: `flaw ${f}`, detail: `${v.toFixed(2)}${want ? ' (expected)' : ' (unexpected)'}` });
+    if (want) add(v > 0.2 ? 'ok' : 'warn', `flaw ${f}`, `${v.toFixed(2)} (expected)`);
+    else if (v > 0.2) add(v >= 0.4 ? 'fail' : 'warn', `flaw ${f}`, `${v.toFixed(2)} (unexpected)`);
   }
   if (e.bake) {
-    const b = a.bake;
-    if (!b) res.push({ ok: false, what: 'bake', detail: 'nothing baked' });
+    const b = res.bake;
+    if (!b) add('fail', 'bake', 'nothing baked');
     else {
-      if (e.bake.kind) res.push({ ok: [].concat(e.bake.kind).includes(b.kind), what: 'bake kind', detail: `${b.kind} (want ${e.bake.kind})` });
-      if (e.bake.rise) res.push({ ok: inRange(b.rise, e.bake.rise), what: 'bake rise', detail: `x${b.rise.toFixed(2)} (want ${e.bake.rise[0]}–${e.bake.rise[1]})` });
-      if (e.bake.doneness) res.push({ ok: b.doneness >= e.bake.doneness, what: 'bake doneness', detail: `${b.doneness.toFixed(2)} (want ≥ ${e.bake.doneness})` });
+      if (e.bake.kind) add([].concat(e.bake.kind).includes(b.kind) ? 'ok' : 'warn', 'bake kind', `${b.kind} (want ${e.bake.kind})`);
+      if (e.bake.rise) { const [lo, hi] = e.bake.rise, off = b.rise < lo ? lo - b.rise : b.rise > hi ? b.rise - hi : 0; add(off === 0 ? 'ok' : off > 0.3 ? 'fail' : 'warn', 'bake rise', `x${b.rise.toFixed(2)} (want ${lo}–${hi})`); }
+      if (e.bake.doneness) { const off = e.bake.doneness - b.doneness; add(off <= 0 ? 'ok' : off > 0.15 ? 'fail' : 'warn', 'bake doneness', `${b.doneness.toFixed(2)} (want ≥ ${e.bake.doneness})`); }
     }
   }
-  const allowed = e.verdict.split('-');
-  res.push({ ok: allowed.includes(verdict), what: 'verdict', detail: `${verdict} avg ${G.Judging.avg.toFixed(1)} [${G.Judging.results.map((r) => r.score).join(', ')}] (want ${e.verdict})` });
-  return { res, analysis: a, discovered: got, judges: G.Judging.results };
-}
-
-// ---------- Main ----------
-function runRecipe(r) {
-  const G = makeGame(SEED);
-  G.Sim.reset();
-  const log = { tastes: [] };
-  const dir = path.join(__dirname, 'out', r.id);
-  if (SNAP) { fs.mkdirSync(dir, { recursive: true }); for (const f of fs.readdirSync(dir)) fs.unlinkSync(path.join(dir, f)); }
-  const t0 = Date.now();
-  r.steps.forEach((s, n) => {
-    execStep(G, s, log);
-    if (VERBOSE) console.log(`  [${String(n + 1).padStart(2)}] ${s.padEnd(24)} t=${(G.Sim.frame / FPS).toFixed(0)}s  ` + JSON.stringify(mixMetrics(G), (k, v) => typeof v === 'number' ? +v.toFixed(2) : v));
-    if (SNAP) snapshot(G, path.join(dir, `${String(n + 1).padStart(2, '0')}-${s.replace(/[^a-z0-9.]+/gi, '_')}.png`));
-  });
-  const out = check(r, G, log);
-  out.mix = mixMetrics(G);
-  out.ms = Date.now() - t0;
-  out.simSeconds = G.Sim.frame / FPS;
+  const allowed = e.verdict.split('-').map((v) => LEVELS.indexOf(v)), got = LEVELS.indexOf(res.verdict);
+  const dist = Math.min(...allowed.map((a) => Math.abs(a - got)));
+  add(dist === 0 ? 'ok' : dist === 1 ? 'warn' : 'fail', 'verdict', `${res.verdict} avg ${res.score.toFixed(1)} [${res.judges.map((j) => j.score).join(', ')}] (want ${e.verdict})`);
   return out;
 }
+const status = (g) => g.some((x) => x.level === 'fail') ? 'FAIL' : g.some((x) => x.level === 'warn') ? 'WARN' : 'PASS';
+const mark = { ok: '✓', warn: '~', fail: '✗' };
 
-const recipes = loadRecipes();
-const chosen = target === 'all' ? recipes : recipes.filter((r) => r._file === target || r.id === target || r.id.startsWith(target));
-if (!chosen.length) { console.error('No recipe matches', target); process.exit(1); }
-
-let pass = 0, fail = 0;
-for (const r of chosen) {
-  const out = runRecipe(r);
-  const bad = out.res.filter((x) => !x.ok);
-  const ok = bad.length === 0;
-  ok ? pass++ : fail++;
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${r.id}  (${out.res.length - bad.length}/${out.res.length} checks, ${out.simSeconds.toFixed(0)}s sim in ${(out.ms / 1000).toFixed(1)}s)`);
-  if (chosen.length === 1 || !ok) {
-    for (const x of out.res) if (chosen.length === 1 || !x.ok) console.log(`   ${x.ok ? '✓' : '✗'} ${x.what.padEnd(22)} ${x.detail}`);
-  }
-  if (chosen.length === 1) {
-    const p = out.analysis.p;
-    console.log('   taste  ' + Object.entries(p).map(([k, v]) => `${k} ${v.toFixed(2)}`).join('  '));
-    console.log('   notes  ' + (out.analysis.notes.join(', ') || '-') + '   discovered: ' + out.discovered.join(', '));
-    console.log('   dish   ' + out.analysis.type + '  ' + JSON.stringify(out.analysis.debug));
-    if (out.analysis.bake) console.log('   bake   ' + JSON.stringify(out.analysis.bake, (k, v) => typeof v === 'number' ? +v.toFixed(2) : v));
-    console.log('   mix    ' + Object.entries(out.mix).map(([k, v]) => `${k} ${typeof v === 'number' ? +v.toFixed(2) : v}`).join('  '));
-    out.judges.forEach((j, n) => console.log(`   judge${n} ${j.score}: ${j.line}`));
-    if (SNAP) console.log('   snapshots: ' + path.relative(ROOT, path.join(__dirname, 'out', r.id)));
-  }
+function detail(recipe, res, g) {
+  for (const x of g) console.log(`   ${mark[x.level]} ${x.what.padEnd(22)} ${x.detail}`);
+  console.log('   taste  ' + Object.entries(res.taste).map(([k, v]) => `${k} ${v.toFixed(2)}`).join('  '));
+  console.log('   raw    ' + Object.entries(res.raw).filter(([, v]) => Math.abs(v) > 0.005).map(([k, v]) => `${k} ${v.toFixed(2)}`).join('  '));
+  console.log(`   dish   ${res.type}   notes: ${res.notes.join(', ') || '-'}   discovered: ${res.discovered.join(', ')}`);
+  if (res.bake) console.log('   bake   ' + JSON.stringify(res.bake, (k, v) => typeof v === 'number' ? +v.toFixed(2) : v));
+  for (const j of res.judges) console.log(`   ${j.judge.padEnd(10)} ${j.score}: ${j.line}`);
 }
-if (chosen.length > 1) console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
+
+// --snap: replay in-process, writing a PNG of the pot after every step.
+function snapRun(spec) {
+  const G = K.makeGame(SEED); G.Sim.reset();
+  const dir = path.join(__dirname, 'out', spec.id);
+  fs.mkdirSync(dir, { recursive: true }); for (const f of fs.readdirSync(dir)) fs.unlinkSync(path.join(dir, f));
+  spec.steps.forEach((st, n) => {
+    K.execStep(G, st, SCALE);
+    const { GW, GH } = G, data = new Uint8ClampedArray(GW * GH * 4); G.Sim.render(data);
+    const s = 4, W2 = GW * s, H2 = GH * s, raw = Buffer.alloc((W2 * 4 + 1) * H2);
+    for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++) {
+      const p = ((y / s | 0) * GW + (x / s | 0)) * 4, a = data[p + 3] / 255, d = y * (W2 * 4 + 1) + 1 + x * 4;
+      raw[d] = data[p] * a + 70 * (1 - a); raw[d + 1] = data[p + 1] * a + 74 * (1 - a); raw[d + 2] = data[p + 2] * a + 92 * (1 - a); raw[d + 3] = 255;
+    }
+    const crc = (buf) => { let c, r = ~0; for (const b of buf) { c = (r ^ b) & 255; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; r = (r >>> 8) ^ c; } return ~r >>> 0; };
+    const chunk = (t, d) => { const l = Buffer.alloc(4); l.writeUInt32BE(d.length); const td = Buffer.concat([Buffer.from(t), d]); const c = Buffer.alloc(4); c.writeUInt32BE(crc(td)); return Buffer.concat([l, td, c]); };
+    const h = Buffer.alloc(13); h.writeUInt32BE(W2, 0); h.writeUInt32BE(H2, 4); h[8] = 8; h[9] = 6;
+    fs.writeFileSync(path.join(dir, `${String(n + 1).padStart(2, '0')}-${st.replace(/[^a-z0-9.]+/gi, '_')}.png`),
+      Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', h), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]));
+  });
+  console.log('   snapshots: ' + path.relative(K.ROOT, dir));
+}
+
+(async () => {
+  const all = K.loadRecipes();
+  const chosen = target === 'all' ? all : all.filter((r) => r._file === target || r.id === target || r.id.startsWith(target));
+  if (!chosen.length) { console.error('No recipe matches', target); process.exit(1); }
+  const specs = chosen.map((r) => K.resolve(r.id, all));
+  const results = await K.cookAll(specs.map((spec) => ({ spec, seed: SEED, scale: SCALE })));
+  const tally = { PASS: 0, WARN: 0, FAIL: 0 };
+  chosen.forEach((r, n) => {
+    const res = results[n];
+    if (res.error) { console.log(`ERROR ${r.id}\n${res.error}`); tally.FAIL++; return; }
+    const g = grade(r, res), st = status(g);
+    tally[st]++;
+    console.log(`${st.padEnd(5)} ${r.id}  (${res.simSeconds.toFixed(0)}s sim)`);
+    if (chosen.length === 1) detail(r, res, g);
+    else for (const x of g) if (x.level !== 'ok') console.log(`   ${mark[x.level]} ${x.what.padEnd(22)} ${x.detail}`);
+  });
+  if (SNAP && chosen.length === 1) snapRun(specs[0]);
+  if (chosen.length > 1) console.log(`\n${tally.PASS} pass, ${tally.WARN} warn, ${tally.FAIL} fail  (of ${chosen.length})`);
+  process.exit(tally.FAIL ? 1 : 0);
+})();

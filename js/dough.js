@@ -25,7 +25,11 @@ function soakFrom(S, i, j, water) {
   S.fl[a + F_WATER] += water;
   // Bring the liquid's dissolved flavors along in proportion; the cell is used up as it gives water.
   const share = Math.min(1, water);
-  for (let k = 0; k < F_WATER; k++) { S.fl[a + k] += S.fl[b + k] * share; S.fl[b + k] *= 1 - share; }
+  for (let k = 0; k < NF; k++) {
+    if (k === F_WATER || k === F_EGG || k === F_LEAVEN || k === F_GLUTEN) continue;   // dough-only slots
+    // Dissolved soda is counted in acid-cancelling units (SODA_POWER per grain); dough counts grains.
+    S.fl[a + k] += S.fl[b + k] * share * (k === F_SODA ? 1 / SODA_POWER : 1); S.fl[b + k] *= 1 - share;
+  }
   // A liquid cell's `life` counts how much of its water (in hundredths) has been soaked up.
   S.life[j] = Math.min(255, S.life[j] + Math.round(water * 100));
   if (S.life[j] >= 100) S.setCell(j, EMPTY);
@@ -34,11 +38,11 @@ function soakFrom(S, i, j, water) {
 // A flour grain meeting liquid, egg, or wetter dough becomes dough.
 function reactFlourDough(S, x, y, i) {
   const oil = S.findNb(x, y, isOil);
-  if (oil >= 0 && S.temp[i] > 80 && rnd() < 0.05) {
+  if (oil >= 0 && Math.max(S.temp[i], S.temp[oil]) > 80 && rnd() < 0.05) {   // hot fat: roux (judged by the fat's heat)
     S.setCell(i, ROUX, S.temp[i]); S.discover('roux'); return true;
   }
   // Cold fat rubbed into flour coats it: a sandy, crumbly shortcrust mix (cookies, pastry).
-  if (oil >= 0 && S.temp[i] < 60 && rnd() < 0.05) {
+  if (oil >= 0 && S.temp[oil] < 60 && rnd() < 0.05) {
     becomeDough(S, i);
     S.fl[i * NF + F_RICH] += 0.8; S.fl[i * NF + F_WATER] += 0.1;
     if (rnd() < 0.5) S.setCell(oil, EMPTY);

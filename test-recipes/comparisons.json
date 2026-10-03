@@ -1,0 +1,65 @@
+[
+{"id": "p01-saute-vs-boil-onion", "why": "Browning onions in fat before adding water should beat just boiling them.", "a": "s04-french-onion", "b": "s05-boiled-onion", "events": {"a": ["caramelize"]}, "claims": [{"metric": "score", "op": ">"}, {"metric": "raw.brown", "op": ">"}, {"metric": "note.caramel", "op": ">"}]},
+
+{"id": "p02-seared-vs-plain-beef", "why": "Searing beef and deglazing the fond should make a deeper, more savory broth than simmering raw beef.", "a": "s44-seared-beef-broth", "b": "s43-beef-broth", "events": {"a": ["fond", "deglaze"]}, "claims": [{"metric": "raw.umami", "op": ">"}, {"metric": "raw.brown", "op": ">"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p03-soda-trick-vs-curdle", "why": "Neutralising tomato acid and adding milk gently shouldn't curdle; dumping cold milk into boiling acid should.", "a": "s14-tomato-soda-trick", "b": "s13-creamy-tomato-risky", "events": {"b": ["curdle"]}, "claims": [{"metric": "flaw.curdled", "op": "<"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p04-herbs-late-vs-boiled", "why": "Herbs added off the heat keep their aroma; herbs boiled for minutes lose it.", "a": "s36-garlic-herb", "b": "x08-boiled-herbs", "events": {"b": ["herbloss"]}, "claims": [{"metric": "raw.aroma", "op": ">"}, {"metric": "taste.aroma", "op": ">"}]},
+
+{"id": "p05-lid-keeps-aroma", "why": "A lid traps steam: less aroma escapes and less water boils off.", "a": "s62-lidded-onion", "b": {"from": "s62-lidded-onion", "name": "Same, lid off", "remove": ["lid on", "lid off"]}, "claims": [{"metric": "raw.aroma", "op": ">"}, {"metric": "raw.salty", "op": "<", "why": "lid off reduces the broth, concentrating salt"}]},
+
+{"id": "p06-bloom-vs-no-bloom", "why": "Cumin toasted in hot oil should smell far stronger than cumin stirred into water.", "a": "s17-tomato-shorba", "b": {"from": "s17-tomato-shorba", "name": "Same, cumin added to the water", "remove": ["pour cumin 0.5s"], "insertAfter": {"pour water 7s": ["pour cumin 0.5s"]}}, "events": {"a": ["bloom"]}, "claims": [{"metric": "raw.aroma", "op": ">"}, {"metric": "taste.aroma", "op": ">"}]},
+
+{"id": "p07-chili-in-oil-vs-water", "why": "Chili heat dissolves into fat; bloomed in oil it should hit harder than chili dropped into water.", "a": "s16-spicy-tomato", "b": {"from": "s16-spicy-tomato", "name": "Same, chili added to the water", "remove": ["pour chili 0.5s"], "insertAfter": {"pour water 5s": ["pour chili 0.5s"]}}, "events": {"a": ["bloom"]}, "claims": [{"metric": "taste.heat", "op": ">"}]},
+
+{"id": "p08-egg-drop-stir-vs-still", "why": "Drizzling egg into stirred broth makes ribbons; dropping it in still water makes a poached lump.", "a": "s08-egg-drop", "b": {"from": "s08-egg-drop", "name": "Same, not stirred", "replace": {"crack egg 2 +stir": "crack egg 2"}}, "events": {"a": ["eggdrop"]}, "claims": [{"metric": "count.egg_ribbon", "op": ">"}]},
+
+{"id": "p09-roux-vs-no-roux", "why": "A roux should thicken the bisque.", "a": "s15-tomato-bisque", "b": {"from": "s15-tomato-bisque", "name": "Same, no flour", "remove": ["pour flour 1s"]}, "events": {"a": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
+
+{"id": "p10-lumps-hot-vs-cold", "why": "Flour dumped into hot water lumps; stirred into cold water it disperses.", "a": "x06-flour-lumps", "b": {"from": "x06-flour-lumps", "name": "Flour stirred into cold water", "remove": ["heat 7", "wait 40s"], "replace": {"pour flour 1.5s": "pour flour 1.5s +stir"}}, "events": {"a": ["lumps"]}, "claims": [{"metric": "flaw.lumps", "op": ">"}]},
+
+{"id": "p11-salted-vs-plain", "why": "Seasoned broth beats plain hot water.", "a": "s01-salted-broth", "b": "s02-hot-water", "claims": [{"metric": "taste.salty", "op": ">"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p12-seasoned-vs-salt-bomb", "why": "A pinch is good; a fistful is inedible.", "a": "s01-salted-broth", "b": "x09-salt-bomb", "claims": [{"metric": "taste.salty", "op": "<"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p13-golden-vs-burnt-garlic", "why": "Gently golden garlic beats burnt garlic.", "a": "s06-garlic-broth", "b": "x07-burnt-garlic", "events": {"b": ["burn"]}, "claims": [{"metric": "taste.bitter", "op": "<"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p14-low-slow-vs-scorched-onions", "why": "Onions cooked low and slow caramelize; at full heat they scorch.", "a": "s04-french-onion", "b": {"from": "s04-french-onion", "name": "Same, onions at heat 9", "replace": {"heat 5": "heat 9"}}, "claims": [{"metric": "flaw.burnt", "op": "<"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p15-kneaded-vs-unkneaded-bread", "why": "Kneading builds gluten and mixes the dough evenly; unmixed dough stays floury.", "a": "b10-pot-oven-bread", "b": {"from": "b10-pot-oven-bread", "name": "Same, not kneaded", "remove": ["stir 8s"]}, "events": {"a": ["knead"]}, "claims": [{"metric": "bake.gluten", "op": ">"}, {"metric": "flaw.gritty", "op": "<"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p16-leavened-vs-flat-bread", "why": "Baking powder makes the loaf rise.", "a": "b10-pot-oven-bread", "b": {"from": "b10-pot-oven-bread", "name": "Same, no baking powder", "remove": ["pour powder 0.2s"]}, "events": {"a": ["rise"]}, "claims": [{"metric": "bake.rise", "op": ">"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p17-soda-with-vs-without-acid", "why": "Soda needs acid: with buttermilk it rises and isn't soapy.", "a": "b03-soda-bread", "b": "b15-soapy-soda-bread", "claims": [{"metric": "bake.rise", "op": ">"}, {"metric": "taste.bitter", "op": "<"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p18-cake-with-vs-without-powder", "why": "A sponge needs leavening.", "a": "b14-sponge-cake", "b": {"from": "b14-sponge-cake", "name": "Same, no baking powder", "remove": ["pour powder 0.1s"]}, "claims": [{"metric": "bake.rise", "op": ">"}]},
+
+{"id": "p19-pot-oven-vs-open-pot", "why": "With the lid on the loaf bakes from all sides; open, the top stays raw.", "a": "b10-pot-oven-bread", "b": {"from": "b10-pot-oven-bread", "name": "Same, no lid", "remove": ["lid on", "lid off"]}, "claims": [{"metric": "bake.doneness", "op": ">"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p20-salted-vs-unsalted-bread", "why": "Bread without salt is bland.", "a": "b10-pot-oven-bread", "b": {"from": "b10-pot-oven-bread", "name": "Same, no salt", "remove": ["pour salt 0.08s"]}, "claims": [{"metric": "taste.salty", "op": ">"}, {"metric": "judge.biscuit", "op": ">"}]},
+
+{"id": "p21-sweated-vs-boiled-mirepoix", "why": "Sweating the vegetables in fat first builds a sweeter, more aromatic stock than boiling them raw.", "a": "s29-mirepoix-stock", "b": {"name": "Mirepoix boiled raw", "steps": ["pour water 10s", "add onion 4", "add carrot 4", "add celery 4", "pour salt 0.8s", "heat 4", "wait 210s", "serve"]}, "events": {"a": ["sweat", "mirepoix"]}, "claims": [{"metric": "raw.aroma", "op": ">"}, {"metric": "score", "op": ">="}]},
+
+{"id": "p22-stew-vs-plain-broth", "why": "A seared, deglazed, vegetable-rich beef stew beats plain boiled beef.", "a": "s46-beef-wine-stew", "b": "s43-beef-broth", "claims": [{"metric": "score", "op": ">"}, {"metric": "raw.umami", "op": ">"}]},
+
+{"id": "p23-chili-vs-unspiced", "why": "The spices are what make chili.", "a": "s49-chili-con-carne", "b": {"from": "s49-chili-con-carne", "name": "Same, no chili or cumin", "remove": ["pour chili 0.6s", "pour cumin 0.5s"]}, "claims": [{"metric": "taste.heat", "op": ">"}, {"metric": "raw.aroma", "op": ">", "why": "spices add aroma to the food; perceived aroma can be masked by strong heat, which is intended"}, {"metric": "judge.biscuit", "op": ">"}]},
+
+{"id": "p24-reduction", "why": "Boiling hard concentrates a broth.", "a": "s61-reduction-test", "b": {"from": "s61-reduction-test", "name": "Same, not boiled", "remove": ["heat 9", "wait 120s"]}, "claims": [{"metric": "raw.salty", "op": ">"}]},
+
+{"id": "p25-fullness-garlic-broth", "why": "The same recipe at half or double quantities should taste about the same.", "a": {"from": "s06-garlic-broth", "name": "Half quantities", "scale": 0.5}, "b": {"from": "s06-garlic-broth", "name": "Double quantities", "scale": 2}, "claims": [{"metric": "taste.salty", "op": "≈", "tol": 0.1}, {"metric": "taste.aroma", "op": "≈", "tol": 0.3, "why": "a smaller batch on the same flame runs hotter and steams off more aroma, as in a real pot"}]},
+
+{"id": "p26-fullness-carrot-soup", "why": "The same recipe at half or double quantities should taste about the same.", "a": {"from": "s21-carrot-soup", "name": "Half quantities", "scale": 0.5}, "b": {"from": "s21-carrot-soup", "name": "Double quantities", "scale": 2}, "claims": [{"metric": "taste.salty", "op": "≈", "tol": 0.1}, {"metric": "taste.sweet", "op": "≈", "tol": 0.15}]},
+
+{"id": "p27-herbs-late-vs-early", "why": "Herbs simmered from the start infuse the broth but lose their fresh herbal character; added at the end they stay bright.", "a": "s36-garlic-herb", "b": {"from": "s36-garlic-herb", "name": "Same, herbs simmered from the start", "remove": ["add herbs 3"], "insertBefore": {"heat 5": ["add herbs 3"]}}, "claims": [{"metric": "note.herbal", "op": ">", "why": "fresh herbal character survives only when added late; total aroma can be similar because simmered herbs infuse the broth"}]},
+
+{"id": "p28-sauced-vs-plain-stir-fry", "why": "The soy-sugar glaze is what makes the stir-fry.", "a": "f07-beef-stir-fry", "b": {"from": "f07-beef-stir-fry", "name": "Same, no soy or sugar", "remove": ["pour soy 0.3s", "pour sugar 0.05s"]}, "claims": [{"metric": "taste.salty", "op": ">"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p29-gentle-vs-boiled-dairy", "why": "Milk added at low heat after the acid is balanced stays smooth; cold milk into boiling tomato curdles.", "a": "s64-cream-tomato-herb", "b": "s13-creamy-tomato-risky", "claims": [{"metric": "flaw.curdled", "op": "<"}, {"metric": "score", "op": ">"}]},
+
+{"id": "p30-poached-vs-thrown-egg", "why": "A cracked egg poaches cleanly; one thrown in whole leaves shell in the soup (or survives whole).", "a": "s66-poached-egg-broth", "b": {"from": "s66-poached-egg-broth", "name": "Same, egg thrown in whole", "replace": {"crack egg 1": "throw egg 1"}}, "claims": [{"metric": "flaw.shell", "op": "<"}, {"metric": "score", "op": ">="}]},
+
+{"id": "p31-dumplings-kneaded-vs-not", "why": "Kneaded dough holds together as dumplings; unkneaded dough soaks up the broth and falls apart.", "a": "b12-dumplings", "b": {"from": "b12-dumplings", "name": "Same, dough not kneaded", "remove": ["stir 6s"]}, "claims": [{"metric": "count.baked_dough", "op": ">"}]},
+
+{"id": "p32-flatbread-vs-pancake-texture", "why": "A wet batter makes a softer, moister bake than a stiff dough.", "a": "b01-pancakes", "b": "b02-flatbread", "claims": [{"metric": "bake.water", "op": ">"}]}
+]

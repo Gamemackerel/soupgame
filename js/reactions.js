@@ -9,7 +9,7 @@ const isFire = (m) => m === FIRE;
 
 const TOMATO_MELT = flavorVec({ sour: 5, umami: 7, red: 10, sweet: 0.8, body: 1.5 });
 const LEACH_K = 2; // how strongly chunks flavor the soup
-const BURNT_TASTE = flavorVec({ bitter: 0.6, brown: 0.8 });
+const BURNT_TASTE = flavorVec({ bitter: 2.5, brown: 1.5 });   // a little char goes a long way
 
 Sim.react = function (x, y, i, m) {
   switch (m) {
@@ -34,6 +34,7 @@ Sim.react = function (x, y, i, m) {
 
 function reactBroth(S, x, y, i) {
   const o = i * NF, fl = S.fl, t = S.temp[i];
+  if (fl[o + F_SODA] > 0.01) neutralize(S, x, y, i);
   // Deglazing needs every frame; the rarer reactions are checked on a rotating quarter of cells.
   if (y === GH - 1 && S.fond[x] > 0.02) return deglaze(S, x, i, o, fl, t);
   // Water touching very hot oil splatters (checked every frame: falling drops pass through fast).
@@ -58,7 +59,9 @@ function reactBroth(S, x, y, i) {
 
   // Curdling: dairy + acid + heat, or dairy at a hard boil.
   if (fl[o + F_WHITE] > 0.35 && t > 80 && rnd() < 0.08) {
-    const acid = fl[o + F_SOUR] > 0.25 * fl[o + F_WHITE] + 0.1;
+    // The further past the dairy's tolerance the acid goes, the likelier it splits; borderline rarely does.
+    const over = fl[o + F_SOUR] - (0.25 * fl[o + F_WHITE] + 0.1);
+    const acid = over > 0 && rnd() < Math.min(1, over / 0.3);
     if (acid || (t >= 100 && S.dial >= 8 && rnd() < 0.15)) {
       S.setCell(i, CURD, t);
       S.discover('curdle'); S.emit('curdle', x, y);
@@ -221,8 +224,9 @@ function reactSeasoning(S, x, y, i, m) {
 function reactSpice(S, x, y, i, m) {
   const t = S.temp[i];
   const inOil = S.findNb(x, y, isOil);
-  if (inOil >= 0 && t > 100 && S.cook[i] < 250) {
-    S.cook[i] = Math.min(255, S.cook[i] + 3);
+  // Spices bloom in oil hotter than boiling water, or toast on any hot dry surface (a dry-pan toast).
+  if ((inOil >= 0 ? t > 100 : t > 110) && S.cook[i] < 60 && rnd() < (t - 98) / 25) {
+    S.cook[i]++;   // toasting in the fat; once bloomed it stays bloomed (only real heat burns it)
     if (S.cook[i] >= 60) { S.discover('bloom'); S.addNote('spice', 0.002); S.emit('sizzle', x, y, 60); }
   }
   if (t > MAT[m].burnAt && rnd() < 0.01) { burn(S, x, y, i); return true; }
@@ -231,12 +235,12 @@ function reactSpice(S, x, y, i, m) {
   if (j >= 0) {
     const intoOil = S.mat[j] === OIL;
     if (rnd() < (intoOil ? 0.004 : 0.02) * (S.stirT[i] ? 3 : 1)) {
-      const bloomed = S.cook[i] >= 60 && S.cook[i] < 200;
+      const bloomed = S.cook[i] >= 60;
       const vec = MAT[m].solu, o = j * NF;
       for (let k = 0; k < NF; k++) {
         let v = vec[k];
-        if (k === F_AROMA && bloomed) v *= 2.8;
-        if (k === F_HEAT && intoOil) v *= 1.5;
+        if (k === F_AROMA) v *= bloomed ? 2.8 : intoOil ? 1 : 0.5;   // spice aromatics are fat-soluble: water gets half
+        if (k === F_HEAT) v *= intoOil ? 1.5 : bloomed ? 1 : 0.6;   // capsaicin dissolves in fat; plain water barely extracts it
         S.fl[o + k] += v;
       }
       S.addNote('spice', 0.004);
@@ -276,27 +280,32 @@ function reactLump(S, x, y, i) {
   return false;
 }
 
+// Baking soda dissolves into the liquid as alkalinity (F_SODA) that travels with it and neutralises
+// acid wherever it meets it (see reactBroth). A grain is enough to cancel a fair amount of sourness.
+const SODA_POWER = 12;
 function reactSoda(S, x, y, i) {
   const j = S.findNb(x, y, isBroth);
-  if (j < 0 || rnd() > 0.05) return false;
-  const o = j * NF;
-  if (S.fl[o + F_SOUR] > 0.08) {
-    S.fl[o + F_SOUR] = Math.max(0, S.fl[o + F_SOUR] - 1.5);
-    S.fl[o + F_BITTER] += 0.05;
-    S.setCell(i, FOAM);
-    for (let k = 0; k < 14; k++) {
-      const fx = x + rint(9) - 4, fy = y - rint(8);
-      if (fx >= 0 && fx < GW && fy >= 0) {
-        const fi = fy * GW + fx;
-        if (S.mat[fi] === EMPTY || S.mat[fi] === BROTH) S.setCell(fi, FOAM);
-      }
-    }
-    S.discover('fizz'); S.emit('fizz', x, y, 60);
-  } else {
-    S.fl[o + F_BITTER] += 0.25; // soapy
-    S.setCell(i, EMPTY);
-  }
+  if (j < 0 || rnd() > 0.08) return false;
+  S.fl[j * NF + F_SODA] += SODA_POWER;
+  S.setCell(i, EMPTY);
   return true;
+}
+
+// Soda meets acid in the liquid: both are used up, with fizz where there's a lot of acid at once.
+// Leftover soda with nothing to react with tastes soapy.
+function neutralize(S, x, y, i) {
+  const o = i * NF, soda = S.fl[o + F_SODA], sour = S.fl[o + F_SOUR];
+  if (sour > 0.01) {
+    const r = Math.min(soda, sour);
+    S.fl[o + F_SODA] -= r; S.fl[o + F_SOUR] -= r;
+    if (r > 0.1) {   // fizzing: foam in proportion to how much reacted
+      for (let k = 0; k < Math.min(14, r * 12); k++) {
+        const fx = x + rint(9) - 4, fy = y - rint(8);
+        if (fx >= 0 && fx < GW && fy >= 0) { const fi = fy * GW + fx; if (S.mat[fi] === EMPTY) S.setCell(fi, FOAM); }   // foam rises into the air, never eats the liquid
+      }
+      S.discover('fizz'); S.emit('fizz', x, y, 60);
+    }
+  }
 }
 
 function burn(S, x, y, i) {
@@ -321,7 +330,7 @@ function reactChunk(S, x, y, i, m) {
   if (M.leach && t > 50 && S.life[i] > 0 && rnd() < 0.06) {
     const j = wet >= 0 ? wet : oily;
     if (j >= 0) {
-      if (m === HERB && c >= 40) { /* wilted herbs have nothing left */ }
+      if (m === HERB && c >= 120) { /* fully wilted herbs have nothing left */ }
       else {
         const browned = c >= 150 ? 2 : 1;
         const intoOil = S.mat[j] === OIL;
@@ -331,7 +340,7 @@ function reactChunk(S, x, y, i, m) {
           for (let k = 0; k < NF; k++) S.fl[o + k] += M.leach[k] * browned * LEACH_K * (k === F_AROMA ? 0.3 : 0.03);
         } else S.addFlavor(j, M.leach, browned * LEACH_K);
         // Browned food gives up the good stuff: sweetness, savoriness and roasty aroma.
-        if (browned > 1) { const o = j * NF; S.fl[o + F_BROWN] += 0.05; S.fl[o + F_SWEET] += 0.05; S.fl[o + F_UMAMI] += 0.02; S.fl[o + F_AROMA] += 0.04; }
+        if (browned > 1) { const o = j * NF; S.fl[o + F_BROWN] += 0.05; S.fl[o + F_SWEET] += 0.025; S.fl[o + F_UMAMI] += 0.02; S.fl[o + F_AROMA] += 0.04; }
         if (!intoOil || rnd() < 0.2) S.life[i] -= 1;   // frying barely depletes it: the flavor waits for the broth
         if (M.note) S.addNote(M.note, 0.0008);
       }
@@ -342,18 +351,20 @@ function reactChunk(S, x, y, i, m) {
   if (M.note && t > 100 && !pieceWet && rnd() < 0.02) S.addNote(M.note, 0.002);
 
   // Cooking progression.
+  if (m === HERB && t > 65 && c < 255 && rnd() < (t - 60) / 120) c++;   // herbs wilt from ~65°C, faster the hotter it is
   if (pieceWet && t > 85) {
     if (c < 110 && rnd() < 0.15) c++;               // simmered soft
-    if (m === HERB && c < 255 && rnd() < 0.3) c++;  // herbs wilt in heat
-  } else if (pieceOily && t > 90 && t <= 125) {
-    if (c < 120 && rnd() < 0.3) c++;                // sweating in fat
+  } else if (pieceOily && t > 75 && t <= 125 && c < 120) {
+    if (rnd() < 0.3) c++;                           // sweating in fat
+  } else if (pieceOily && t > 105 && t <= 125) {
+    if (c < 255 && rnd() < (t - 100) / 60 * (M.brownRate || 0.25)) c++;   // then slowly caramelising in the fat
   } else if (!pieceWet && t > 120 && !(m === BREAD && insideLoaf(S, x, y))) {
     if (c < 255 && rnd() < (t - 110) / 60 * (M.brownRate || 0.25)) c++;   // browning (only when dry; bread only on its crust)
   }
-  if (m === HERB && c >= 40 && S.cook[i] < 40) S.discover('herbloss');
+  if (m === HERB && c >= 120 && S.cook[i] < 120) S.discover('herbloss');
   if (c >= 80 && S.cook[i] < 80 && pieceOily && m !== MEAT && m !== HERB) S.discover('sweat');
   if (c >= 150 && S.cook[i] < 150) {
-    if (m === ONION) { S.discover('caramelize'); S.addNote('caramel', 0.03); }
+    if (m === ONION || m === CARROT || m === GARLIC) { S.discover('caramelize'); S.addNote('caramel', 0.03); }
     else if (m === FISH || m === FISHFIN) { S.discover('crispyskin'); S.addNote('toasty', 0.02); }
     else if (m === BREAD) { S.discover('crust'); S.addNote('toasty', 0.02); }
     else S.addNote('toasty', 0.02);

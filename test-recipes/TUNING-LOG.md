@@ -1,0 +1,44 @@
+# Tuning Log
+
+Each entry is a test that came out wrong, what was really at fault, and what changed. The categories match `tools/run-pairs.js`:
+
+- **CHEMISTRY:** the pot did the wrong thing.
+- **ANALYSIS:** the pot was right but perception or judging got it wrong.
+- **RECIPE / CLAIM:** the test itself was wrong.
+
+## Round 1 — comparison pairs introduced (2026-10-03)
+
+The first run had 22 of 32 pairs passing. Every pair passes now (32/32 on seeds 1–3).
+
+| Pair | Symptom | Real cause | Category | Fix |
+|---|---|---|---|---|
+| p01 sauté vs boil onion | Boiled onions had **more** caramel than sautéed | Pots **boiled dry**. Heat 9 lost 80% of the water in a minute: stacked bubbles skipped the "pop and re-condense" check and escaped as steam. Under a lid, steam piled up instead of condensing | CHEMISTRY | Every fresh bubble gets one pop check. Escape rate tuned to about 2% / 6% / 8% per minute at heat 5 / 7 / 9. Lid condensation is now strong, so a lidded pot keeps 99% |
+| p01 (again) | French onion barely caramelized | At heat 5 the oil sits at about 117°C, and onions were stuck in a "sweat" stage capped at cook 120, while browning needed 120°C+ | CHEMISTRY | After sweating, food in fat keeps slowly caramelizing from 105°C |
+| p24 reduction | Reduced broth had **no** salt | Same boiling-dry bug: the pot was empty | CHEMISTRY | (as above) |
+| p05 lid keeps aroma | Lid on lost **more** water | Steam accumulated under the lid (1,500+ steam cells) instead of dripping back | CHEMISTRY | Steam condenses on the lid and in the air under it |
+| p04 herbs late vs boiled | Boiled-to-death herbs scored more aromatic | When the dish was tasted, a wilted herb's cook level (196) fell inside the "browned food" window and got the Maillard bonus | ANALYSIS | Herbs track wilting, not browning. Wilted herbs lose most of their aroma when eaten |
+| p27 herbs late vs early | Early herbs gave more aroma | (1) Aroma never left hot liquid. (2) Floating herbs sat at a too-cold surface (see stratification) and kept infusing. (3) Total aroma can't tell fresh from stewed | CHEMISTRY + CLAIM | Aroma now steams off hot, open liquid; fat holds it about twice as long. Notes fade in an open hot pot, with "herbal" fastest. Herbs wilt gradually from 65°C. The claim was rebased on the garlic broth (no celery) and checks fresh `note.herbal`, not total aroma |
+| (found via p27) | Simmering pot: surface 53–72°C, middle 77–86°C, bottom 100°C | Bubbles carried the burner's energy up and out without heating anything, air conducted too much heat away, and convection was weak | CHEMISTRY | Rising bubbles heat the liquid they pass through; stronger convection; air is a poor conductor. The middle of the pot now sits at 89–95°C |
+| p03 soda trick vs curdle | The soda trick still curdled | (1) Each soda grain only cancelled acid in the single cell it touched (about 2% of the soup's acid). (2) Once soda dissolved, the fizz foam **overwrote** the broth carrying it | CHEMISTRY | Soda dissolves into the liquid and neutralizes acid wherever it travels. Foam only rises into air. Curdling chance scales with how far past the dairy's tolerance the acid is |
+| p03 (again) | Some curds remained | The recipe's soda didn't reach every sour pocket | RECIPE | More soda and a longer stir ("add until the fizzing stops") |
+| p06 bloom vs water | Bloomed cumin no more aromatic | Spices "over-bloomed" in about 1 s, which disabled the bonus. Spice in plain water also extracted as well as in fat | CHEMISTRY | Once bloomed, a spice stays bloomed; only real heat burns it. Unbloomed spice gives water half its aroma. Blooming needs oil hotter than boiling water, or a hot dry surface (dry toasting) |
+| p07 chili oil vs water | Same heat either way | Capsaicin dissolved into water as well as into fat | CHEMISTRY | Unbloomed chili gives water 60% of its heat; bloomed chili gives full heat; chili dissolving into oil gives 1.5× |
+| p10 lumps hot vs cold | No lumps flaw in either | Flour in hot water does form gluey clumps, but they're dough cells, and the flaw only counted "lump" cells | ANALYSIS | Raw dough floating in a soup counts as lumps |
+| p14 low-slow vs scorched | Scorched onions scored **higher** | Burnt bits barely tasted bitter, and heat-9 onions leached extra browned sweetness first | CHEMISTRY | Char is acrid: burnt bits strongly increase bitterness |
+| p17 soda with/without acid | No-acid bread rose **2.8×** | Dissolved soda is measured in acid-cancelling units (12 per grain) but entered dough without converting back to grains | CHEMISTRY | Unit conversion when liquid soaks into dough |
+| p23 chili vs unspiced | Perceived aroma equal | Strong heat masks aroma in perception, which is intended. The claim tested the wrong layer | CLAIM | The claim now checks raw aroma. Perception also gained a soft ceiling (stronger is still a bit stronger near 1.0) |
+| p25 fullness | Half vs double batch aroma differed 0.38 / 0.70 | A small batch on the same flame runs hotter and steams off more aroma, as a real pot does. Salt matches | CLAIM | Aroma tolerance 0.3, salt 0.1 |
+
+## Recipe-suite calibration found along the way
+
+- **Sweetness.** A carrot or onion cell could leach about 40× the sweetness you'd taste from eating it, so long-simmered vegetable soups read as dessert. Leach strength is roughly halved. Browned food still gives more.
+- **Spice and roux thresholds.** Sweating starts at 75°C (confit-gentle). Roux is decided by the fat's temperature, not the cold flour grain's. Fizz foam scales with the reaction.
+- **Recipes.** s07 blooms its chili at heat 5 with time to toast. s65's tadka is a known gap: a separate pan is needed.
+
+## Still open (recipe suite: 37 pass, 41 warn, 32 fail)
+
+Hard failures are mostly taste-range targets written before the dough, heat and volatility models existed:
+
+- **Body too low (9):** thickening from roux and tomato is weaker than the original guesses. This could be calibration or recipe amounts; worth a dedicated thickening pair (roux dose vs body).
+- **Too sweet (6) / too rich (6) / greasy (6):** mostly fry and cream dishes. Oil pours heavier than the recipes assume; see SPEC §14.
+- **Heat too low (5):** recipes that add chili straight to water now get less heat, which is realistic. The recipes should bloom it, or the targets should drop.
