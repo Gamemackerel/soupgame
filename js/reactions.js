@@ -258,7 +258,7 @@ function reactRoux(S, x, y, i) {
   const j = S.findNb(x, y, isBroth);
   if (j >= 0 && S.temp[j] > 70 && rnd() < 0.03 * (S.stirT[i] ? 3 : 1)) {
     const c = S.cook[i] / 255, o = j * NF;
-    S.fl[o + F_BODY] += 1.8 * (1 - c * 0.5);
+    S.fl[o + F_BODY] += 6 * (1 - c * 0.5);   // starch swells hugely: a little roux thickens a lot of liquid
     S.fl[o + F_RICH] += 0.3;
     S.fl[o + F_BROWN] += c * 1.5;
     S.fl[o + F_AROMA] += c * 0.8;

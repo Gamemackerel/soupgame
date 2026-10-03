@@ -142,7 +142,7 @@ function reactDough(S, x, y, i) {
   }
   // Too much liquid: it stops being batter and thins out into the soup as a thickener.
   if (S.fl[a + F_WATER] > DOUGH_THIN && S.findNb(x, y, isBroth) >= 0) {
-    const body = 1.2;
+    const body = 4;   // dispersed starch thickens the liquid it melts into
     S.mat[i] = BROTH;
     S.fl[a + F_BODY] += body; S.fl[a + F_WATER] = 0; S.fl[a + F_GLUTEN] = 0; S.fl[a + F_EGG] = 0;
     return true;

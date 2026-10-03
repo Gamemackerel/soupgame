@@ -42,7 +42,7 @@ Taste.perceive = function (g, burntFrac = 0, plate = false) {
     salty,
     sweet: n('sweet', r[F_SWEET] * (1 + salty * 0.3)),
     sour: n('sour', r[F_SOUR] - r[F_SWEET] * 0.15),
-    bitter: n('bitter', Math.max(0, r[F_BITTER] - salty * 0.15) + burntFrac * 12),
+    bitter: n('bitter', Math.max(0, r[F_BITTER] + burntFrac * 12 - salty * 0.15)),   // salt takes the edge off char too
     umami: n('umami', r[F_UMAMI] * (1 + salty * 0.5)),
     rich: n('rich', r[F_RICH] + oilFrac * 2.5),
     heat: n('heat', r[F_HEAT] * 0.5 + g.oilHeat * 1.2 - r[F_SWEET] * 0.1),
@@ -241,7 +241,7 @@ Taste.analyzeBowl = function () {
     raw: Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0)),
     gritty: Math.min(1, grit / 60),
     // A plate can carry some oil; a soup with an oil slick is greasy much sooner.
-    greasy: Math.min(1, Math.max(0, oilShare - (plate ? 0.35 : 0.12)) * (plate ? 3 : 5)),
+    greasy: Math.min(1, Math.max(0, oilShare - (plate ? 0.35 : 0.07)) * (plate ? 3 : 8)),
     shell: Math.min(1, (counts[SHELL] || 0) / 10),
     chemical: Math.min(1, (counts[EXTPOWDER] || 0) / 15),
   };

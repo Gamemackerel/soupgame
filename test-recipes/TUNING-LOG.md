@@ -42,3 +42,19 @@ Hard failures are mostly taste-range targets written before the dough, heat and 
 - **Body too low (9):** thickening from roux and tomato is weaker than the original guesses. This could be calibration or recipe amounts; worth a dedicated thickening pair (roux dose vs body).
 - **Too sweet (6) / too rich (6) / greasy (6):** mostly fry and cream dishes. Oil pours heavier than the recipes assume; see SPEC §14.
 - **Heat too low (5):** recipes that add chili straight to water now get less heat, which is realistic. The recipes should bloom it, or the targets should drop.
+
+## Round 2: dose-response and perception pairs (2026-10-03)
+
+15 new pairs (p33–p47) cover body, richness/grease, sweetness, heat and two perception rules. 12 passed on the first run. Every pair passes now (47/47 on seeds 1–3).
+
+| Pair | Symptom | Real cause | Category | Fix |
+|---|---|---|---|---|
+| p35/p36 (passed, but the numbers were suspicious) | A roux stew had body 0.03 and a flour slurry 0.03 | Starch thickened about 3× too weakly: a roux cell added 1.8 body, so 100 flour grains barely thickened 3,000 cells of liquid | CHEMISTRY | A roux cell adds 6 body (less as it browns); thin dough melting into liquid adds 4. Suite "body too low" dropped 9 → 6 |
+| p38 oil dose in soup | A 4×-oil broth scored higher | Soup greasiness started at 12% oil and barely registered (0.16), so the richness bonus won | ANALYSIS | Soup greasiness starts at 7% oil and rises faster. Plates are unchanged (pan oil is left behind) |
+| p44 vinegar dose | Nanny Mae didn't mind 3× the vinegar | Her sourness tolerance only kicked in at 0.35 | ANALYSIS | She notices from 0.2 and complains from 0.35 |
+| p47 salt suppresses bitterness | Salt didn't soften burnt garlic | Char bitterness was added *after* the salt-suppression rule, so salt never touched it | ANALYSIS | Salt suppression applies to total bitterness, including char |
+| (tooling) | p47 was blamed on CHEMISTRY | When raw values are identical, the difference can only come from perception | — | The diagnosis now reports ANALYSIS when raw is equal on both sides |
+
+Passing pairs that confirm earlier fixes: roux dose → body, reduction → body and umami, milk dose → richness, oil dose on a plate → greasy, chili dose → heat (and Nanny's dislike of a fiery bowl), onion count → sweetness, browned vs sweated carrots, soy dose → umami and salt, sugar masking sourness.
+
+**Still open (recipe suite: 38 pass, 41 warn, 31 fail).** The oil-dose pairs show the chemistry and judging respond correctly to oil, so the remaining "greasy / too rich" recipe failures (7 / 6) are mostly **recipe amounts**: the fry and cream recipes pour more oil than they mean to, at the faster pour rate. That's the next tuning pass on the recipes themselves.

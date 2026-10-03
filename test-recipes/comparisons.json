@@ -61,5 +61,35 @@
 
 {"id": "p31-dumplings-kneaded-vs-not", "why": "Kneaded dough holds together as dumplings; unkneaded dough soaks up the broth and falls apart.", "a": "b12-dumplings", "b": {"from": "b12-dumplings", "name": "Same, dough not kneaded", "remove": ["stir 6s"]}, "claims": [{"metric": "count.baked_dough", "op": ">"}]},
 
-{"id": "p32-flatbread-vs-pancake-texture", "why": "A wet batter makes a softer, moister bake than a stiff dough.", "a": "b01-pancakes", "b": "b02-flatbread", "claims": [{"metric": "bake.water", "op": ">"}]}
+{"id": "p32-flatbread-vs-pancake-texture", "why": "A wet batter makes a softer, moister bake than a stiff dough.", "a": "b01-pancakes", "b": "b02-flatbread", "claims": [{"metric": "bake.water", "op": ">"}]},
+
+{"id": "p33-roux-dose", "why": "More roux, thicker soup.", "a": {"from": "s15-tomato-bisque", "name": "Bisque, lots of roux", "replace": {"pour flour 1s": "pour flour 2s", "pour oil 1.5s": "pour oil 2.5s"}}, "b": {"from": "s15-tomato-bisque", "name": "Bisque, a little roux", "replace": {"pour flour 1s": "pour flour 0.4s"}}, "events": {"a": ["roux"], "b": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
+
+{"id": "p34-reduced-sauce-vs-watered-soup", "why": "Tomatoes cooked down with no water make a thicker, more concentrated sauce than the same tomatoes in water.", "a": "f11-tomato-sauce", "b": "s11-tomato-soup", "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "raw.umami", "op": ">"}]},
+
+{"id": "p35-stew-roux-vs-none", "why": "The roux is what makes a stew thick.", "a": "s47-thick-beef-stew", "b": {"from": "s47-thick-beef-stew", "name": "Same, no flour", "remove": ["pour flour 0.8s"]}, "events": {"a": ["roux"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "taste.body", "op": ">"}]},
+
+{"id": "p36-cold-slurry-thickens", "why": "Flour whisked into cold water disperses and thickens the liquid once it's hot.", "a": {"name": "Flour slurry, then simmered", "steps": ["pour water 10s", "pour flour 0.8s +stir", "stir 4s", "heat 6", "wait 40s", "stir 2s", "serve"]}, "b": {"name": "Plain water, simmered", "steps": ["pour water 10s", "heat 6", "wait 40s", "serve"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "flaw.lumps", "op": "<=", "why": "stirred into cold water, it shouldn't lump"}]},
+
+{"id": "p37-milk-dose-richness", "why": "More milk, richer soup.", "a": {"from": "s27-cream-of-celery", "name": "Lots of milk", "replace": {"pour milk 3s +stir": "pour milk 5s +stir"}}, "b": {"from": "s27-cream-of-celery", "name": "A splash of milk", "replace": {"pour milk 3s +stir": "pour milk 1s +stir"}}, "claims": [{"metric": "raw.rich", "op": ">"}, {"metric": "taste.rich", "op": ">"}]},
+
+{"id": "p38-oil-dose-soup", "why": "A slick of oil on a soup is greasy and judged worse than a little.", "a": "s06-garlic-broth", "b": {"from": "s06-garlic-broth", "name": "Same, 4x the oil", "replace": {"pour oil 1s": "pour oil 4s"}}, "claims": [{"metric": "flaw.greasy", "op": "<"}, {"metric": "taste.rich", "op": "<"}, {"metric": "score", "op": ">="}]},
+
+{"id": "p39-oil-dose-plate", "why": "Searing in a film of oil beats drowning the meat.", "a": "f06-seared-beef", "b": {"from": "f06-seared-beef", "name": "Same, swimming in oil", "replace": {"pour oil 0.5s": "pour oil 3s"}}, "claims": [{"metric": "flaw.greasy", "op": "<"}, {"metric": "score", "op": ">="}]},
+
+{"id": "p40-chili-dose", "why": "More chili, more heat.", "a": {"from": "s16-spicy-tomato", "name": "A pinch of chili", "replace": {"pour chili 0.5s": "pour chili 0.2s"}}, "b": {"from": "s16-spicy-tomato", "name": "Lots of chili", "replace": {"pour chili 0.5s": "pour chili 1.5s"}}, "claims": [{"metric": "raw.heat", "op": "<"}, {"metric": "taste.heat", "op": "<"}]},
+
+{"id": "p41-nanny-hates-fire", "why": "Nanny Mae prefers gentle heat; a fiery version should lose her vote.", "a": "s16-spicy-tomato", "b": {"from": "s16-spicy-tomato", "name": "Fiery", "replace": {"pour chili 0.5s": "pour chili 3s"}}, "claims": [{"metric": "taste.heat", "op": "<"}, {"metric": "judge.nanny", "op": ">"}]},
+
+{"id": "p42-onion-dose-sweetness", "why": "More onions, sweeter broth.", "a": {"from": "s03-onion-broth", "name": "3 onions", "replace": {"add onion 6": "add onion 3"}}, "b": {"from": "s03-onion-broth", "name": "14 onions", "replace": {"add onion 6": "add onion 14"}}, "claims": [{"metric": "raw.sweet", "op": "<"}]},
+
+{"id": "p43-browned-vs-sweated-carrots", "why": "Carrots browned in oil before the water go in give a sweeter, toastier soup than gently sweated ones.", "a": {"from": "s21-carrot-soup", "name": "Carrots browned first", "replace": {"heat 5": "heat 7"}, "insertAfter": {"add carrot 10": ["wait 40s"]}}, "b": "s21-carrot-soup", "claims": [{"metric": "raw.sweet", "op": ">"}, {"metric": "raw.brown", "op": ">"}]},
+
+{"id": "p44-vinegar-dose", "why": "More vinegar is more sour, and Nanny Mae objects.", "a": "s40-sour-egg", "b": {"from": "s40-sour-egg", "name": "Same, 3x the vinegar", "replace": {"pour vinegar 0.6s": "pour vinegar 1.8s"}}, "claims": [{"metric": "taste.sour", "op": "<"}, {"metric": "judge.nanny", "op": ">"}]},
+
+{"id": "p45-soy-dose-umami", "why": "More soy, more savory (and salty).", "a": "s37-soy-broth", "b": {"from": "s37-soy-broth", "name": "Same, a third of the soy", "replace": {"pour soy 1.5s": "pour soy 0.5s"}}, "claims": [{"metric": "raw.umami", "op": ">"}, {"metric": "taste.salty", "op": ">"}]},
+
+{"id": "p46-sugar-masks-sour", "why": "With the same acid, a little sugar makes it taste less sour (perception rule).", "a": "s12-sweet-sour-tomato", "b": {"from": "s12-sweet-sour-tomato", "name": "Same, no sugar", "remove": ["pour sugar 0.5s"]}, "claims": [{"metric": "raw.sour", "op": "≈", "tol": 0.08, "why": "same acid in the pot"}, {"metric": "taste.sour", "op": "<"}]},
+
+{"id": "p47-salt-suppresses-bitter", "why": "With the same char, salt makes it taste less bitter (perception rule).", "a": "x07-burnt-garlic", "b": {"from": "x07-burnt-garlic", "name": "Same, unsalted", "remove": ["pour salt 1s"]}, "claims": [{"metric": "taste.bitter", "op": "<"}]}
 ]

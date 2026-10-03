@@ -65,6 +65,8 @@ function diagnose(pair, claim, A, B, results) {
     const rc = { metric: 'raw.' + key, op: claim.op, tol: claim.tol };
     const ra = avg(A, rc.metric), rb = avg(B, rc.metric);
     if (holds(rc, ra, rb)) out.push({ suspect: 'ANALYSIS', why: `in the food, raw ${key} goes the right way (A ${f2(ra)} vs B ${f2(rb)}), but perceived ${key} doesn't. Perception: ${PERCEPTION_NOTES[key]}.` });
+    // Same raw amount on both sides: any difference was supposed to come from a perception rule.
+    else if (Math.abs(ra - rb) <= eps(rc.metric)) out.push({ suspect: 'ANALYSIS', why: `raw ${key} is the same in both (A ${f2(ra)} vs B ${f2(rb)}), so the difference has to come from perception, and it doesn't. Perception: ${PERCEPTION_NOTES[key]}.` });
     else out.push({ suspect: 'CHEMISTRY', why: `the food itself has the wrong difference: raw ${key} A ${f2(ra)} vs B ${f2(rb)}.` });
     return out;
   }
