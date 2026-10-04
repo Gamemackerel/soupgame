@@ -4,7 +4,9 @@ A falling-sand cooking game. Pour ingredients into a pot, control the flame, sti
 
 ## Play
 
-Open `index.html` in a browser. There's no build step.
+**Play online: https://gamemackerel.github.io/soupgame/**
+
+Or open `index.html` in a browser. There's no build step.
 
 | Control | Action |
 |---|---|
