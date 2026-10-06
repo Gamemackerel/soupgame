@@ -21,7 +21,7 @@ Start this first. Steam has fixed waits, and they can run while the game is buil
 
 - [ ] Create a Steamworks account at partner.steamgames.com: legal name, bank details, tax interview and identity check (allow a few days).
 - [ ] Pay the $100 Steam Direct fee. It gets you an App ID and starts the 30-day wait before release is allowed. The fee comes back once the game earns $1,000.
-- [ ] Build the store page: capsule art, screenshots, a short description and a trailer if possible. Sandbox footage is fine for now; it must show the real game.
+- [ ] Build the store page: capsule art, screenshots, a short description and a trailer if possible. Sandbox footage is fine for now; it must show the real game. First screenshots are in [press/](press/README.md).
 - [ ] Submit the store page for review, then set it to "Coming Soon". It has to be public for about two weeks before launch.
 
 ### 2. Choose the 10 recipes and decide how judging works

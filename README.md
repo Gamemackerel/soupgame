@@ -8,6 +8,15 @@ A falling-sand cooking game. Pour ingredients into a pot, control the flame, sti
 
 Or open `index.html` in a browser. There's no build step.
 
+![A pot of tomato soup boiling](press/screenshots/tomato-soup-boiling.png)
+
+| | |
+| --- | --- |
+| ![Making dough](press/screenshots/making-dough.png) | ![Putting out a grease fire](press/screenshots/fire-extinguisher.png) |
+| ![The judges tasting](press/screenshots/judges-tasting.png) | ![Chopped!](press/screenshots/judges-chopped.png) |
+
+More in the [press kit](press/README.md).
+
 | Control | Action |
 |---|---|
 | Pantry (left) | Pick an ingredient. The chef picks it up |
