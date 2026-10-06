@@ -29,6 +29,7 @@ Dev shortcuts: open the page with `#demo`, `#judge`, `#speak` or `#verdict` on t
   - `judges.js`: the judging scene
   - `art.js`, `chef.js`, `ui.js`, `main.js`: art, chef, UI, game loop
 - `SPEC.md`: the game design spec
+- `ROADMAP.md`: the steps to the Steam beta
 - `test-recipes/`: 100 playtest recipes with expected outcomes
 - `tools/run-recipes.js`: a headless runner that replays recipes through the real sim and checks them
 
