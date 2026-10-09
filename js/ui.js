@@ -34,7 +34,7 @@ const T = {
   },
 };
 
-const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 27, SLOT_H = 17;
+const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SLOT_H = 23, SHELF_COLS = 3;
 const TOOLS = [
   { id: 'pour', icon: 'hand', label: 'Pour' },
   { id: 'ladle', icon: 'ladle', label: 'Stir' },
@@ -51,7 +51,7 @@ const UI = {
   tool: 'pour', hover: null, card: null, journal: false, banners: [], confirmClear: 0,
   dragDial: false,
 
-  shelfSlot(n) { return { x: SHELF_X + (n % 2) * SLOT_W, y: SHELF_Y + ((n / 2) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
+  shelfSlot(n) { return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
   toolSlot(n) { return { x: TOOL_X, y: TOOL_Y + n * TOOL_H, w: 50, h: TOOL_H - 2 }; },
 
   hit(r, x, y) { return x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h; },
@@ -111,7 +111,7 @@ const UI = {
       rect(g, s.x + 1, s.y + 1, s.w - 1, s.h - 1, sel ? [255, 214, 110] : hov ? [196, 140, 92] : [176, 120, 76]);
       rect(g, s.x + 1, s.y + s.h - 2, s.w - 1, 2, [120, 76, 48]);
       const bobY = sel ? Math.round(Math.sin(Chef.t * 0.15)) : 0;
-      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 5, s.y + bobY);
+      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 1, s.y + 3 + bobY);
     });
     // Tool panel.
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);

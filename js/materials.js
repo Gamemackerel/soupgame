@@ -30,7 +30,8 @@ const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CH
       MEAT = 15, HERB = 16, STEAM = 17, SMOKE = 18, FIRE = 19, FOAM = 20, ROUX = 21,
       LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26,
       YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33,
-      EXTPOWDER = 34, DOUGH = 35, BREAD = 36, BAKEPOWDER = 37;
+      EXTPOWDER = 34, DOUGH = 35, BREAD = 36, BAKEPOWDER = 37,
+      CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -91,6 +92,17 @@ defMat(DOUGH,   { name: 'dough', cls: C_CHUNK, dens: 1.2, cond: 0.1, col: [240, 
 defMat(BREAD,   { name: 'baked dough', cls: C_CHUNK, dens: 0.9, cond: 0.08, col: [246, 230, 190], burnAt: 235, brownRate: 0.05,
                   stops: [[0, [246, 230, 190]], [100, [240, 220, 170]], [150, [222, 168, 96]], [195, [168, 100, 46]], [255, [52, 36, 26]]] });
 defMat(BAKEPOWDER, { name: 'baking powder', cls: C_POWDER, dens: 1.4, cond: 0.08, col: [250, 250, 244] });
+// Starchy ingredients. `soften` is how fast they cook through in simmering liquid; `starch` means they
+// thicken the liquid once softened, and keep cooking past done (potatoes collapse, pasta goes to mush).
+defMat(CORN,    { name: 'corn', cls: C_CHUNK, dens: 1.08, cond: 0.1, col: [252, 212, 64], col2: [200, 140, 50], burnAt: 210, brownRate: 0.3,
+                  soften: 0.12, starch: true, leach: flavorVec({ sweet: 0.02, body: 0.02, gold: 0.03, aroma: 0.004 }), note: 'earthy' });
+defMat(POTATO,  { name: 'potato', cls: C_CHUNK, dens: 1.1, cond: 0.09, col: [238, 222, 172], col2: [196, 146, 78], burnAt: 220, brownRate: 0.15,
+                  soften: 0.055, starch: true, collapse: true, leach: flavorVec({ body: 0.035, umami: 0.004 }), note: 'earthy' });
+defMat(BEANS,   { name: 'white beans', cls: C_CHUNK, dens: 1.12, cond: 0.1, col: [240, 232, 212], col2: [190, 150, 100], burnAt: 220, brownRate: 0.15,
+                  soften: 0.04, starch: true, leach: flavorVec({ body: 0.02, umami: 0.012, rich: 0.006 }) });
+defMat(PASTA,   { name: 'pasta', cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [236, 206, 128], col2: [200, 150, 80], burnAt: 220, brownRate: 0.2,
+                  soften: 0.07, starch: true, leach: flavorVec({ body: 0.04 }),
+                  stops: [[0, [236, 206, 128]], [80, [246, 232, 178]], [170, [250, 244, 222]], [255, [252, 250, 240]]] });
 defMat(FISHEYE, { name: 'fish eye', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [24, 24, 34],
                   stops: [[0, [24, 24, 34]], [110, [230, 230, 220]], [255, [60, 50, 40]]] });
 
@@ -119,6 +131,10 @@ EAT[FLOUR] = flavorVec({ bitter: 0.1, body: 0.2 });
 EAT[DOUGH] = flavorVec({ bitter: 0.12, body: 0.3 });        // raw dough: pasty, floury
 EAT[BREAD] = flavorVec({ aroma: 0.15, sweet: 0.05, body: 0.3 });
 EAT[BAKEPOWDER] = flavorVec({ bitter: 1.5, salty: 0.5 });
+EAT[CORN] = flavorVec({ sweet: 0.35, body: 0.1, aroma: 0.05 });
+EAT[POTATO] = flavorVec({ body: 0.3, umami: 0.03, rich: 0.04 });
+EAT[BEANS] = flavorVec({ body: 0.25, umami: 0.1, rich: 0.06 });
+EAT[PASTA] = flavorVec({ body: 0.35, sweet: 0.02 });
 EAT[SODA] = flavorVec({ bitter: 2 });
 EAT[EXTPOWDER] = flavorVec({ bitter: 3 });
 for (const m of [SALT, SUGAR, CHILI, CUMIN]) EAT[m] = MAT[m].solu;   // a grain is just as salty dissolved or not
@@ -155,6 +171,10 @@ const SHELF = [
   { id: 'egg',     name: 'Egg',         kind: 'whole',  mat: EGG,   rate: 1, icon: 'egg',    c: [250, 246, 236] },
   { id: 'fish',    name: 'Whole Fish',  kind: 'whole',  mat: FISH,  rate: 1, icon: 'fish',   c: [150, 172, 196] },
   { id: 'extinguisher', name: 'Fire Extinguisher', kind: 'spray', mat: EXTPOWDER, rate: 7, icon: 'extinguisher', c: [220, 40, 40] },
+  { id: 'corn',    name: 'Corn',        kind: 'chunk',  mat: CORN,  rate: 1, icon: 'corn',   c: [252, 212, 64],  piece: [1, 1], count: 14 },
+  { id: 'potato',  name: 'Potato',      kind: 'chunk',  mat: POTATO, rate: 1, icon: 'potato', c: [200, 160, 100] },
+  { id: 'beans',   name: 'White Beans', kind: 'chunk',  mat: BEANS, rate: 1, icon: 'beans',  c: [240, 232, 212], piece: [2, 2], count: 5 },
+  { id: 'pasta',   name: 'Small Pasta', kind: 'chunk',  mat: PASTA, rate: 1, icon: 'pasta',  c: [236, 206, 128], piece: [2, 1], count: 6 },
   { id: 'herbs',   name: 'Fresh Herbs', kind: 'chunk',  mat: HERB,  rate: 1, icon: 'herb',   c: [70, 170, 70] },
 ];
 

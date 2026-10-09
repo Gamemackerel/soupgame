@@ -523,3 +523,63 @@ When you're done cooking, press **SERVE**. The chef ladles a bowl and carries it
 - **Judging bakes:** dishes that are mostly dough or bread get the `baked` type, with a report covering rise, doneness, crust, burnt bottom, texture (water), sweetness, richness, egg, gluten and leftover soda. Each bake is named by its make-up and cooking method: bread, flatbread, cake, cookie, pancake, crêpe or dumplings. Each judge has their own take on it, and bakes are served on a plate.
 - **New pantry item:** Baking Powder.
 - **New discoveries:** Saturated, Dough!, Batter, Kneading, It Rises!, Fresh Bake, Golden Crust, Pot Oven, Dumplings, Soapy.
+
+## 16. Career Levels (implemented, `js/levels.js`)
+
+Each career level is a recipe the judges know. A level lists:
+
+- **Ingredients** the recipe calls for.
+- **Techniques:** discoveries that must happen in this pot, such as `bloom`, `roux` or `flake`.
+- **Avoid:** discoveries that count against you, such as `herbloss` for boiled herbs.
+- **Forbidden flaws**, such as `curdled` in a chowder or `mushy` in a minestrone.
+- **A par recipe:** the reference way to cook the dish.
+- **Mistakes:** variants of the par that must score lower.
+
+`tools/build-levels.js` cooks every par on several seeds and writes the mean perceived taste into `js/level-targets.js`. Targets therefore always follow the current chemistry. It then checks that every par earns 3★ and every mistake earns fewer. Run it after any chemistry or perception change.
+
+**Scoring** (0–1):
+
+| Part | Weight | Measures |
+|---|---|---|
+| Match | 35% | Distance from the target taste over salty, sweet, sour, bitter, umami, rich, heat, aroma and body. Axes the dish is strong in weigh more, and differences under 0.08 are free. |
+| Technique | 25% | The share of required techniques that happened, minus any "avoid" slips. |
+| Ingredients | 15% | The share of the recipe's ingredients that went in. |
+| Judges | 25% | The judges' average, mapped 3 → 0 and 8 → 1. |
+
+**Stars and caps:**
+
+- 1★ at 0.55, 2★ at 0.72 and 3★ at 0.85.
+- **3★ means cooking the recipe as written.** A missing technique, a missing ingredient or an avoided slip caps the dish at 2★.
+- A forbidden flaw above 0.3 caps the dish at 1★.
+
+**Teaching feedback:** the score returns notes for the reveal screen:
+
+- the biggest taste gap ("It was less salty than the recipe.")
+- each missing technique with its journal hint
+- any slips
+- missing ingredients
+- forbidden flaws
+
+**The 10 beta levels:**
+
+| Tier | Level | Teaches | Must happen |
+|---|---|---|---|
+| 0 | Tomato Soup | heat and seasoning | sweat, tomato melt, seasoning (herbs not wilted) |
+| 0 | Creamy Corn Soup | thickening and gentle dairy | sweat, thicken (potato); no curdling |
+| 0 | Pan Flatbread | dough and browning | dough, bake, golden crust |
+| 0 | Fish Stew | layering and timing | sweat, tomato melt, flaky fish |
+| 0 | Minestrone | timing many ingredients | mirepoix, tomato melt; pasta neither raw nor mushy |
+| 1 | French Onion Soup | patience | caramelize, deglaze |
+| 1 | Beef Chowder | roux, starch and dairy | fond, roux, thicken; no curdling or lumps |
+| 1 | Goulash | browning and blooming spice | caramelize, fond, bloom |
+| 1 | Pot-Oven Sponge Cake | baking chemistry | batter, rise, bake, pot oven |
+| 1 | Chili con Carne | heat, spice and a long simmer | fond, bloom, tomato melt |
+
+**New ingredients for these levels:**
+
+- **Corn:** sweet kernels that stay intact.
+- **Potato:** softens slowly, then collapses into the soup and thickens it.
+- **White beans:** savory, hold their shape.
+- **Small pasta:** al dente after about 40 s of simmering, and mushy (a flaw) if left far longer.
+
+Starchy pieces count as "raw" until well softened. Deeply caramelized onions now leave fond on the pot bottom, as meat does.

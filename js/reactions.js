@@ -27,6 +27,7 @@ Sim.react = function (x, y, i, m) {
     case TOMATO: return reactChunk(this, x, y, i, m) || reactTomato(this, x, y, i);
     case ONION: case GARLIC: case CARROT: case CELERY: case MEAT: case HERB:
     case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED: case BREAD:
+    case CORN: case POTATO: case BEANS: case PASTA:
       return reactChunk(this, x, y, i, m);
   }
   return false;
@@ -327,7 +328,8 @@ function reactChunk(S, x, y, i, m) {
   let c = S.cook[i];
 
   // Leach flavor into surrounding liquid.
-  if (M.leach && t > 50 && S.life[i] > 0 && rnd() < 0.06) {
+  // (Raw starch stays mostly locked in until the piece softens.)
+  if (M.leach && t > 50 && S.life[i] > 0 && rnd() < 0.06 && !(M.starch && c < 60 && rnd() < 0.8)) {
     const j = wet >= 0 ? wet : oily;
     if (j >= 0) {
       if (m === HERB && c >= 120) { /* fully wilted herbs have nothing left */ }
@@ -348,13 +350,21 @@ function reactChunk(S, x, y, i, m) {
     }
   }
 
+  // An overcooked potato falls apart and melts into the soup, thickening it.
+  if (M.collapse && S.cook[i] >= 170 && pieceWet && rnd() < 0.01) {
+    const o = i * NF; S.setCell(i, BROTH, t); S.fl[o + F_BODY] = 5; S.fl[o + F_UMAMI] = 0.05; S.flags.thick = (S.flags.thick || 0) + 1; if (S.flags.thick > 25) S.discover('thicken');
+    return true;
+  }
   // Sizzling on a hot pan perfumes the kitchen even with no liquid to carry it.
   if (M.note && t > 100 && !pieceWet && rnd() < 0.02) S.addNote(M.note, 0.002);
 
   // Cooking progression.
   // Herbs wilt from ~65°C over tens of seconds; an actively bubbling simmer finishes them off ~4× faster.
   if (m === HERB && t > 65 && c < 255 && rnd() < (t - 60) / 600 * (pieceWet && S.turb > 0.1 ? 4 : 1)) c++;
-  if (pieceWet && t > 85) {
+  if (pieceWet && t > 85 && M.starch) {
+    // Starchy things cook through (al dente around 80), then keep going: soft, then collapsing or mushy.
+    if (c < 255 && rnd() < M.soften * (c < 80 ? 1 : 0.35)) c++;
+  } else if (pieceWet && t > 85) {
     if (c < 110 && rnd() < 0.15) c++;               // simmered soft
   } else if (pieceOily && t > 75 && t <= 125 && c < 120) {
     if (rnd() < 0.3) c++;                           // sweating in fat
@@ -374,9 +384,9 @@ function reactChunk(S, x, y, i, m) {
   S.cook[i] = c;
   if (c >= 170) S.body[i] = 0;   // deeply cooked pieces fall apart
 
-  // Searing meat on the dry pot bottom leaves fond.
-  if (m === MEAT && y === GH - 1 && !pieceWet && t > 140) {
-    S.fond[x] = Math.min(1, S.fond[x] + 0.004);
+  // Searing meat on the dry pot bottom leaves fond; so do deeply caramelized onions, more slowly.
+  if ((m === MEAT || (m === ONION && c >= 150)) && y === GH - 1 && !pieceWet && t > (m === MEAT ? 140 : 115)) {
+    S.fond[x] = Math.min(1, S.fond[x] + (m === MEAT ? 0.004 : 0.0015));
     S.emit('sizzle', x, y, 50);
     if (S.fond[x] > 0.3) S.discover('fond');
   }

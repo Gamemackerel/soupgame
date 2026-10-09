@@ -26,6 +26,7 @@ const JUDGES = [
       if (a.flaws.lumps > 0.2) bad.push('Lumps of raw flour. Did no one teach you a roux?');
       if (a.flaws.greasy > 0.3) bad.push(plate ? 'It is swimming in oil.' : 'An oil slick on top. Unacceptable.');
       if (a.flaws.raw > 0.4) bad.push('These vegetables are raw. Cook them!');
+      if (a.flaws.mushy > 0.3) bad.push('The pasta is mush. Watch the clock!');
       if (a.flaws.gritty > 0.3) bad.push('Gritty! The seasoning never dissolved.');
       if (a.flaws.shell > 0.2 && !a.wholeEgg) bad.push('Crunchy eggshell. Disgraceful.');
       if (a.eggPieces > 15 && a.flaws.shell < 0.2) good.push('A perfectly set egg. Very refined.');

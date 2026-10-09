@@ -15,6 +15,7 @@ const Sim = {
   fond: new Float32Array(GW),
   panT: 20, dial: 0, lid: false, frame: 0, tag: 1,
   notes: {}, discovered: new Set(), events: [], particles: [],
+  happened: new Set(), used: new Set(),   // this pot only: techniques that occurred, ingredients that went in
   bubbles: 0, lastEmit: {}, flags: {}, turb: 0, swirl: 0, surface: GH,
   pushBodies: new Set(), pushDir: null,
 };
@@ -36,7 +37,7 @@ Sim.newBody = function (kind = BK_FIRM) {
 Sim.reset = function () {
   this.mat.fill(0); this.temp.fill(20); this.cook.fill(0); this.life.fill(0);
   this.stirT.fill(0); this.fl.fill(0); this.fond.fill(0); this.body.fill(0); this.bodyVel.clear(); this.bodyShape.clear(); this.bodyPart.fill(0);
-  this.panT = 20; this.notes = {}; this.particles = []; this.flags = {};
+  this.panT = 20; this.notes = {}; this.particles = []; this.flags = {}; this.happened = new Set(); this.used = new Set();
   this.turb = 0; this.swirl = 0; this.surface = GH;
 };
 
@@ -70,6 +71,7 @@ Sim.swap = function (i, j) {
 };
 
 Sim.discover = function (id) {
+  this.happened.add(id);
   if (this.discovered.has(id)) return;
   this.discovered.add(id);
   this.events.push({ t: 'discover', id });
@@ -643,9 +645,9 @@ const FISH_ROWS = [
   '   BBBBBBB    F ',
   '      FF        '];
 
-Sim.throwEgg = function (x) { return this.spawnShape(EGG_WHOLE, { S: SHELL, W: EGG, Y: YOLK }, x, 2.5, BK_SHELL); };
-Sim.dropCrackedEgg = function (x) { return this.spawnShape(EGG_OPEN, { W: EGG, Y: YOLK }, x, 0.5, BK_SOFT); };
-Sim.throwFish = function (x) { return this.spawnShape(FISH_ROWS, { B: FISH, F: FISHFIN, E: FISHEYE }, x, 2.5, BK_FISH); };
+Sim.throwEgg = function (x) { this.used.add('egg'); return this.spawnShape(EGG_WHOLE, { S: SHELL, W: EGG, Y: YOLK }, x, 2.5, BK_SHELL); };
+Sim.dropCrackedEgg = function (x) { this.used.add('egg'); return this.spawnShape(EGG_OPEN, { W: EGG, Y: YOLK }, x, 0.5, BK_SOFT); };
+Sim.throwFish = function (x) { this.used.add('fish'); return this.spawnShape(FISH_ROWS, { B: FISH, F: FISHFIN, E: FISHEYE }, x, 2.5, BK_FISH); };
 
 // A whole egg hit the bottom hard: shell shatters into loose bits, the inside becomes a blob.
 Sim.crackEgg = function (b, cells, v) {
@@ -999,8 +1001,20 @@ Sim.updateParticles = function () {
 
 // Pour `amount` cells of an ingredient near grid column x.
 Sim.pour = function (ing, x, amount) {
+  this.used.add(ing.id);
   let placed = 0;
-  if (ing.kind === 'chunk') {
+  if (ing.kind === 'chunk' && ing.piece) {
+    // Small pieces (kernels, beans, pasta): a scattered handful per click.
+    const [pw, ph] = ing.piece;
+    for (let k = 0; k < (ing.count || 1); k++) {
+      const x0 = Math.max(0, Math.min(GW - pw, Math.round(x + (rnd() - 0.5) * 18))), y0 = rint(4);
+      const b = pw * ph > 1 ? this.newBody() : 0;
+      for (let yy = 0; yy < ph; yy++) for (let xx = 0; xx < pw; xx++) {
+        const i = (y0 + yy) * GW + x0 + xx;
+        if (this.mat[i] === EMPTY || CLS[this.mat[i]] === C_GAS) { this.setCell(i, ing.mat); this.body[i] = b; placed++; }
+      }
+    }
+  } else if (ing.kind === 'chunk') {
     this.newBody();
     const w = 3 + rint(3), h = 3 + rint(2), x0 = Math.max(0, Math.min(GW - w, (x - w / 2) | 0));
     for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {

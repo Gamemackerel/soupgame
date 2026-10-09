@@ -207,6 +207,8 @@ Taste.analyzeBowl = function () {
     temp += S.temp[i];
   }
   const avgCook = (m) => counts[m] ? cooked[m] / counts[m] : 0;
+  let mushyCells = 0;
+  for (let i = 0; i < N; i++) if (S.mat[i] === PASTA && S.cook[i] >= 160) mushyCells++;
   const nonOil = Math.max(1, weight);
   for (let k = 0; k < NF; k++) bite[k] /= nonOil;
   const brothShare = g.broth / Math.max(1, edible);
@@ -217,11 +219,14 @@ Taste.analyzeBowl = function () {
   const plate = type === 'plate' || type === 'baked';
   const bake = doughy ? Taste.bakeReport(counts) : null;
 
-  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO, FISH];
+  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO, FISH, CORN, POTATO, BEANS, PASTA];
   let chunks = 0, raw = 0;
   for (const m of chunkMats) {
     chunks += counts[m] || 0;
-    if (counts[m] && avgCook(m) < 30 && m !== HERB) raw += counts[m];
+    // Starchy pieces need longer: pasta and potato are 'raw' (chalky, hard) until well softened, and a
+    // crunchy bit of pasta stands out even when it's a small part of the pot.
+    const starchy = MAT[m].starch && m !== CORN;
+    if (counts[m] && avgCook(m) < (starchy ? 60 : 30) && m !== HERB) raw += counts[m] * (starchy ? 4 : 1);
   }
   const burntFrac = (counts[BURNT] || 0) / Math.max(1, total);
   const p = Taste.perceive({ raw: bite, broth: nonOil, oil: g.oil, oilHeat: oilHeat / Math.max(1, edible) }, burntFrac, plate);
@@ -229,7 +234,9 @@ Taste.analyzeBowl = function () {
   // Undissolved powder is gritty in a soup; on a plate, salt and spice are just seasoning.
   const seasoning = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[CHILI] || 0) + (counts[CUMIN] || 0);
   const flourGrit = Math.max(0, (counts[FLOUR] || 0) - (type === 'baked' ? doughy * 0.15 : 0));   // a dusting of flour on a loaf is fine
-  const grit = flourGrit + (counts[SODA] || 0) + (plate ? Math.max(0, seasoning - edible * 0.25) : (counts[SALT] || 0) + (counts[SUGAR] || 0));
+  // A stew sits in between: a thick sauce hides a little undissolved seasoning.
+  const grit = flourGrit + (counts[SODA] || 0) + (plate ? Math.max(0, seasoning - edible * 0.25) :
+               type === 'stew' ? Math.max(0, seasoning - edible * 0.1) : (counts[SALT] || 0) + (counts[SUGAR] || 0));
   // Raw egg white left in the bowl is as bad as raw veg (a runny yolk is fine).
   raw += (counts[EGG] || 0) + (counts[DOUGH] || 0);
   chunks += (counts[DOUGH] || 0) + (counts[BREAD] || 0) + (counts[EGG] || 0) + (counts[YOLK] || 0) + (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0) + (counts[FISHFIN] || 0);
@@ -242,12 +249,16 @@ Taste.analyzeBowl = function () {
     raw: Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0)),
     gritty: Math.min(1, grit / 60),
     // A plate can carry some oil; a soup with an oil slick is greasy much sooner.
-    greasy: Math.min(1, Math.max(0, oilShare - (plate ? 0.35 : 0.07)) * (plate ? 3 : 8)),
+    // A stew is in between (it's eaten from a bowl, but the oil clings to the solids).
+    greasy: Math.min(1, Math.max(0, oilShare - (plate ? 0.35 : type === 'stew' ? 0.2 : 0.07)) * (plate ? 3 : type === 'stew' ? 5 : 8)),
     shell: Math.min(1, (counts[SHELL] || 0) / 10),
     chemical: Math.min(1, (counts[EXTPOWDER] || 0) / 15),
+    // Pasta cooked far past done turns to mush.
+    mushy: Math.min(1, mushyCells / Math.max(1, counts[PASTA] || 0) * 1.5),
   };
   const flawSum = flaws.burnt * 0.3 + flaws.curdled * 0.2 + flaws.lumps * 0.15 + flaws.scrambled * 0.1 +
-                  flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2 + flaws.chemical * 0.4;
+                  flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2 + flaws.chemical * 0.4 +
+                  flaws.mushy * 0.15;
   return {
     type, empty: type === 'empty', bake,
     rawBite: bite,   // flavor actually in the food, before perception (for diagnosing tuning)

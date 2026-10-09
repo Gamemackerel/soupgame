@@ -28,10 +28,10 @@ Start this first. Steam has fixed waits, and they can run while the game is buil
 
 Do these together, because the judging format decides which dishes can be judged fairly.
 
-- [ ] Settle the recipe format. Start from the dish target in [SPEC.md §8.2](SPEC.md) (flavor, aroma notes, texture, required, forbidden, bonus) and the scoring in §8.3. Decide how ingredients and reactions count toward "matches the recipe".
-- [ ] Choose 5 tier-0 recipes. Each should teach one mechanic (heat, stirring, layering, browning, seasoning), so the tier doubles as a tutorial.
-- [ ] Choose 5 tier-1 recipes that combine those mechanics. The dish list in SPEC.md §8.4 and the playtest recipes in `test-recipes/` are the starting pool.
-- [ ] Assign each level's judges and what they care about.
+- [x] Settle the recipe format and scoring: [SPEC.md §16](SPEC.md). Levels live in `js/levels.js`. `node tools/build-levels.js` regenerates the targets and checks that every par earns 3★ and every mistake fewer.
+- [x] Choose 5 tier-0 recipes: Tomato Soup, Creamy Corn Soup, Pan Flatbread, Fish Stew, Minestrone. This added corn, potato, white beans and pasta.
+- [x] Choose 5 tier-1 recipes: French Onion, Beef Chowder, Goulash, Pot-Oven Sponge Cake, Chili con Carne.
+- [ ] Assign each level's judges and what they care about. Joe (tier 0) and the two tier-1 judges need designs. We should use original characters instead of real chefs, since real names on a store page are a legal risk. Headless scoring uses the three animal judges for now.
 
 ### 3. Build the level select screen
 
