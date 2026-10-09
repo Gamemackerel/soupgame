@@ -78,11 +78,13 @@ addEventListener('keydown', (e) => {
 });
 
 function update() {
-  if (Judging.active) { Judging.update(); Chef.update(160, false, false); return; }
+  if (Judging.active) { Judging.update(); Chef.ladle = null; Chef.update(160, false, false); return; }
   UI.hover = UI.pick(input.x, input.y);
   const active = input.down && !input.consumed && !UI.dragDial && !UI.journal;
   const pouring = active && UI.tool === 'pour' && overPotArea(input.x, input.y) && !!Chef.held && Chef.held.kind !== 'whole' && !Sim.lid;
-  Chef.update(input.x, overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid, pouring);
+  // With the ladle over the pot, the chef holds it in the soup at the cursor.
+  Chef.ladle = UI.tool === 'ladle' && inGrid(input.x, input.y) && !Sim.lid && !UI.journal ? { x: input.x, y: input.y } : null;
+  Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid) || !!Chef.ladle, pouring);
 
   if (!paused) {
     if (Chef.pouring) {
@@ -119,6 +121,7 @@ function drawParticles() {
 
 function drawCursor() {
   const x = input.x | 0, y = input.y | 0;
+  if (Chef.ladle) return;   // the chef's ladle is the cursor
   if (UI.tool === 'ladle' && inGrid(x, y)) { g.drawImage(Art.toolIcon('ladle'), x - 8, y - 12); return; }
   if (UI.tool === 'taste' && inGrid(x, y)) { g.drawImage(Art.toolIcon('spoon'), x - 8, y - 12); return; }
   for (let k = 0; k < 7; k++) { rect(g, x, y + k, Math.max(1, 6 - k), 1, [40, 24, 30]); }

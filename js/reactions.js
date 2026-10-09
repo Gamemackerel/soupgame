@@ -9,6 +9,13 @@ const isFire = (m) => m === FIRE;
 
 const TOMATO_MELT = flavorVec({ sour: 2, umami: 5, red: 10, sweet: 0.5, body: 1.5 });
 const LEACH_K = 2; // how strongly chunks flavor the soup
+// Caramelization pace: sweating, then slow browning in fat (tuned so onions take ~2 min at heat 5).
+// Browning alone stops at deep brown; past that, only scorching on the metal takes food to char.
+const BROWN_MAX = 230;
+// Moist vegetables are held near 110°C until they dry (brown) past `dryFrom`; `pass` lets some pan heat through.
+const MOIST_K = { dryFrom: 100, slope: 1.5, pass: 0.6 };
+// Onions are the famously slow ones; carrots, celery and garlic color sooner.
+const CARAMEL_K = { sweat: 0.25, fat: 0.6, onionSweat: 0.12, onion: 0.07 };
 const BURNT_TASTE = flavorVec({ bitter: 2.5, brown: 1.5 });   // a little char goes a long way
 
 Sim.react = function (x, y, i, m) {
@@ -319,7 +326,15 @@ function burn(S, x, y, i) {
 }
 
 function reactChunk(S, x, y, i, m) {
-  const t = S.temp[i], M = MAT[m];
+  let t = S.temp[i];
+  const M = MAT[m];
+  // Watery vegetables steam off their water before they can get really hot: they sit near 110°C while
+  // moist, and only climb toward the pan's temperature as they brown (dry out). So stirring fresh food
+  // down onto the metal cools it, and an unstirred bottom layer is the one that dries out and chars.
+  if ((m === ONION || m === CARROT || m === CELERY) && S.cook[i] < 230) {
+    const cap = 110 + Math.max(0, S.cook[i] - MOIST_K.dryFrom) * MOIST_K.slope;
+    if (t > cap) { t = cap + (t - cap) * MOIST_K.pass; S.temp[i] = t; }
+  }
   let wet = S.findNb(x, y, isBroth);
   let oily = wet < 0 ? S.findNb(x, y, isOil) : -1;
   // Inside a piece, cells take the whole piece's surroundings (the middle of an onion in soup is not 'dry').
@@ -335,7 +350,9 @@ function reactChunk(S, x, y, i, m) {
       if (m === HERB && c >= 120) { /* fully wilted herbs have nothing left */ }
       else {
         // Release slows as the piece gives up its flavor (proportional to what's left in it).
-        const browned = (c >= 150 ? 2 : 1) * (S.life[i] / 255);
+        // Golden (from ~120) ramps up to fully browned (~170): browned food gives more and better flavor.
+        const gold = Math.max(0, Math.min(1, (c - 120) / 50));
+        const browned = (1 + gold) * (S.life[i] / 255);
         const intoOil = S.mat[j] === OIL;
         if (intoOil) {
           // Fat pulls out aromatics, but barely any of the water-soluble savoriness.
@@ -343,7 +360,7 @@ function reactChunk(S, x, y, i, m) {
           for (let k = 0; k < NF; k++) S.fl[o + k] += M.leach[k] * browned * LEACH_K * (k === F_AROMA ? 0.3 : 0.03);
         } else S.addFlavor(j, M.leach, browned * LEACH_K);
         // Browned food gives up the good stuff: sweetness, savoriness and roasty aroma.
-        if (c >= 150) { const o = j * NF, left = S.life[i] / 255; S.fl[o + F_BROWN] += 0.05 * left; S.fl[o + F_SWEET] += 0.025 * left; S.fl[o + F_UMAMI] += 0.02 * left; S.fl[o + F_AROMA] += 0.04 * left; }
+        if (gold > 0) { const o = j * NF, left = S.life[i] / 255 * gold; S.fl[o + F_BROWN] += 0.05 * left; S.fl[o + F_SWEET] += 0.025 * left; S.fl[o + F_UMAMI] += 0.02 * left; S.fl[o + F_AROMA] += 0.04 * left; }
         if (!intoOil || rnd() < 0.2) S.life[i] -= 1;   // frying barely depletes it: the flavor waits for the broth
         if (M.note) S.addNote(M.note, 0.0008);
       }
@@ -366,17 +383,24 @@ function reactChunk(S, x, y, i, m) {
     if (c < 255 && rnd() < M.soften * (c < 80 ? 1 : 0.35)) c++;
   } else if (pieceWet && t > 85) {
     if (c < 110 && rnd() < 0.15) c++;               // simmered soft
+  } else if ((m === ONION || m === CARROT || m === CELERY) && !pieceWet && t > 75) {
+    // Watery vegetables out of the broth: sweat soft first, then brown slowly toward caramelized.
+    // Both go faster on a hotter pan (and the hold-down above keeps them from racing ahead while moist).
+    if (c < 120) { if (rnd() < (m === ONION ? CARAMEL_K.onionSweat : CARAMEL_K.sweat) * Math.min(2.5, (t - 75) / 40)) c++; }
+    else if (c < BROWN_MAX && t > 105 && rnd() < (t - 100) / 60 * (M.brownRate || 0.25) * (m === ONION ? CARAMEL_K.onion : CARAMEL_K.fat)) c++;
   } else if (pieceOily && t > 75 && t <= 125 && c < 120) {
-    if (rnd() < 0.3) c++;                           // sweating in fat
+    if (rnd() < (m === ONION ? CARAMEL_K.onionSweat : CARAMEL_K.sweat)) c++;   // sweating in fat
   } else if (pieceOily && t > 105 && t <= 125) {
-    if (c < 255 && rnd() < (t - 100) / 60 * (M.brownRate || 0.25)) c++;   // then slowly caramelising in the fat
+    // Then slowly caramelising in the fat: the patient path. (Hotter, dry browning below is fast but burns.)
+    if (c < BROWN_MAX && rnd() < (t - 100) / 60 * (M.brownRate || 0.25) * (m === ONION ? CARAMEL_K.onion : CARAMEL_K.fat)) c++;
   } else if (!pieceWet && t > 120 && !(m === BREAD && insideLoaf(S, x, y))) {
-    if (c < 255 && rnd() < (t - 110) / 60 * (M.brownRate || 0.25)) c++;   // browning (only when dry; bread only on its crust)
+    if (c < BROWN_MAX && rnd() < (t - 110) / 60 * (M.brownRate || 0.25)) c++;   // browning (only when dry; bread only on its crust)
   }
   if (m === HERB && c >= 120 && S.cook[i] < 120) S.discover('herbloss');
   if (c >= 80 && S.cook[i] < 80 && pieceOily && m !== MEAT && m !== HERB) S.discover('sweat');
   if (c >= 150 && S.cook[i] < 150) {
-    if (m === ONION || m === CARROT || m === GARLIC) { S.discover('caramelize'); S.addNote('caramel', 0.03); }
+    // One browned sliver isn't caramelized onions: it takes a good share of the batch.
+    if (m === ONION || m === CARROT || m === GARLIC) { S.flags.caramel = (S.flags.caramel || 0) + 1; S.addNote('caramel', 0.03); }
     else if (m === FISH || m === FISHFIN) { S.discover('crispyskin'); S.addNote('toasty', 0.02); }
     else if (m === BREAD) { S.discover('crust'); S.addNote('toasty', 0.02); }
     else S.addNote('toasty', 0.02);
@@ -390,10 +414,11 @@ function reactChunk(S, x, y, i, m) {
     S.emit('sizzle', x, y, 50);
     if (S.fond[x] > 0.3) S.discover('fond');
   }
-  // Burning.
-  if (!pieceWet && t > M.burnAt && rnd() < 0.004 * (t - M.burnAt + 5)) {
-    if (c >= 200) { burn(S, x, y, i); return true; }
-    S.cook[i] = Math.max(c, 200);
+  // Burning builds up from contact with the hot metal (or smoking-hot oil), not from merely being hot.
+  // Each scorch pushes the piece further; stirring spreads the contact around so nothing gets enough.
+  if (!pieceWet && t > M.burnAt && (y === GH - 1 || pieceOily) && rnd() < 0.0003 * (t - M.burnAt + 5)) {
+    if (c >= 250) { burn(S, x, y, i); return true; }
+    S.cook[i] = Math.min(255, Math.max(c, 190) + 4);
   }
   return false;
 }

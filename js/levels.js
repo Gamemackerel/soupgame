@@ -26,7 +26,7 @@ const LEVELS = [
     mistakes: [
       { name: 'no salt', remove: ['pour salt 1s'] },
       { name: 'herbs boiled', remove: ['add herbs 2'], insertAfter: { 'pour water 5s': ['add herbs 2'] } },
-      { name: 'scorched', replace: { 'heat 5': 'heat 9' } },
+      { name: 'scorched', replace: { 'heat 5': 'heat 9', 'wait 40s': 'wait 100s' } },
     ],
   },
   {

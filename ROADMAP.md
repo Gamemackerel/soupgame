@@ -9,7 +9,7 @@ The beta ships the first two tiers, 10 recipes in all:
 | Tier | Title | Judges |
 | --- | --- | --- |
 | 0 | Pizza shop employee | the dog, the cat, Joe (a random human) |
-| 1 | First Michelin star | Nanny Mae, Gordon Ramsay, Paul Hollywood |
+| 1 | First Michelin star | Gordo Hamsie, Paul Bollywood, Sir Pounce (the cat) |
 
 Earning the first star doesn't unlock tiers 2 and 3 yet. They stay greyed out on the level select screen until they're built.
 
@@ -31,7 +31,7 @@ Do these together, because the judging format decides which dishes can be judged
 - [x] Settle the recipe format and scoring: [SPEC.md §16](SPEC.md). Levels live in `js/levels.js`. `node tools/build-levels.js` regenerates the targets and checks that every par earns 3★ and every mistake fewer.
 - [x] Choose 5 tier-0 recipes: Tomato Soup, Creamy Corn Soup, Pan Flatbread, Fish Stew, Minestrone. This added corn, potato, white beans and pasta.
 - [x] Choose 5 tier-1 recipes: French Onion, Beef Chowder, Goulash, Pot-Oven Sponge Cake, Chili con Carne.
-- [ ] Assign each level's judges and what they care about. Joe (tier 0) and the two tier-1 judges need designs. We should use original characters instead of real chefs, since real names on a store page are a legal risk. Headless scoring uses the three animal judges for now.
+- [x] Assign the judges and the judging rules: [SPEC.md §17](SPEC.md). Still to build: Joe, Gordo Hamsie and Paul Bollywood (art and taste), per-judge blended scores, soft caps, flourishes, badges and the random sandbox panel.
 
 ### 3. Build the level select screen
 

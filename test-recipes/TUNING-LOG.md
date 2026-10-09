@@ -100,3 +100,27 @@ Going from 31 to a handful of hard failures meant fixing all three layers. Each 
 - **Comparison pairs:** 47/47 pass on seeds 1–3.
 
 The WARNs are near misses against the original design-guess ranges and are worth a look when tuning a particular dish, but nothing in the suite is wildly off.
+
+## Round 4: patient onions and a stirring that matters (2026-10-09)
+
+Goals:
+- French onion should teach patience.
+- Stirring should let you rescue food from the hot pot bottom, and turn over even a dense stew.
+
+| Finding | Category | Fix |
+|---|---|---|
+| Onions caramelized in about 40 s at heat 5, and "Caramelization" fired on the first browned sliver | CHEMISTRY | Moist vegetables are held near 110 °C until they dry. They sweat, then brown, both faster when hotter, with onions slowest (about 2½ min at heat 5). The discovery needs 35% of the batch browned |
+| Stirring a hot sauté made **more** char than leaving it (old code too: 4 vs 26 burnt bits) | CHEMISTRY | (1) Any hot dry piece could burn anywhere, so burning now comes only from contact with the metal or very hot oil. (2) Browning carried every piece to cook 255, so the first bottom contact burned it. Browning now stops at 230 and scorching takes it the rest of the way. (3) Food above the bottom was as hot as the bottom, so stirring brought nothing cooler down. The moisture hold-down fixes that. Result: an unstirred sauté chars about twice as much as a stirred one (p48) |
+| A pushed piece couldn't move into other food, so a packed stew barely turned over | CHEMISTRY | The ladle shoves pieces through loose food and passes the push on to any piece blocking it (up to 4 links). A stroke along the bottom scoops things up. A dense stew moves about 45% further per stroke |
+| Char didn't stick | CHEMISTRY | Burnt bits on the pot bottom ignore currents and come loose only by scraping |
+| p13: burnt garlic barely burnt | CHEMISTRY | Scorching scales with how far past the burn point it is: gentle just past it, fast far past it |
+| p38: a 4×-oil broth beat the plain one, because Nanny liked the richness | ANALYSIS | Nanny Mae dislikes an oil slick on a soup (−1.5) |
+| Seven vegetable soups lost aroma and savoriness | CHEMISTRY + RECIPE | Golden vegetables (cook 120 and up) now give part of the browned flavor; it used to start only at fully browned. Recipes meant to brown their vegetables cook them longer |
+| Four cumin soups still short on aroma | CLAIM | Their aroma used to come from very fast browning, and it steams off in a long simmer. Targets lowered to 0.25 with a note. **Open:** spice aroma in long simmers may be weak overall |
+| s53, s20 sat exactly on a failing edge | RECIPE | A little more vinegar (s53) and less salt (s20) |
+| f12 pan-roasted cumin carrots taste sweet | CLAIM | They caramelize instead of charring now; the sweetness range is widened |
+
+**New pairs:**
+- p48: stirred vs unstirred hot sauté
+- p49: onions low and slow vs high heat
+- p50: patient vs rushed onions

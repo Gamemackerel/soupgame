@@ -51,7 +51,7 @@ A falling-sand cooking sandbox. The simulation lives inside a soup pot. Around i
 | Hold the mouse over the pot | Chef slides sideways to track the cursor's x and tilts the container. The pour stream falls from his hand to the cursor point |
 | Mouse wheel / `[` `]` | Pour rate or brush size |
 | Heat dial (drag or `1`–`9`, `0` = off) | Flame size and heat input. Continuous from 0 to 10 |
-| Ladle tool | Drag in the pot to stir. Displaces cells along the drag vector and mixes the dissolved-flavor field |
+| Ladle tool | Drag in the pot to stir. The chef holds a real ladle whose bowl follows the cursor. It displaces cells along the drag, shoves pieces through loose food (and passes the push on through a packed stew), scoops what's on the bottom up off the hot metal, and scrapes char loose a little at a time |
 | Taste tool | Click the liquid. The chef sips, reacts, and a flavor readout appears (§6) |
 | Skimmer | Removes foam, scum and floating fat from the surface |
 | Lid toggle | Traps steam: faster boiling, no reduction, keeps aroma. Raises boil-over risk |
@@ -583,3 +583,51 @@ Each career level is a recipe the judges know. A level lists:
 - **Small pasta:** al dente after about 40 s of simmering, and mushy (a flaw) if left far longer.
 
 Starchy pieces count as "raw" until well softened. Deeply caramelized onions now leave fond on the pot bottom, as meat does.
+
+## 17. Career Judging Design (decided, not built yet)
+
+This replaces the star scoring in §16. The level data, par recipes, mistakes and `tools/build-levels.js` stay.
+
+**Progression:**
+- **Tiers are the arrangement of levels.** Passing all 5 Pizza Shop levels opens the 5 First Michelin Star levels.
+- **Each level is judged 0–10.**
+  - 6 or more passes the level; below 6 is chopped.
+  - 8 or more earns the **Good Soup** badge.
+  - A perfect 10 earns the **Perfect** badge.
+
+**Score:**
+- **Each judge blends.** Every judge gives their own 0–10, mixing the recipe checks (taste match to par, techniques, ingredients) with their personal taste. Each weighs the parts differently, and the level score is the panel's average.
+- **Soft caps:**
+  - A missing required ingredient or technique caps the score below 8 (no badge, but you can still pass).
+  - A forbidden flaw caps it below 6 (chopped).
+- **A perfect 10 takes par plus a flourish.** A flawless par recipe lands around 9.
+  - **Flourish:** an extra ingredient not in the recipe.
+  - It earns a bonus only if the judges' taste score beats the par recipe's (precomputed by `build-levels.js`).
+  - The judge who liked it calls it out.
+
+**Panels:**
+
+| Where | Judges |
+|---|---|
+| Tier 0, Pizza Shop | Biscuit (dog), Sir Pounce (cat), Joe |
+| Tier 1, First Michelin Star | Gordo Hamsie, Paul Bollywood, Sir Pounce |
+| Sandbox | 3 picked at random from all judges, Nanny Mae included |
+
+**New judges:**
+- **Joe, the regular.** A friendly pizza-shop regular in a ball cap and hoodie, and a fair customer. He scores "would I order this again?": overall balance, warmth, filling, no flaws. Plain-spoken and honest.
+- **Gordo Hamsie, the head chef.** A satirical human caricature: spiky blond hair, a deeply furrowed forehead, chef whites, and a face that goes red when angry. An execution perfectionist who cares about raw, burnt, mushy, under-seasoning and sloppy technique. He rants in caps with bleeps that keep the first letter (S\*\*\*!) and creative insults.
+- **Paul Bollywood, the master baker.** An Indian man who otherwise looks like the famous baker: silver hair, a goatee and piercing blue eyes. He judges bakes (rise, crust, crumb) and spice (bloomed versus raw, heat balance). His rare **Bollywood handshake** honors an outstanding dish, with its own animation.
+
+## 18. Heat on the Pot Bottom (implemented)
+
+- **Moist vegetables are held down.** Onion, carrot and celery stay near 110 °C while they still hold water. They only climb toward the pan's temperature as they brown and dry out.
+- **Two stages, both faster on a hotter pan.** They sweat soft, then brown toward caramelized. Onions are the slow ones: about 2½ minutes at heat 5 and 1½ at heat 6.
+- **"Caramelization" needs a real share of the batch.** It's discovered once 35% of the onions, carrots and garlic have browned, not at the first browned sliver.
+- **Browned flavor ramps in from golden.** Vegetables start giving browned flavor at golden (cook about 120) and give it fully at deeply browned (about 170).
+- **Browning stops at deep brown (cook 230).** Only scorching takes food further.
+- **Scorching comes from contact with the hot metal, or smoking-hot oil.** Each scorch pushes a piece toward char, faster the further past its burn point it is. Onions burn from 175 °C, so:
+  - heat 7 needs an occasional stir
+  - heat 8 needs regular stirring
+  - heat 9 chars an unattended pot quickly
+- **Stirring prevents burning.** It spreads the contact around and brings cooler, moist food down onto the metal. An unstirred bottom layer dries out and chars first.
+- **Char sticks.** Burnt bits on the pot bottom are welded on: currents can't move them, and each ladle pass scrapes only a little loose (more with a hard stroke). Scraping it into the soup spreads its bitterness.

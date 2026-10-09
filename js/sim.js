@@ -17,7 +17,7 @@ const Sim = {
   notes: {}, discovered: new Set(), events: [], particles: [],
   happened: new Set(), used: new Set(),   // this pot only: techniques that occurred, ingredients that went in
   bubbles: 0, lastEmit: {}, flags: {}, turb: 0, swirl: 0, surface: GH,
-  pushBodies: new Set(), pushDir: null,
+  pushBodies: new Set(), pushDir: null, pushChain: 0, blocker: 0,
 };
 
 function rnd() { return Math.random(); }
@@ -288,12 +288,12 @@ Sim.swirlPass = function () {
       const x = Math.round(v.cx - v.ax + rnd() * v.ax * 2), y = Math.round(v.cy - v.ay + rnd() * v.ay * 2);
       if (x < 0 || x >= GW || y < top || y >= GH) continue;
       const i = y * GW + x, m = this.mat[i];
-      if (m === EMPTY || CLS[m] === C_GAS || this.body[i] || m === DOUGH) continue;   // a ball of dough stays a ball
+      if (m === EMPTY || CLS[m] === C_GAS || this.body[i] || m === DOUGH || this.stuck(i)) continue;   // a ball of dough stays a ball
       const [vx, vy] = swirlDir(x, y, v.cx, v.cy, v.ax, v.ay, dir), step = 1 + rint(4);
       const tx = x + vx * step + rint(3) - 1, ty = y + vy * step;
       if (tx < 0 || tx >= GW || ty < top || ty >= GH) continue;
       const j = ty * GW + tx, mj = this.mat[j];
-      if (mj === EMPTY || CLS[mj] === C_GAS || this.body[j] || mj === DOUGH) continue;
+      if (mj === EMPTY || CLS[mj] === C_GAS || this.body[j] || mj === DOUGH || this.stuck(j)) continue;
       this.swap(i, j);
       this.stirT[i] = this.stirT[j] = 20;
     }
@@ -350,13 +350,18 @@ Sim.ejectBody = function (cells, v) {
 // ---------------- Rigid chunk pieces ----------------
 
 // Can piece b shift by (dx,dy)? Targets must be its own cells, liquid, or (when falling) open air.
-function bodyCanMove(S, cells, b, dx, dy, free) {
+function bodyCanMove(S, cells, b, dx, dy, free, force) {
+  S.blocker = 0;
   for (const i of cells) {
     const x = i % GW + dx, y = ((i / GW) | 0) + dy;
     if (x < 0 || x >= GW || y < 0 || y >= GH) return false;
     const j = y * GW + x, mj = S.mat[j];
     if (S.body[j] === b) continue;
     if (CLS[mj] === C_LIQUID) continue;
+    // Shoved by the ladle, a piece plows through loose food (it swaps into the space the piece leaves),
+    // but not through other pieces (those get pushed in turn) or through char stuck to the pot.
+    if (force && !S.body[j] && !S.stuck(j)) continue;
+    if (force && S.body[j]) { S.blocker = S.body[j]; return false; }
     if ((dy > 0 || free) && isOpen(mj)) continue;
     if (dy === 0 && isOpen(mj) && y < GH - 1 && !isOpen(S.mat[j + GW])) continue;
     return false;
@@ -371,8 +376,8 @@ function bodyMove(S, cells, dx, dy) {
   for (let k = 0; k < cells.length; k++) { S.swap(cells[k], cells[k] + off); cells[k] += off; }
 }
 
-function tryBody(S, cells, b, dx, dy, free) {
-  if (!bodyCanMove(S, cells, b, dx, dy, free)) return false;
+function tryBody(S, cells, b, dx, dy, free, force) {
+  if (!bodyCanMove(S, cells, b, dx, dy, free, force)) return false;
   bodyMove(S, cells, dx, dy);
   return true;
 }
@@ -393,6 +398,7 @@ Sim.moveBodies = function () {
   for (const b of this.bodyShape.keys()) if (!groups.has(b)) this.bodyShape.delete(b);
   const top = this.surface, depth = Math.max(1, GH - top), pcx = GW / 2, pcy = top + depth / 2;
   const sw = Math.abs(this.swirl);
+  const nextPush = new Set();
   for (const [b, cells] of groups) {
     if (cells.length === 1) { body[cells[0]] = 0; continue; }   // a lone cell moves like a grain
     let sx = 0, sy = 0, d = 0, wet = 0, covered = 0, touching = 0, hot = 0, stirred = 0, liqD = 0, inBroth = 0;
@@ -417,11 +423,14 @@ Sim.moveBodies = function () {
     if (!v) vel.set(b, v = { vx: 0, vy: 0, ax: 0, ay: 0 });
 
     // Ladle hit: take on the stroke's speed. In a dry pot it's a smack that pops the piece up.
-    if (this.pushBodies.has(b) && this.pushDir) {
+    const shoved = this.pushBodies.has(b) && this.pushDir;
+    if (shoved) {
       const p = this.pushDir, sp = Math.min(6, p.n + 1);
       v.w = (v.w || 0) + (rnd() - 0.5) * (swimming ? 0.15 : 0.5);
       if (swimming) { v.vx = p.x * sp * 0.9; v.vy = p.y * sp * 0.9; }
       else { v.vx = p.x * sp * 1.3 + (rnd() - 0.5); v.vy = Math.min(p.y * sp, 0) - 1.5 - rnd() * 1.5; }
+      // A stroke along the bottom scoops: pieces resting on the hot metal get lifted off it.
+      if (p.scoop && cells.some((i) => i >= (GH - 3) * GW)) v.vy = Math.min(v.vy, -2 - rnd() * 1.5);
     }
     // The whirlpool and boiling rolls push submerged pieces along their currents.
     if (swimming) for (const f of this.flowList || []) {
@@ -442,11 +451,13 @@ Sim.moveBodies = function () {
     let moved = false, cracked = false;
     for (let k = 0; k < 6 && (Math.abs(v.ax) >= 1 || Math.abs(v.ay) >= 1); k++) {
       const dx = Math.abs(v.ax) >= 1 ? Math.sign(v.ax) : 0, dy = Math.abs(v.ay) >= 1 ? Math.sign(v.ay) : 0;
-      if (tryBody(this, cells, b, dx, dy, true)) { v.ax -= dx; v.ay -= dy; moved = true; continue; }
+      if (tryBody(this, cells, b, dx, dy, true, shoved)) { v.ax -= dx; v.ay -= dy; moved = true; continue; }
+      // Blocked by another piece while being shoved: pass the push along, so a packed stew turns over.
+      if (shoved && this.blocker && this.pushChain < 4) nextPush.add(this.blocker);
       if (dy < 0 && v.vy < -1.2 && cells.some((i) => i < GW)) { this.ejectBody(cells, v); cracked = true; break; }   // flung out of the pot
-      if (dx && tryBody(this, cells, b, dx, 0, true)) { v.ax -= dx; moved = true; }
+      if (dx && tryBody(this, cells, b, dx, 0, true, shoved)) { v.ax -= dx; moved = true; }
       else if (dx) { v.vx *= -0.45; v.ax = 0; }                       // bounce off a wall or piece
-      if (dy && tryBody(this, cells, b, 0, dy, true)) { v.ay -= dy; moved = true; }
+      if (dy && tryBody(this, cells, b, 0, dy, true, shoved)) { v.ay -= dy; moved = true; }
       else if (dy > 0 && this.bodyKind[b] === BK_SHELL && v.vy > 2.2) { this.crackEgg(b, cells, v); cracked = true; break; }
       else if (dy) {
         if (dy > 0 && !swimming) {   // land, skid, maybe bounce (off-center landings tip the piece)
@@ -493,8 +504,15 @@ Sim.moveBodies = function () {
       tryBody(this, cells, b, rnd() < 0.5 ? -1 : 1, 0);   // gentle drift
     }
   }
+  // Pushes ripple outward for a few frames after the ladle passes.
   this.pushBodies.clear();
+  for (const b of nextPush) this.pushBodies.add(b);
+  if (nextPush.size && this.pushDir) this.pushChain++;
+  else { this.pushChain = 0; this.pushDir = null; }
 };
+
+// Char welded to the pot bottom: it only comes off with scraping.
+Sim.stuck = function (i) { return this.mat[i] === BURNT && i >= (GH - 1) * GW; };
 
 // ---------------- Rotation ----------------
 // Each larger piece remembers its shape (a template) and is re-rasterized at 16 angles,
@@ -936,7 +954,16 @@ Sim.diffuse = function () {
 
 // ---------------- Main step ----------------
 
+// Caramelized means a good share of the batch has browned, not one sliver (checked twice a second).
+Sim.checkCaramel = function () {
+  if (this.happened.has('caramelize') || !this.flags.caramel) return;
+  let n = 0, brown = 0;
+  for (let i = 0; i < N; i++) { const m = this.mat[i]; if (m === ONION || m === CARROT || m === GARLIC) { n++; if (this.cook[i] >= 150) brown++; } }
+  if (brown >= 8 && brown >= n * 0.35) this.discover('caramelize');
+};
+
 Sim.step = function () {
+  if (this.frame % 30 === 0) this.checkCaramel();
   this.frame++;
   this.tag = (this.frame % 250) + 1;
   this.bubbles = 0;
@@ -1057,18 +1084,26 @@ Sim.stir = function (cx, cy, dx, dy, r) {
         if (this.bodyKind[this.body[i]] === BK_SOFT && rnd() < 0.6) this.body[i] = 0;
         else { this.pushBodies.add(this.body[i]); continue; }
       }
-      if (m === EMPTY || CLS[m] === C_GAS || rnd() > 0.6) continue;
+      if (m === EMPTY || CLS[m] === C_GAS || rnd() > 0.85) continue;
+      // Burnt bits are welded to the pot: each pass scrapes a little loose (more with a hard stroke).
+      // Food that's starting to catch sticks too, but comes away more easily.
+      if (this.stuck(i) && rnd() > 0.1 * Math.min(2, sp / 2)) continue;
+      if (y === GH - 1 && this.cook[i] > 200 && CLS[m] === C_CHUNK && rnd() < 0.4) continue;
       const d = 1 + rint(Math.ceil(push) + 1);
-      const tx = Math.round(x + ux * d) + rint(3) - 1, ty = Math.round(y + uy * d) + rint(3) - 1;
+      // Near the bottom the ladle scoops: things come up off the hot metal instead of being smeared along it.
+      const lift = y >= GH - 3 ? 1 + rint(3) : 0;
+      const tx = Math.round(x + ux * d) + rint(3) - 1, ty = Math.round(y + uy * d) + rint(3) - 1 - lift;
       if (tx < 0 || tx >= GW || ty < 0 || ty >= GH) continue;
       const j = ty * GW + tx, mj = this.mat[j];
       if (this.body[j]) continue;
       if ((mj === EMPTY || CLS[mj] === C_GAS) && ty < y) continue;   // shove along, never fling soup upward
+      if (this.stuck(j)) continue;
       this.swap(i, j);
       this.stirT[j] = 30;
     }
   }
-  this.pushDir = { x: ux, y: uy, n: Math.ceil(push) };
+  this.pushDir = { x: ux, y: uy, n: Math.ceil(push), scoop: cy + r >= GH - 2 };
+  this.pushChain = 0;
   // Torque about the middle of the liquid feeds the whirlpool.
   const pcx = GW / 2, pcy = (this.surface + GH) / 2;
   const torque = ((cx - pcx) * dy - (cy - pcy) * dx) / (GW * 0.5);

@@ -82,12 +82,14 @@ const JUDGES = [
       if (p.heat > 0.5) bad.push('Oh my! Too spicy for this old tongue.');
       if (p.sour > 0.35) bad.push('Goodness, that\'s sour!');
       if (p.salty > 0.75) bad.push('My blood pressure, dear!');
+      const oily = a.type !== 'plate' && a.flaws.greasy > 0.3;
+      if (oily) bad.push('Oh my, it\'s awfully oily, dear.');
       if (p.sweet > 0.15 && p.sweet < 0.55) good.push('A gentle sweetness, just how I make it.');
       if (a.ribbons > 30) good.push('Egg ribbons! My mother used to make those.');
       if (a.wholeEgg) (a.eggPieces > 10 ? good : bad).push(a.eggPieces > 10 ? 'A whole boiled egg, shell and all! How... rustic.' : 'There is a raw egg in here. Still in its shell.');
       const gentle = 1 - Math.max(0, p.heat - 0.35) * 2 - Math.max(0, p.sour - 0.2) * 2.5;
       const s = 10 * (0.25 * warm + 0.25 * Math.min(1, p.rich * 1.8) + 0.2 * Math.min(1, a.chunkiness * 3) +
-                      0.15 * Math.max(0, gentle) + 0.15 * Taste.score(p, { plate: a.type === 'plate' })) - a.flawSum * 6;
+                      0.15 * Math.max(0, gentle) + 0.15 * Taste.score(p, { plate: a.type === 'plate' })) - a.flawSum * 6 - (oily ? 1.5 : 0);
       return { score: s, good, bad };
     },
   },
