@@ -13,6 +13,8 @@ const LEACH_K = 2; // how strongly chunks flavor the soup
 // Browning alone stops at deep brown; past that, only scorching on the metal takes food to char.
 // Share of split dairy that turns into solid curd (the rest becomes whey).
 const CURD_SOLIDS = 0.16;
+// Foods whose browning counts as a sear (aromatics caramelize, fish crisps, bread gets a crust).
+const SEARABLE = new Set([MEAT, POTATO, CORN, BEANS, PASTA]);
 const BROWN_MAX = 230;
 // Moist vegetables are held near 110°C until they dry (brown) past `dryFrom`; `pass` lets some pan heat through.
 const MOIST_K = { dryFrom: 100, slope: 1.5, pass: 0.6 };
@@ -408,7 +410,11 @@ function reactChunk(S, x, y, i, m) {
     if (m === ONION || m === CARROT || m === GARLIC) { S.flags.caramel = (S.flags.caramel || 0) + 1; S.addNote('caramel', 0.03); }
     else if (m === FISH || m === FISHFIN) { S.discover('crispyskin'); S.addNote('toasty', 0.02); }
     else if (m === BREAD) { S.discover('crust'); S.addNote('toasty', 0.02); }
-    else S.addNote('toasty', 0.02);
+    else {
+      // Meat and starches browning on hot metal or in fat (not softening in water): the Maillard sear.
+      if (SEARABLE.has(m) && !pieceWet) S.flags.sear = (S.flags.sear || 0) + 1;
+      S.addNote('toasty', 0.02);
+    }
   }
   S.cook[i] = c;
   if (c >= 170) S.body[i] = 0;   // deeply cooked pieces fall apart

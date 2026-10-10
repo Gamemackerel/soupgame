@@ -97,12 +97,40 @@ Taste.feedback = function (p) {
 };
 
 // Taste tool: sample around a grid point.
+// How done a piece is, by its cook level: [upper bound, word]. The judges' raw (below 60 for starches)
+// and mushy (pasta from 160) lines sit on these boundaries.
+const DONENESS = [
+  [PASTA, 'pasta', [[45, 'hard'], [60, 'almost'], [110, 'al dente'], [160, 'overdone'], [256, 'mush']]],
+  [BEANS, 'beans', [[30, 'hard'], [60, 'firm'], [170, 'creamy'], [256, 'falling apart']]],
+  [POTATO, 'potato', [[30, 'raw'], [60, 'crunchy'], [140, 'tender'], [256, 'falling apart']]],
+  [CARROT, 'carrot', [[30, 'raw'], [70, 'crisp'], [150, 'tender'], [256, 'browned']]],
+  [MEAT, 'beef', [[30, 'raw'], [70, 'pink'], [150, 'cooked'], [215, 'seared'], [256, 'charred']]],
+  [FISH, 'fish', [[60, 'raw'], [90, 'translucent'], [170, 'flaky'], [256, 'dry']]],
+  [ONION, 'onion', [[30, 'raw'], [80, 'crunchy'], [130, 'soft'], [200, 'caramelized'], [256, 'dark']]],
+];
+// The texture of the pieces near where you sipped: "pasta al dente · beans firm".
+Taste.doneness = function (gx, gy, r = 10) {
+  const S = Sim, sum = new Map(), cnt = new Map();
+  for (let y = Math.max(0, gy - r); y <= Math.min(GH - 1, gy + r); y++) for (let x = Math.max(0, gx - r); x <= Math.min(GW - 1, gx + r); x++) {
+    const i = y * GW + x, m = S.mat[i];
+    if (DONENESS.some((d) => d[0] === m)) { sum.set(m, (sum.get(m) || 0) + S.cook[i]); cnt.set(m, (cnt.get(m) || 0) + 1); }
+  }
+  const out = [];
+  for (const [m, name, bands] of DONENESS) {
+    if ((cnt.get(m) || 0) < 3) continue;
+    const c = sum.get(m) / cnt.get(m);
+    out.push(name + ' ' + bands.find((b) => c < b[0])[1]);
+  }
+  return out;
+};
+
 Taste.sip = function (gx, gy) {
+  const tex = Taste.doneness(gx, gy);
   const g = Taste.gather(gx, gy, 8);
-  if (g.broth + g.oil < 5) return { empty: true, line: 'Nothing to taste here!' };
+  if (g.broth + g.oil < 5) return tex.length ? { empty: true, tex, line: 'No broth here, just ' + tex.join(', ') + '.' } : { empty: true, line: 'Nothing to taste here!' };
   const p = Taste.perceive(g);
-  if (g.broth === 0) return { p, score: 0.2, line: 'Just... oil.', notes: Taste.topNotes(), temp: g.temp };
-  return { p, score: Taste.score(p), line: Taste.feedback(p), notes: Taste.topNotes(), temp: g.temp };
+  if (g.broth === 0) return { p, score: 0.2, line: 'Just... oil.', notes: Taste.topNotes(), temp: g.temp, tex };
+  return { p, score: Taste.score(p), line: Taste.feedback(p), notes: Taste.topNotes(), temp: g.temp, tex };
 };
 
 // What one solid cell tastes like: base flavor, adjusted for how it's been cooked

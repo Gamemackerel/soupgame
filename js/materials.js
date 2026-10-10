@@ -184,6 +184,7 @@ const DISCOVERIES = [
   { id: 'boil',       name: 'Rolling Boil',   hint: 'Turn it up.',                     desc: 'Water can\'t pass 100°C. Extra heat becomes steam: the soup reduces and concentrates.' },
   { id: 'sweat',      name: 'Sweating',       hint: 'Onions + fat + gentle heat',      desc: 'Aromatics soften and release sweetness in warm fat.' },
   { id: 'caramelize', name: 'Caramelization', hint: 'Patience with onions… no water.', desc: 'Browning only happens above 100°C, so never in water. Deep sweet, toasty flavor.' },
+  { id: 'seared',     name: 'Seared',         hint: 'Leave it alone on a hot pan…',    desc: 'Meat and starches brown on hot metal (the Maillard reaction): savory and roasty.' },
   { id: 'burn',       name: 'Burnt!',         hint: 'Too hot, too long.',              desc: 'Bitter, smoky, sad. Garlic burns fastest.' },
   { id: 'fond',       name: 'Fond',           hint: 'Meat on a hot, dry pot…',         desc: 'Seared meat leaves brown bits stuck to the pot. That\'s flavor.' },
   { id: 'deglaze',    name: 'Deglaze',        hint: 'What lifts what\'s stuck?',       desc: 'Liquid hitting fond dissolves it into a burst of savory flavor.' },

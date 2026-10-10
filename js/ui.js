@@ -179,8 +179,8 @@ const UI = {
       rect(g, x + 56, y - 3, 9, 6, [170, 174, 188]); rect(g, x + 57, y - 2, 7, 1, [230, 234, 242]);
       return;
     }
-    const x = 92, y = 16;
-    rect(g, x, y, 136, 86, [40, 24, 30]); rect(g, x + 1, y + 1, 134, 84, [255, 250, 238]);
+    const x = 92, y = 16, tex = this.card.res.tex || [], h = tex.length > 3 ? 104 : tex.length ? 96 : 86;
+    rect(g, x, y, 136, h, [40, 24, 30]); rect(g, x + 1, y + 1, 134, h - 2, [255, 250, 238]);
     if (this.card.res.empty) return;
     const p = this.card.res.p;
     TASTE_AXES.forEach((k, n) => {
@@ -245,6 +245,7 @@ const UI = {
     T.text('★'.repeat(stars) + '☆'.repeat(5 - stars), x + 108, y + 20, { size: 6, color: '#d08a20' });
     if (r.notes && r.notes.length) T.wrap(r.notes.join(' · '), x + 108, y + 32, 26, { size: 5, color: '#6a7a40' });
     T.text('"' + r.line + '"', x + 4, y + 78, { size: 5, color: '#a03a2a' });
+    if (r.tex && r.tex.length) T.wrap('Texture: ' + r.tex.join(' · '), x + 4, y + 87, 128, { size: 5, color: '#3a5a7a' });
   },
 
   drawJournalText(T) {

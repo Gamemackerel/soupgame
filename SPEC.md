@@ -669,3 +669,20 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - **Scores run 0–10.** Serving an empty pot in a level scores 0 and is chopped.
 - **Dev:** a small RESET button on the board wipes saved progress (click twice).
 - Unlocking a tier flashes a notice on the board.
+
+## 20. Searing and Doneness (implemented)
+
+- **Seared** (the Maillard reaction) is the savory counterpart to Caramelization. It's discovered when meat, potatoes, corn, beans or pasta brown on hot metal or in fat, not while softening in water: at least 6 browned cells and 15% of those foods.
+  - Aromatics caramelize instead, fish gets Crispy Skin, and bread gets a Golden Crust.
+- **Sweating** is only for aromatics: onion, garlic, carrot and celery going soft in gentle fat.
+- **The taste spoon reports doneness** for the pieces near where you sip, e.g. "Texture: pasta al dente · beans firm". The bands match the judges' raw and mushy thresholds:
+
+  | Ingredient | Bands |
+  |---|---|
+  | Pasta | hard, almost, al dente, overdone, mush |
+  | Beans | hard, firm, creamy, falling apart |
+  | Potato | raw, crunchy, tender, falling apart |
+  | Carrot | raw, crisp, tender, browned |
+  | Beef | raw, pink, cooked, seared, charred |
+  | Fish | raw, translucent, flaky, dry |
+  | Onion | raw, crunchy, soft, caramelized, dark |

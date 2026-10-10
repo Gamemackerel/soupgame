@@ -968,11 +968,18 @@ Sim.diffuse = function () {
 // ---------------- Main step ----------------
 
 // Caramelized means a good share of the batch has browned, not one sliver (checked twice a second).
+// Seared works the same way, but only the outside of a piece browns, so a smaller share does it.
 Sim.checkCaramel = function () {
-  if (this.happened.has('caramelize') || !this.flags.caramel) return;
-  let n = 0, brown = 0;
-  for (let i = 0; i < N; i++) { const m = this.mat[i]; if (m === ONION || m === CARROT || m === GARLIC) { n++; if (this.cook[i] >= 150) brown++; } }
-  if (brown >= 8 && brown >= n * 0.35) this.discover('caramelize');
+  const caramel = !this.happened.has('caramelize') && this.flags.caramel, sear = !this.happened.has('seared') && this.flags.sear;
+  if (!caramel && !sear) return;
+  let n = 0, brown = 0, sn = 0;
+  for (let i = 0; i < N; i++) {
+    const m = this.mat[i];
+    if (m === ONION || m === CARROT || m === GARLIC) { n++; if (this.cook[i] >= 150) brown++; }
+    else if (SEARABLE.has(m)) sn++;
+  }
+  if (caramel && brown >= 8 && brown >= n * 0.35) this.discover('caramelize');
+  if (sear && this.flags.sear >= 6 && this.flags.sear >= sn * 0.15) this.discover('seared');
 };
 
 Sim.step = function () {
