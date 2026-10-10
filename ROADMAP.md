@@ -31,7 +31,7 @@ Do these together, because the judging format decides which dishes can be judged
 - [x] Settle the recipe format and scoring: [SPEC.md §16](SPEC.md). Levels live in `js/levels.js`. `node tools/build-levels.js` regenerates the targets and checks that every par earns 3★ and every mistake fewer.
 - [x] Choose 5 tier-0 recipes: Tomato Soup, Creamy Corn Soup, Pan Flatbread, Fish Stew, Minestrone. This added corn, potato, white beans and pasta.
 - [x] Choose 5 tier-1 recipes: French Onion, Beef Chowder, Goulash, Pot-Oven Sponge Cake, Chili con Carne.
-- [x] Assign the judges and the judging rules: [SPEC.md §17](SPEC.md). Still to build: Joe, Gordo Hamsie and Paul Bollywood (art and taste), per-judge blended scores, soft caps, flourishes, badges and the random sandbox panel.
+- [x] Assign the judges and the judging rules: [SPEC.md §17](SPEC.md). Built: Joe, Gordo Hamsie and Paul Bollywood, per-judge blended 0–10 scores, soft caps, flourishes, badges, the handshake and the random sandbox panel. Badges and handshakes aren't saved yet (step 3).
 
 ### 3. Build the level select screen
 

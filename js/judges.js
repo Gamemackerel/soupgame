@@ -2,9 +2,13 @@
 
 const pick = (arr) => arr[(Math.random() * arr.length) | 0];
 
-const JUDGES = [
-  {
-    name: 'Sir Pounce', title: 'The Classicist Cat', x: 76,
+// Every judge, by id. A panel of three is drawn from these for each serving (see Judging.setPanel).
+// `blend` is how much each part counts in a career level: the recipe match, the recipe's
+// ingredients and techniques, and the judge's own taste (see Levels.score).
+const JUDGE_ROSTER = {
+  pounce: {
+    id: 'pounce', name: 'Sir Pounce', title: 'The Classicist Cat',
+    blend: { match: 0.35, recipe: 0.35, taste: 0.3 },
     fur: [192, 194, 210], dark: [128, 130, 152], belly: [246, 246, 252], theme: [110, 120, 170],
     sounds: { good: ['*purrs*', 'Mrrow.'], bad: ['Hsss!', '*flicks tail*'] },
     evaluate(a) {
@@ -40,8 +44,9 @@ const JUDGES = [
       return { score: s, good, bad };
     },
   },
-  {
-    name: 'Biscuit', title: 'The Flavor Hound', x: 160,
+  biscuit: {
+    id: 'biscuit', name: 'Biscuit', title: 'The Flavor Hound',
+    blend: { match: 0.3, recipe: 0.2, taste: 0.5 },
     fur: [238, 184, 110], dark: [170, 104, 58], belly: [253, 238, 210], theme: [220, 120, 60],
     sounds: { good: ['WOOF!', '*tail wags*'], bad: ['*whimper*', 'Grrr.'] },
     evaluate(a) {
@@ -65,8 +70,9 @@ const JUDGES = [
       return { score: s, good, bad };
     },
   },
-  {
-    name: 'Nanny Mae', title: 'The Comfort Goat', x: 244,
+  nanny: {
+    id: 'nanny', name: 'Nanny Mae', title: 'The Comfort Goat',
+    blend: { match: 0.3, recipe: 0.2, taste: 0.5 },
     fur: [248, 244, 236], dark: [208, 186, 154], belly: [255, 255, 255], theme: [200, 120, 170],
     sounds: { good: ['Baa~!', '*happy bleat*'], bad: ['Baaah...', '*chews thoughtfully*'] },
     evaluate(a) {
@@ -93,7 +99,8 @@ const JUDGES = [
       return { score: s, good, bad };
     },
   },
-];
+};
+
 
 // ---- Baked goods: each judge has their own take on a bake.
 function judgeBakeClassic(a) {
@@ -142,26 +149,174 @@ function judgeBakeComfort(a) {
   return { score: s - a.flawSum * 5, good, bad };
 }
 
+// ---- Human judges.
+const spiceUsed = () => Sim.used.has('chili') || Sim.used.has('cumin');
+
+Object.assign(JUDGE_ROSTER, {
+  // A fair customer: would he order it again? Balance, warmth, something to chew on, no nasty surprises.
+  joe: {
+    id: 'joe', name: 'Joe', title: 'The Regular',
+    blend: { match: 0.2, recipe: 0.1, taste: 0.7 },
+    skin: [236, 190, 150], hoodie: [84, 120, 176], cap: [210, 60, 50], theme: [84, 120, 176],
+    sounds: { good: ['*nods slowly*', 'Oh, nice.'], bad: ['Uhh...', '*polite chewing*'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [], plate = a.type === 'plate' || a.type === 'baked';
+      const bal = Taste.score(p, { plate });
+      const warm = a.temp > 55 ? 1 : a.temp > 40 ? 0.5 : 0;
+      const filling = plate ? 1 : Math.min(1, a.chunkiness * 3 + p.body);
+      if (bal > 0.7) good.push(pick(['Honestly? I\'d order this again.', 'Yeah, that\'s really good.', 'This hits the spot.']));
+      else if (bal > 0.5) good.push('Pretty solid, man.');
+      if (p.salty < 0.2) bad.push('Kinda bland. Got any salt back there?');
+      if (p.salty > 0.8) bad.push('Whoa, salty. I\'m gonna need a soda.');
+      if (p.heat > 0.6) bad.push('That\'s... a lot of spice. Like, too much.');
+      if (!warm) bad.push('It\'s cold, dude.');
+      if (filling > 0.6) good.push('Hearty! That\'ll keep me going.');
+      else if (!plate && filling < 0.15) bad.push('Kinda watery. I\'d still be hungry.');
+      if (a.flaws.shell > 0.2) bad.push('Is that... eggshell? Crunchy.');
+      if (a.flaws.burnt > 0.2) bad.push('Tastes a little burnt, not gonna lie.');
+      if (a.flaws.raw > 0.4) bad.push('Pretty sure this isn\'t cooked yet.');
+      if (a.flaws.mushy > 0.3) bad.push('The noodles are kinda mushy.');
+      const s = 10 * (0.6 * bal + 0.15 * warm + 0.15 * filling + 0.1) - a.flawSum * 7;
+      return { score: s, good, bad };
+    },
+  },
+
+  // The head chef: execution is everything. Raw, burnt, mushy, under-seasoned or sloppy gets the full rant.
+  gordo: {
+    id: 'gordo', name: 'Gordo Hamsie', title: 'The Head Chef',
+    blend: { match: 0.25, recipe: 0.45, taste: 0.3 },
+    skin: [246, 202, 172], hair: [240, 206, 110], brow: [190, 150, 80], coat: [250, 250, 252], theme: [200, 50, 50],
+    sounds: { good: ['Mmm.', '*nods sharply*'], bad: ['OH, COME ON!', '*slams the table*'] },
+    evaluate(a) {
+      if (a.type === 'baked') { const r = judgeBakeClassic(a); return { score: r.score - a.flawSum * 4, good: r.good.length ? ['Right. ' + r.good[0]] : [], bad: r.bad.map((l) => l.toUpperCase()) }; }
+      const p = a.p, good = [], bad = [], plate = a.type === 'plate', H = Sim.happened;
+      let tech = 0;
+      if (a.caramelized) { tech += 0.3; good.push('Look at those onions. THAT is patience.'); }
+      if (a.deglazed || H.has('deglaze')) { tech += 0.3; good.push('You lifted the fond. Beautiful.'); }
+      if (H.has('roux') && a.flaws.lumps < 0.2) { tech += 0.2; good.push('Silky. A proper roux.'); }
+      if (H.has('bloom')) { tech += 0.2; good.push('Spices woken up in the fat. Lovely.'); }
+      if (plate && a.crust > 0.25 && a.flaws.burnt < 0.2) { tech += 0.4; good.push('Gorgeous sear. FINALLY.'); }
+      if (a.flaws.raw > 0.4) bad.push('IT\'S RAW! A good vet could still save this!');
+      if (a.flaws.burnt > 0.2) bad.push('It\'s B****Y BURNT! I can taste the smoke alarm!');
+      if (a.flaws.mushy > 0.3) bad.push('The pasta\'s gone to MUSH, you absolute panini!');
+      if (a.flaws.curdled > 0.2) bad.push('The milk\'s SPLIT! F***ing hell, turn the heat DOWN!');
+      if (a.flaws.lumps > 0.2) bad.push('LUMPS! This is wallpaper paste!');
+      if (a.flaws.greasy > 0.3) bad.push('I could deep-fry a fish in this S***!');
+      if (a.flaws.shell > 0.2) bad.push('SHELL! In MY kitchen?!');
+      if (a.flaws.chemical > 0.2) bad.push('You put the FIRE EXTINGUISHER in it?! GET OUT!');
+      if (p.salty < 0.22) bad.push('Bland! SEASON it, you donkey!');
+      if (p.salty > 0.82) bad.push('It\'s a S***ing salt lick!');
+      if (!plate && p.body < 0.06 && a.chunkiness < 0.1) bad.push('Dishwater. D*** dishwater.');
+      const bal = Taste.score(p, { plate });
+      if (!good.length && bal > 0.65) good.push('Clean. Well seasoned. Good.');
+      const s = 10 * (0.55 * bal + 0.25 * Math.max(0, Math.min(1, tech)) + 0.15) - a.flawSum * 14;
+      return { score: s, good, bad };
+    },
+  },
+
+  // The master baker, who also knows his spices: rise, crust and crumb on a bake; bloomed spice and balance on the rest.
+  paul: {
+    id: 'paul', name: 'Paul Bollywood', title: 'The Master Baker',
+    blend: { match: 0.3, recipe: 0.3, taste: 0.4 },
+    skin: [176, 120, 84], hair: [206, 208, 216], iris: [70, 160, 250], shirt: [40, 50, 84], theme: [70, 110, 190],
+    sounds: { good: ['*raises an eyebrow*', 'Hmm. Yes.'], bad: ['*stares*', 'Hmm. No.'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [];
+      if (a.type === 'baked') {
+        const b = a.bake;
+        let s = 4;
+        if (b.doneness > 0.95) { s += 2; good.push(`That's a properly baked ${b.kind}.`); }
+        else if (b.doneness < 0.7) { s -= 2.5; bad.push('It\'s raw in the middle. Soggy bottom.'); }
+        if (b.wantsRise) {
+          if (b.rise >= 1.3 && b.rise <= 2.4) { s += 2; good.push('Good rise. Lovely even crumb.'); }
+          else if (b.rise < 1.15) { s -= 2; bad.push('Under-proved. Dense as a brick.'); }
+          else if (b.rise > 2.6) { s -= 1; bad.push('Over-proved. It\'s all holes.'); }
+        }
+        if (b.wantsCrust) { if (b.crust > 0.25) { s += 1; good.push('Nice colour on it.'); } else if (b.crust < 0.08) { s -= 0.5; bad.push('Pale. Bake it longer.'); } }
+        if (b.burnt > 0.2) { s -= 2; bad.push('The bottom\'s burnt.'); }
+        if (b.soda > 0.08) { s -= 2; bad.push('Soapy. Too much soda.'); }
+        if (b.water > 1.8 && b.kind !== 'pancake' && b.kind !== 'crêpe') { s -= 1; bad.push('Stodgy. Too wet.'); }
+        if (spiceUsed()) { s += 0.5; good.push('A little spice in a bake. Bold. I like it.'); }
+        return { score: s - a.flawSum * 5, good, bad };
+      }
+      const bal = Taste.score(p, { plate: a.type === 'plate' });
+      let spiceQ = 0.55;
+      if (spiceUsed()) {
+        const bloomed = Sim.happened.has('bloom');
+        const heatOk = p.heat > 0.12 && p.heat < 0.65 ? 1 : p.heat >= 0.65 ? 0.5 : 0.7;
+        spiceQ = (bloomed ? 1 : 0.4) * heatOk;
+        if (bloomed) good.push('The spices were bloomed in the oil first. You can taste the warmth.');
+        else bad.push('Raw spice. Chalky. Bloom it in the oil first.');
+        if (p.heat >= 0.65) bad.push('Too much heat. It drowns everything else out.');
+      } else if (p.aroma < 0.3) bad.push('It\'s pleasant. But where\'s the depth? Where\'s the spice?');
+      if (a.flaws.lumps > 0.2) bad.push('Lumpy. Texture matters.');
+      if (p.body > 0.25 && p.body < 0.7 && a.flaws.lumps < 0.2) good.push('Good body to it.');
+      if (!good.length && bal > 0.65) good.push('Well balanced. Nothing shouting over anything else.');
+      const s = 10 * (0.45 * bal + 0.3 * spiceQ + 0.25) - a.flawSum * 8;
+      return { score: s, good, bad };
+    },
+  },
+});
+
+const JUDGE_IDS = Object.keys(JUDGE_ROSTER);
+const JUDGE_SLOTS = [76, 160, 244];
+// The three judges at the table right now (mutated in place, so references to it stay live).
+const JUDGES = [];
+
 const Judging = {
   active: false, t: 0, phase: 'walk', k: 0, results: [], verdict: null, analysis: null, typed: 0,
 
-  start() {
+  // Seat three judges: the given ids, a level's tier panel, or (sandbox) three at random.
+  setPanel(ids) {
+    JUDGES.length = 0;
+    ids.forEach((id, n) => JUDGES.push(Object.assign(Object.create(JUDGE_ROSTER[id]), { x: JUDGE_SLOTS[n] })));
+  },
+  randomPanel() {
+    const pool = JUDGE_IDS.slice(), out = [];
+    while (out.length < 3) out.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
+    return out;
+  },
+
+  // opts.level: a career level (scored 0–10 against its recipe); opts.panel: judge ids to seat.
+  start(opts = {}) {
+    this.level = opts.level || null;
+    this.setPanel(opts.panel || (this.level ? LEVEL_TIERS[this.level.tier].judges : this.randomPanel()));
     this.analysis = Taste.analyzeBowl();
     const a = this.analysis;
     if (typeof Plating !== 'undefined' && typeof document !== 'undefined') Plating.build(a);
-    this.results = JUDGES.map((j) => {
-      if (a.empty) return { score: 1, line: pick(['...Where is the food?', 'You served me an empty plate.', 'Is this a joke?']) };
-      const r = j.evaluate(a);
-      const score = Math.max(1, Math.min(10, Math.round(r.score)));
+    const raw = JUDGES.map((j) => (a.empty ? null : j.evaluate(a)));
+    this.levelResult = this.level && !a.empty
+      ? Levels.score(this.level, a, Sim.happened, Sim.used, JUDGES.map((j) => j.id), raw.map((r) => r.score)) : null;
+    const L = this.levelResult;
+    // The judge who cares most about technique tells you what the recipe was missing.
+    const stickler = L && (L.missing.length || L.slipped.length || L.missingIng.length)
+      ? JUDGES.reduce((b, j, n) => (j.blend.recipe > JUDGES[b].blend.recipe ? n : b), 0) : -1;
+    this.results = JUDGES.map((j, n) => {
+      if (a.empty) return { score: 1, taste: 1, line: pick(['...Where is the food?', 'You served me an empty plate.', 'Is this a joke?']) };
+      const r = raw[n], lj = L && L.judges[n];
+      const score = Math.max(1, Math.min(10, Math.round(lj ? lj.score : r.score)));
       // Lead with praise or criticism depending on how it went.
       const lines = score >= 6 ? [pick(r.good.length ? r.good : ['Not bad.']), r.bad[0]]
                                : [pick(r.bad.length ? r.bad : ['Something is missing.']), r.good[0]];
-      const sound = pick(score >= 6 ? j.sounds.good : j.sounds.bad);
-      return { score, line: sound + ' ' + lines.filter(Boolean).join(' ') };
+      if (n === stickler) lines.push(L.missing.length ? `Where's the ${(DISCOVERIES.find((d) => d.id === L.missing[0]) || { name: L.missing[0] }).name.toLowerCase()}? It's in the recipe.`
+                                   : L.slipped.length ? `And the ${(DISCOVERIES.find((d) => d.id === L.slipped[0]) || { name: L.slipped[0] }).name.toLowerCase()}... careful.`
+                                   : `You left out the ${(SHELF.find((s) => s.id === L.missingIng[0]) || { name: L.missingIng[0] }).name.toLowerCase()}.`);
+      if (lj && lj.flourish) lines.push(`The ${(SHELF.find((s) => s.id === L.extras[0]) || { name: L.extras[0] }).name.toLowerCase()}? Inspired.`);
+      // Paul's rare handshake: a dish he scores 9 or more and genuinely loves (his own taste, 9+).
+      const handshake = j.id === 'paul' && score >= 9 && r.score >= 9;
+      const sound = handshake ? '*extends his hand*' : pick(score >= 6 ? j.sounds.good : j.sounds.bad);
+      const line = sound + ' ' + lines.filter(Boolean).join(' ') + (handshake ? ' That deserves a handshake.' : '');
+      return { score, taste: r.score, line, handshake };
     });
-    const avg = this.results.reduce((s, r) => s + r.score, 0) / 3;
-    this.avg = avg;
-    this.verdict = avg >= 7.5 ? 'WINNER' : avg >= 5 ? 'SAFE' : 'CHOPPED';
+    this.handshake = this.results.some((r) => r.handshake);
+    if (L) {
+      this.avg = L.total;
+      this.verdict = L.badge === 'perfect' ? 'PERFECT' : L.badge === 'good' ? 'GOOD SOUP' : L.passed ? 'PASSED' : 'CHOPPED';
+    } else {
+      const avg = this.results.reduce((s, r) => s + r.score, 0) / 3;
+      this.avg = avg;
+      this.verdict = avg >= 7.5 ? 'WINNER' : avg >= 5 ? 'SAFE' : 'CHOPPED';
+    }
     this.active = true; this.t = 0; this.phase = 'walk'; this.k = 0; this.typed = 0;
   },
 
@@ -261,11 +416,16 @@ const Judging = {
     if (this.phase === 'deliberate') T.text('The judges are deliberating...', 160, 205, { size: 8, color: '#ffe9c0', align: 'center' });
     if (this.phase === 'verdict' || this.phase === 'done') {
       const v = this.verdict;
-      const label = v === 'CHOPPED' ? 'CHOPPED!' : v === 'SAFE' ? 'SAFE... THIS ROUND' : 'WINNER!';
-      const col = v === 'CHOPPED' ? '#ff5050' : v === 'SAFE' ? '#ffd860' : '#7dff8a';
+      const label = { CHOPPED: 'CHOPPED!', SAFE: 'SAFE... THIS ROUND', WINNER: 'WINNER!', PASSED: 'PASSED', 'GOOD SOUP': 'GOOD SOUP!', PERFECT: 'PERFECT!' }[v];
+      const col = v === 'CHOPPED' ? '#ff5050' : v === 'SAFE' || v === 'PASSED' ? '#ffd860' : '#7dff8a';
       if (this.t > 20 || this.phase === 'done') {
-        T.text(label, 160, 166, { size: v === 'SAFE' ? 12 : 18, color: col, align: 'center', shadow: true });
-        T.text('Average ' + this.avg.toFixed(1) + ' / 10', 160, 184, { size: 7, color: '#ffe9c0', align: 'center' });
+        T.text(label, 160, 166, { size: v === 'SAFE' || v === 'PASSED' ? 12 : 18, color: col, align: 'center', shadow: true });
+        const L = this.levelResult;
+        if (L) {
+          const badge = L.badge === 'perfect' ? '  ·  Perfect badge!' : L.badge === 'good' ? '  ·  Good Soup badge' : '';
+          T.text(`${this.level.title}: ${L.total.toFixed(1)} / 10${badge}${this.handshake ? '  ·  Handshake!' : ''}`, 160, 184, { size: 7, color: '#ffe9c0', align: 'center' });
+          if (this.phase === 'done' && L.notes.length) T.wrap(L.notes[0], 20, 220, W - 40, { size: 6, color: '#d8c0b0' });
+        } else T.text('Average ' + this.avg.toFixed(1) + ' / 10', 160, 184, { size: 7, color: '#ffe9c0', align: 'center' });
       }
     }
     if (this.phase === 'done') for (const b of this.buttons()) T.text(b.label, b.x + b.w / 2, b.y + 6, { size: 6, color: '#3a2020', align: 'center' });
@@ -310,7 +470,8 @@ function judgeState(J, n) {
   const r = J.results[n];
   const reacted = n < J.k || (active && J.phase === 'speak') || ['deliberate', 'verdict', 'done'].includes(J.phase);
   const mood = !reacted ? 'neutral' : r.score >= 7 ? 'happy' : r.score >= 5 ? 'meh' : 'upset';
-  return { active, mood, tasting: active && J.phase === 'taste', ft: Chef.t + n * 37 };
+  return { active, mood, tasting: active && J.phase === 'taste', ft: Chef.t + n * 37,
+           handshake: !!(r && r.handshake) && (reacted && (J.k === n || ['deliberate', 'verdict', 'done'].includes(J.phase))) };
 }
 
 // Generic eye: dark oval, optional iris, sparkles, and an eyelid that covers the top `lid` fraction.
@@ -517,40 +678,221 @@ function drawGoat(g, j, J, s) {
 }
 
 function drawJudge(g, j, n, J) {
-  const s = judgeState(J, n);
-  [drawCat, drawDog, drawGoat][n](g, j, J, s);
+  JUDGE_ART[j.id].body(g, j, J, judgeState(J, n));
 }
 
-// Front layer resting on the table: paws / teacup.
+// Front layer resting on the table: paws, hands, teacup.
 function drawPaws(g, j, n, J) {
-  const x = j.x, s = judgeState(J, n);
-  const paw = (px, py, c, big) => {
-    ellipse(g, px, py, big ? 6 : 4, 3, rgb(c, 0.4));
-    ellipse(g, px, py - 1, big ? 5 : 3, 3, c);
-    rect(g, px - 1, py + 1, 1, 2, rgb(c, 0.6)); rect(g, px + 1, py + 1, 1, 2, rgb(c, 0.6));
-  };
-  if (n === 0) paw(x - 6, 120, j.fur, false);                         // one neat paw down
-  if (n === 1) { const b = s.mood === 'happy' ? Math.round(Math.abs(Math.sin(s.ft * 0.25)) * -2) : 0; paw(x - 19, 121 + b, j.fur, true); paw(x + 19, 121 - b, j.fur, true); }
-  if (n === 2) {
+  JUDGE_ART[j.id].front(g, j, J, judgeState(J, n));
+}
+
+function paw(g, px, py, c, big) {
+  ellipse(g, px, py, big ? 6 : 4, 3, rgb(c, 0.4));
+  ellipse(g, px, py - 1, big ? 5 : 3, 3, c);
+  rect(g, px - 1, py + 1, 1, 2, rgb(c, 0.6)); rect(g, px + 1, py + 1, 1, 2, rgb(c, 0.6));
+}
+// A human hand resting on the table, with a sleeve cuff.
+function hand(g, px, py, skin, sleeve) {
+  ellipse(g, px, py + 1, 6, 3, rgb(sleeve, 0.45)); ellipse(g, px, py, 5, 3, sleeve);
+  ball(g, px, py - 2, 3, skin);
+  rect(g, px - 2, py - 1, 1, 2, rgb(skin, 0.75)); rect(g, px + 1, py - 1, 1, 2, rgb(skin, 0.75));
+}
+
+// ---- Joe: the pizza-shop regular. Ball cap, hoodie, stubble, an easy grin. Leans back, relaxed.
+function drawJoe(g, j, J, s) {
+  const x = j.x, { mood, ft } = s, skin = j.skin;
+  const hx = x, hy = 62 + (s.active ? Math.round(Math.sin(J.t * 0.12)) : 0) + (mood === 'happy' ? Math.round(Math.sin(ft * 0.2)) : 0);
+  // Hoodie, hood bunched behind the neck, drawstrings.
+  ellipse(g, x, 105, 25, 18, rgb(j.hoodie, 0.4)); ellipse(g, x, 105, 24, 17, j.hoodie);
+  ellipse(g, x, 84, 14, 6, rgb(j.hoodie, 0.8));
+  rect(g, x - 4, 88, 1, 12, [240, 240, 240]); rect(g, x + 3, 88, 1, 12, [240, 240, 240]);
+  rect(g, x - 9, 104, 18, 8, rgb(j.hoodie, 0.85)); rect(g, x - 9, 104, 18, 1, rgb(j.hoodie, 0.7));   // front pocket
+  rect(g, hx - 7, hy + 10, 14, 86 - hy - 8, rgb(skin, 0.85));   // neck
+  // Head.
+  ball(g, hx, hy, 15, skin);
+  ball(g, hx - 15, hy + 2, 3, skin, false); ball(g, hx + 15, hy + 2, 3, skin, false);
+  // A shadow of stubble around the chin.
+  for (let k = 0; k < 9; k++) { const a = 0.6 + k / 8 * 1.95; rect(g, Math.round(hx + Math.cos(a) * 10), Math.round(hy + 6 + Math.sin(a) * 6), 2, 1, rgb(skin, 0.9)); }
+  // Ball cap, bill toward us.
+  ellipse(g, hx, hy - 6, 16, 11, rgb(j.cap, 0.5), 'top');
+  ellipse(g, hx, hy - 6, 15, 10, j.cap, 'top');
+  rect(g, hx - 1, hy - 16, 2, 2, rgb(j.cap, 0.7));
+  ellipse(g, hx, hy - 5, 17, 3, rgb(j.cap, 0.75));
+  rect(g, hx - 6, hy - 12, 12, 4, [255, 255, 255]); rect(g, hx - 5, hy - 11, 10, 2, j.cap);   // logo patch
+  // Eyes and brows.
+  for (const sd of [-1, 1]) {
+    const ex = hx + sd * 6, ey = hy + 1;
+    if (mood === 'happy') arcEye(g, ex, ey, 2, true);
+    else { eye(g, ex, ey, 2, 2, { shine: true }); }
+    const bt = mood === 'upset' ? (sd < 0 ? 1 : -1) : mood === 'meh' && sd > 0 ? -1 : 0;
+    rect(g, ex - 2, ey - 4 + bt, 5, 1, [90, 60, 40]);
+  }
+  rect(g, hx, hy + 4, 1, 2, rgb(skin, 0.7));   // nose
+  const my = hy + 8;
+  if (s.tasting) { ellipse(g, hx, my, 2, 1, [150, 60, 60]); rect(g, hx + 3, my - 8, 1, 9, [200, 206, 220]); }
+  else if (mood === 'happy') { ellipse(g, hx, my, 5, 3, [150, 50, 60], 'bottom'); rect(g, hx - 3, my, 7, 1, [255, 255, 255]); }
+  else if (mood === 'upset') { rect(g, hx - 3, my + 1, 1, 1, INK); rect(g, hx - 2, my, 5, 1, INK); rect(g, hx + 3, my + 1, 1, 1, INK); }
+  else if (mood === 'meh') { rect(g, hx - 3, my, 6, 1, INK); }
+  else { rect(g, hx - 3, my, 1, 1, INK); rect(g, hx - 2, my + 1, 5, 1, INK); rect(g, hx + 3, my, 1, 1, INK); }
+  if (mood === 'happy') for (let k = 0; k < 2; k++) { const sx = hx - 20 + k * 40, sy = hy - 18 - ((ft + k * 9) % 10); rect(g, sx, sy - 1, 1, 3, [255, 230, 90]); rect(g, sx - 1, sy, 3, 1, [255, 230, 90]); }
+  if (mood === 'upset') { const dy = hy - 6 + ((ft >> 2) % 8); rect(g, hx + 15, dy, 2, 3, [140, 200, 255]); }
+}
+function frontJoe(g, j, J, s) {
+  const x = j.x;
+  hand(g, x - 18, 121, j.skin, j.hoodie);
+  // Right hand drums the table while he waits; holds a soda otherwise.
+  if (s.mood === 'neutral' && !s.active) hand(g, x + 18, 121 - ((s.ft >> 3) & 1), j.skin, j.hoodie);
+  else { rect(g, x + 15, 108, 7, 12, [200, 40, 40]); rect(g, x + 15, 108, 7, 2, [230, 230, 236]); rect(g, x + 16, 112, 5, 3, [255, 255, 255]); rect(g, x + 18, 104, 1, 4, [250, 250, 250]); hand(g, x + 18, 121, j.skin, j.hoodie); }
+}
+
+// ---- Gordo Hamsie: spiky blond hair, a forehead of furrows, chef whites, and a temper.
+function drawGordo(g, j, J, s) {
+  const x = j.x, { mood, ft } = s;
+  const shake = mood === 'upset' && s.active ? ((ft >> 1) & 1 ? 1 : -1) : 0;
+  const hx = x + shake, hy = 60 + (mood === 'upset' ? -1 : 0);
+  const skin = mood === 'upset' ? mix(j.skin, [235, 90, 80], 0.45 + Math.sin(ft * 0.3) * 0.1) : j.skin;
+  // Chef whites, double-breasted.
+  ellipse(g, x, 104, 25, 19, rgb(j.coat, 0.45)); ellipse(g, x, 104, 24, 18, j.coat);
+  rect(g, x - 1, 88, 2, 30, [214, 216, 226]);
+  for (let k = 0; k < 3; k++) for (const sd of [-1, 1]) rect(g, x + sd * 7 - 1, 94 + k * 7, 2, 2, [60, 60, 70]);
+  rect(g, x - 9, 84, 18, 4, j.coat); rect(g, x - 9, 87, 18, 1, [214, 216, 226]);   // collar
+  ellipse(g, x + 14, 92, 3, 2, [60, 70, 140]);   // embroidered name tag
+  rect(g, hx - 8, hy + 10, 16, 86 - hy - 8, rgb(skin, 0.85));   // neck
+  // Head: square jaw.
+  ball(g, hx, hy, 15, skin);
+  rect(g, hx - 11, hy + 4, 22, 8, skin); ellipse(g, hx, hy + 11, 11, 4, skin);
+  ball(g, hx - 15, hy + 2, 3, skin, false); ball(g, hx + 15, hy + 2, 3, skin, false);
+  // Spiky blond hair.
+  for (let k = -3; k <= 3; k++) tri(g, hx + k * 4 + (k & 1), hy - 10 + Math.abs(k), 6, 12 - Math.abs(k) * 2 + (k & 1) * 2, j.hair);
+  ellipse(g, hx, hy - 11, 14, 4, j.hair);
+  rect(g, hx - 12, hy - 12, 24, 1, mix(j.hair, [255, 255, 255], 0.4));
+  // The famous forehead: deep furrows, deeper when he's cross.
+  const lines = mood === 'happy' ? 1 : mood === 'upset' ? 4 : 3;
+  for (let k = 0; k < lines; k++) rect(g, hx - 7 + (k & 1), hy - 6 + k * 2 - (lines > 3 ? 1 : 0), 14 - (k & 1) * 2, 1, rgb(skin, 0.72));
+  // Brows and squinting eyes.
+  for (const sd of [-1, 1]) {
+    const ex = hx + sd * 6, ey = hy + 2;
+    if (mood === 'happy') arcEye(g, ex, ey, 2, true);
+    else if (mood === 'upset') { eye(g, ex, ey, 2, 2, { shine: false }); rect(g, ex - 3, ey - 4 + (sd < 0 ? 0 : 0), 6, 2, j.brow); rect(g, ex + (sd < 0 ? 2 : -3), ey - 3, 2, 1, j.brow); }
+    else { eye(g, ex, ey, 2, 1, { shine: false }); rect(g, ex - 3, ey - 3, 6, 1, j.brow); }
+  }
+  rect(g, hx, hy + 4, 1, 3, rgb(skin, 0.7));
+  // Mouth: tight line, a rare smile, or full shout.
+  const my = hy + 11;
+  if (s.tasting) { ellipse(g, hx, my, 2, 1, [150, 60, 60]); rect(g, hx + 3, my - 9, 1, 10, [200, 206, 220]); }
+  else if (mood === 'upset') { ellipse(g, hx, my + 1, 5, 4, [90, 20, 30]); rect(g, hx - 4, my - 2, 8, 1, [255, 255, 255]); ellipse(g, hx, my + 3, 3, 1, [220, 90, 100]); }
+  else if (mood === 'happy') { rect(g, hx - 4, my, 1, 1, INK); rect(g, hx - 3, my + 1, 6, 1, INK); rect(g, hx + 3, my, 1, 1, INK); }
+  else rect(g, hx - 4, my + 1, 8, 1, INK);
+  // Emotes: steam from the ears when furious.
+  if (mood === 'upset') for (const sd of [-1, 1]) { const py = hy - 2 - ((ft + (sd > 0 ? 6 : 0)) >> 2) % 8; ellipse(g, hx + sd * 20, py, 2, 2, [240, 240, 246]); }
+  if (mood === 'happy') { const sx = hx + 20, sy = hy - 18 - ((ft >> 3) % 3); rect(g, sx, sy - 1, 1, 3, [255, 230, 90]); rect(g, sx - 1, sy, 3, 1, [255, 230, 90]); }
+}
+function frontGordo(g, j, J, s) {
+  const x = j.x;
+  if (s.mood === 'upset' && s.active) {
+    // Pointing straight at you.
+    hand(g, x - 16, 121, j.skin, j.coat);
+    ellipse(g, x + 10, 116, 6, 4, j.coat); ball(g, x + 6, 114, 3, j.skin); rect(g, x - 2, 113, 7, 2, j.skin);
+  } else if (s.mood === 'neutral') {
+    // Arms folded on the table.
+    ellipse(g, x, 117, 22, 5, rgb(j.coat, 0.45)); ellipse(g, x, 116, 21, 4, j.coat);
+    rect(g, x - 20, 115, 40, 1, [214, 216, 226]);
+    ball(g, x - 14, 115, 3, j.skin); ball(g, x + 14, 115, 3, j.skin);
+  } else { hand(g, x - 18, 121, j.skin, j.coat); hand(g, x + 18, 121, j.skin, j.coat); }
+}
+
+// ---- Paul Bollywood: silver hair swept back, a silver goatee, and piercing blue eyes. Open-collar shirt.
+function drawPaul(g, j, J, s) {
+  const x = j.x, { mood, ft } = s, skin = j.skin;
+  const hx = x, hy = 61 + (s.active ? Math.round(Math.sin(J.t * 0.1)) : 0);
+  const tilt = mood === 'meh' ? 1 : 0;
+  // Dark shirt, open collar.
+  ellipse(g, x, 105, 24, 18, rgb(j.shirt, 0.5)); ellipse(g, x, 105, 23, 17, j.shirt);
+  for (let k = 0; k < 8; k++) rect(g, x - 4 + Math.floor(k / 2), 86 + k, 8 - Math.floor(k / 2) * 2, 1, skin);   // V of the open collar
+  tri(g, x - 7, 90, 7, 5, rgb(j.shirt, 1.35)); tri(g, x + 7, 90, 7, 5, rgb(j.shirt, 1.35));
+  rect(g, hx - 7, hy + 10, 14, 86 - hy - 8, rgb(skin, 0.85));   // neck
+  // Head.
+  ball(g, hx, hy, 15, skin);
+  ball(g, hx - 15, hy + 2, 3, skin, false); ball(g, hx + 15, hy + 2, 3, skin, false);
+  // Silver hair, swept back and up.
+  ellipse(g, hx, hy - 9, 15, 7, rgb(j.hair, 0.6), 'top'); ellipse(g, hx, hy - 9, 14, 6, j.hair, 'top');
+  for (let k = 0; k < 4; k++) rect(g, hx - 8 + k * 5, hy - 14 + (k & 1), 4, 1, mix(j.hair, [255, 255, 255], 0.6));
+  rect(g, hx - 15, hy - 9, 3, 7, j.hair); rect(g, hx + 12, hy - 9, 3, 7, j.hair);   // sides
+  // Eyes: piercing blue, with a skeptical brow.
+  for (const sd of [-1, 1]) {
+    const ex = hx + sd * 6, ey = hy + 1 + (sd > 0 ? -tilt : 0);
+    if (mood === 'happy') arcEye(g, ex, ey, 2, true);
+    else {
+      rect(g, ex - 2, ey - 1, 5, 3, [255, 255, 255]);
+      rect(g, ex - 1 + (mood === 'upset' ? 0 : sd < 0 ? 1 : 0), ey - 1, 2, 3, j.iris);
+      rect(g, ex + (mood === 'upset' ? 0 : sd < 0 ? 1 : 0), ey, 1, 1, INK);
+      rect(g, ex - 2, ey - 2, 5, 1, rgb(skin, 0.6));
+    }
+    const raise = mood === 'meh' && sd > 0 ? -2 : mood === 'upset' ? (sd < 0 ? 1 : 1) : 0;
+    rect(g, ex - 3, ey - 4 + raise, 6, 1, j.hair);
+  }
+  rect(g, hx, hy + 4, 1, 3, rgb(skin, 0.75));
+  // Silver goatee and moustache framing the mouth.
+  const my = hy + 9;
+  rect(g, hx - 4, my - 2, 8, 1, j.hair);
+  ellipse(g, hx, my + 4, 4, 3, j.hair);
+  rect(g, hx - 4, my - 1, 1, 4, j.hair); rect(g, hx + 3, my - 1, 1, 4, j.hair);
+  if (s.tasting) { ellipse(g, hx, my, 2, 1, [130, 50, 50]); rect(g, hx + 3, my - 8, 1, 9, [200, 206, 220]); }
+  else if (mood === 'happy') { rect(g, hx - 2, my, 5, 1, [255, 255, 255]); rect(g, hx - 3, my - 1, 1, 1, INK); rect(g, hx + 3, my - 1, 1, 1, INK); }
+  else if (mood === 'upset') { rect(g, hx - 2, my + 1, 5, 1, INK); }
+  else rect(g, hx - 2, my, 5, 1, INK);
+  if (s.handshake) for (let k = 0; k < 4; k++) { const a = ft * 0.08 + k * 1.57; rect(g, Math.round(hx + Math.cos(a) * 24), Math.round(hy + 30 + Math.sin(a) * 8), 2, 2, [255, 230, 90]); }
+}
+function framePaul(g, j, J, s) {
+  const x = j.x;
+  if (s.handshake) {
+    // The handshake: his arm reaches across the table, past the bowl, a big open hand held out to you.
+    hand(g, x - 18, 121, j.skin, j.shirt);
+    const reach = Math.min(1, ((J.typed || 0) + J.t) / 30), hx = Math.round(x + 30 + reach * 8), hy = Math.round(112 + reach * 20);
+    for (let k = 0; k <= 10; k++) { const ax = x + 14 + (hx - x - 14) * k / 10, ay = 104 + (hy - 104) * k / 10; ellipse(g, ax, ay, 5, 4, rgb(j.shirt, 0.6)); ellipse(g, ax, ay - 1, 4, 3, j.shirt); }
+    rect(g, hx - 5, hy - 5, 10, 3, [250, 250, 252]);   // shirt cuff
+    ellipse(g, hx, hy + 2, 7, 6, rgb(j.skin, 0.55)); ellipse(g, hx, hy + 1, 6, 5, j.skin);
+    for (let f = 0; f < 4; f++) rect(g, hx - 4 + f * 2, hy + 5, 1, 3, rgb(j.skin, 0.75));   // fingers
+    rect(g, hx - 8, hy - 1, 3, 2, j.skin); rect(g, hx - 9, hy - 2, 2, 2, j.skin);         // thumb up
+  } else { hand(g, x - 18, 121, j.skin, j.shirt); hand(g, x + 18, 121, j.skin, j.shirt); }
+}
+
+const JUDGE_ART = {
+  pounce: { body: drawCat, front: (g, j, J, s) => paw(g, j.x - 6, 120, j.fur, false) },
+  biscuit: { body: drawDog, front: (g, j, J, s) => { const b = s.mood === 'happy' ? Math.round(Math.abs(Math.sin(s.ft * 0.25)) * -2) : 0; paw(g, j.x - 19, 121 + b, j.fur, true); paw(g, j.x + 19, 121 - b, j.fur, true); } },
+  nanny: { body: drawGoat, front: (g, j, J, s) => {
+    const x = j.x;
     // Teacup held in both hooves.
     ellipse(g, x, 121, 7, 4, [60, 40, 50]); ellipse(g, x, 120, 6, 4, [250, 246, 240]);
     ellipse(g, x, 117, 6, 2, [180, 110, 70]); rect(g, x + 6, 118, 3, 3, [250, 246, 240]); rect(g, x + 7, 119, 1, 1, [60, 40, 50]);
     for (let k = 0; k < 2; k++) rect(g, x - 2 + k * 4 + Math.round(Math.sin((s.ft + k * 20) * 0.12)), 108 - ((s.ft + k * 9) % 8), 1, 3, 'rgba(255,255,255,0.7)');
     for (const sd of [-1, 1]) { ellipse(g, x + sd * 10, 121, 4, 3, j.fur); rect(g, x + sd * 10 - 3, 122, 7, 2, j.dark); }
-  }
-}
+  } },
+  joe: { body: drawJoe, front: frontJoe },
+  gordo: { body: drawGordo, front: frontGordo },
+  paul: { body: drawPaul, front: framePaul },
+};
 
 function drawVerdict(g, J) {
   const v = J.verdict, t = J.phase === 'done' ? 999 : J.t;
   if (v === 'CHOPPED') {
     // Cleaver slams down onto a board.
     rect(g, 110, 150, 100, 10, [170, 110, 60]); rect(g, 110, 150, 100, 2, [210, 150, 90]);
-    const drop = Math.min(1, t / 14), cy = -40 + drop * 160;
-    rect(g, 140, cy - 30, 40, 28, [200, 206, 220]); rect(g, 140, cy - 30, 40, 3, [240, 244, 250]);
-    rect(g, 174, cy - 26, 4, 4, [60, 60, 70]);
-    rect(g, 176, cy - 44, 8, 16, [80, 50, 30]);
+    const drop = Math.min(1, t / 14), cy = Math.round(-40 + drop * 160);
+    // Blade: dark outline, steel body with a brushed sheen, a bright honed edge at the bottom, and the hanging hole.
+    rect(g, 133, cy - 31, 44, 30, [40, 42, 52]);
+    rect(g, 134, cy - 30, 42, 28, [176, 182, 198]);
+    rect(g, 134, cy - 30, 42, 4, [214, 220, 232]);
+    for (let k = 0; k < 4; k++) rect(g, 138 + k * 9, cy - 24 + (k & 1) * 3, 6, 1, [200, 206, 220]);
+    rect(g, 134, cy - 5, 42, 3, [236, 240, 248]); rect(g, 134, cy - 2, 42, 1, [255, 255, 255]);
+    ellipse(g, 141, cy - 23, 2, 2, [40, 42, 52]);
+    // Bolster and wooden handle with rivets, angled up to the right.
+    rect(g, 176, cy - 28, 4, 10, [120, 124, 140]);
+    for (let k = 0; k < 22; k++) rect(g, 180 + k, cy - 27 - Math.round(k * 0.35), 1, 8, k < 2 ? [60, 36, 22] : [118 - (k & 3) * 4, 72, 40]);
+    rect(g, 184, cy - 26, 2, 2, [220, 214, 196]); rect(g, 192, cy - 29, 2, 2, [220, 214, 196]);
+    if (t < 14) for (let k = 0; k < 3; k++) rect(g, 136 + k * 14, cy - 44 - k * 3, 2, 10, 'rgba(255,255,255,0.35)');   // motion streaks
     if (t > 14 && t < 22) for (let k = 0; k < 8; k++) rect(g, 110 + k * 13, 146 - (t - 14) * 2, 2, 2, [255, 255, 255]);
-  } else if (v === 'WINNER') {
+  } else if (v === 'WINNER' || v === 'GOOD SOUP' || v === 'PERFECT') {
     for (let k = 0; k < 40; k++) {
       const x = (k * 53 + J.t * (1 + k % 3)) % W, y = ((k * 37 + J.t * 2) % 260) - 20;
       rect(g, x, y, 2, 3, [[255, 90, 90], [90, 200, 255], [255, 220, 80], [120, 240, 120]][k % 4]);

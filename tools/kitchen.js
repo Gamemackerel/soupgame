@@ -113,7 +113,9 @@ function cook(spec, seed = 1, scaleOverride) {
   const scale = scaleOverride || spec.scale || 1;
   for (const st of spec.steps) execStep(G, st, scale);
   const a = G.Taste.analyzeBowl();
-  G.Judging.start();
+  // Levels seat their tier's panel; everything else uses a fixed panel so results stay comparable.
+  const level = spec.level ? G.Levels.byId(spec.level) : null;
+  G.Judging.start(level ? { level } : { panel: spec.panel || ['pounce', 'biscuit', 'nanny'] });
   const counts = {};
   for (let i = 0; i < G.N; i++) { const m = G.Sim.mat[i]; if (m) { const k = G.MAT[m].name; counts[k] = (counts[k] || 0) + 1; } }
   const raw = {};
@@ -123,22 +125,21 @@ function cook(spec, seed = 1, scaleOverride) {
     type: a.type, taste: a.p, raw, flaws: a.flaws, flawSum: a.flawSum, notes: a.notes, noteLevels: { ...G.Sim.notes },
     bake: a.bake, temp: a.temp, chunkiness: a.chunkiness, crust: a.crust, counts,
     discovered: [...G.Sim.discovered], happened: [...G.Sim.happened], used: [...G.Sim.used],
-    judges: G.Judging.results.map((r, n) => ({ judge: G.JUDGES[n].name, score: r.score, line: r.line })),
+    judges: G.Judging.results.map((r, n) => ({ id: G.JUDGES[n].id, judge: G.JUDGES[n].name, score: r.score, taste: r.taste, line: r.line, handshake: !!r.handshake })),
     score: G.Judging.avg, verdict: G.Judging.verdict,
     simSeconds: G.Sim.frame / FPS,
     // Career scoring, when cooked as a level (spec.level = level id).
-    level: spec.level ? G.Levels.score(G.LEVELS.find((l) => l.id === spec.level), a, G.Sim.happened, G.Sim.used, G.Judging.avg) : undefined,
+    level: G.Judging.levelResult || undefined,
   };
 }
 
 // Pull a named metric out of a cooked result: score, judge.<name>, taste.<axis>, raw.<axis>,
 // flaw.<name>, bake.<field>, count.<material>, disc.<id>, note.<id>.
-const JUDGE_KEYS = { pounce: 0, biscuit: 1, nanny: 2 };
 function metric(res, name) {
   const [kind, key] = name.split('.');
   switch (kind) {
     case 'score': return res.score;
-    case 'judge': return res.judges[JUDGE_KEYS[key]].score;
+    case 'judge': return res.judges.find((j) => j.id === key).score;
     case 'taste': return res.taste[key];
     case 'raw': return res.raw[key];
     case 'flaw': return res.flaws[key] || 0;

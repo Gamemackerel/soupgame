@@ -537,28 +537,15 @@ Each career level is a recipe the judges know. A level lists:
 
 `tools/build-levels.js` cooks every par on several seeds and writes the mean perceived taste into `js/level-targets.js`. Targets therefore always follow the current chemistry. It then checks that every par earns 3★ and every mistake earns fewer. Run it after any chemistry or perception change.
 
-**Scoring** (0–1):
+**Scoring:** each level is judged 0–10 by its tier's panel. See §17.
 
-| Part | Weight | Measures |
-|---|---|---|
-| Match | 35% | Distance from the target taste over salty, sweet, sour, bitter, umami, rich, heat, aroma and body. Axes the dish is strong in weigh more, and differences under 0.08 are free. |
-| Technique | 25% | The share of required techniques that happened, minus any "avoid" slips. |
-| Ingredients | 15% | The share of the recipe's ingredients that went in. |
-| Judges | 25% | The judges' average, mapped 3 → 0 and 8 → 1. |
-
-**Stars and caps:**
-
-- 1★ at 0.55, 2★ at 0.72 and 3★ at 0.85.
-- **3★ means cooking the recipe as written.** A missing technique, a missing ingredient or an avoided slip caps the dish at 2★.
-- A forbidden flaw above 0.3 caps the dish at 1★.
-
-**Teaching feedback:** the score returns notes for the reveal screen:
-
+**Teaching feedback:** the result carries notes for the verdict screen:
 - the biggest taste gap ("It was less salty than the recipe.")
 - each missing technique with its journal hint
 - any slips
 - missing ingredients
 - forbidden flaws
+- flourishes
 
 **The 10 beta levels:**
 
@@ -584,9 +571,7 @@ Each career level is a recipe the judges know. A level lists:
 
 Starchy pieces count as "raw" until well softened. Deeply caramelized onions now leave fond on the pot bottom, as meat does.
 
-## 17. Career Judging Design (decided, not built yet)
-
-This replaces the star scoring in §16. The level data, par recipes, mistakes and `tools/build-levels.js` stay.
+## 17. Career Judging (implemented, `js/judges.js` and `js/levels.js`)
 
 **Progression:**
 - **Tiers are the arrangement of levels.** Passing all 5 Pizza Shop levels opens the 5 First Michelin Star levels.
@@ -596,14 +581,29 @@ This replaces the star scoring in §16. The level data, par recipes, mistakes an
   - A perfect 10 earns the **Perfect** badge.
 
 **Score:**
-- **Each judge blends.** Every judge gives their own 0–10, mixing the recipe checks (taste match to par, techniques, ingredients) with their personal taste. Each weighs the parts differently, and the level score is the panel's average.
+- **Each judge blends.** Every judge gives their own 0–10, and the level score is the panel's average. A judge's score is 9 × (match + recipe + taste, each weighted), where:
+  - **match** is how close the taste is to the par recipe's (§16)
+  - **recipe** is the recipe's techniques and ingredients, half each
+  - **taste** is the judge's own taste score relative to how they scored the par recipe, capped at par
+
+  | Judge | Match | Recipe | Own taste |
+  |---|---|---|---|
+  | Joe | 20% | 10% | 70% |
+  | Biscuit | 30% | 20% | 50% |
+  | Nanny Mae | 30% | 20% | 50% |
+  | Sir Pounce | 35% | 35% | 30% |
+  | Gordo Hamsie | 25% | 45% | 30% |
+  | Paul Bollywood | 30% | 30% | 40% |
+
+  The par recipe cooked flawlessly therefore scores exactly 9. `tools/build-levels.js` records each judge's own taste of the par in `js/level-targets.js`.
 - **Soft caps:**
   - A missing required ingredient or technique caps the score below 8 (no badge, but you can still pass).
   - A forbidden flaw caps it below 6 (chopped).
 - **A perfect 10 takes par plus a flourish.** A flawless par recipe lands around 9.
   - **Flourish:** an extra ingredient not in the recipe.
   - It earns a bonus only if the judges' taste score beats the par recipe's (precomputed by `build-levels.js`).
-  - The judge who liked it calls it out.
+  - Each judge who liked it adds 1 to their own score and calls it out. A judge who loves the flourish doesn't count its drift from par against the match.
+  - The tomato soup's known flourish (a pinch of chili) wins over all three tier-0 judges and can reach 10.
 
 **Panels:**
 
@@ -611,12 +611,17 @@ This replaces the star scoring in §16. The level data, par recipes, mistakes an
 |---|---|
 | Tier 0, Pizza Shop | Biscuit (dog), Sir Pounce (cat), Joe |
 | Tier 1, First Michelin Star | Gordo Hamsie, Paul Bollywood, Sir Pounce |
-| Sandbox | 3 picked at random from all judges, Nanny Mae included |
+| Sandbox | 3 picked at random from all six judges, Nanny Mae included |
+
+**Dev hashes,** until the level select screen exists:
+- `#level=chili` plays a level: serving judges it against the recipe.
+- `#panel=joe,gordo,paul` seats a panel.
+- These combine with the preview views, e.g. `#verdict&level=goulash`.
 
 **New judges:**
 - **Joe, the regular.** A friendly pizza-shop regular in a ball cap and hoodie, and a fair customer. He scores "would I order this again?": overall balance, warmth, filling, no flaws. Plain-spoken and honest.
 - **Gordo Hamsie, the head chef.** A satirical human caricature: spiky blond hair, a deeply furrowed forehead, chef whites, and a face that goes red when angry. An execution perfectionist who cares about raw, burnt, mushy, under-seasoning and sloppy technique. He rants in caps with bleeps that keep the first letter (S\*\*\*!) and creative insults.
-- **Paul Bollywood, the master baker.** An Indian man who otherwise looks like the famous baker: silver hair, a goatee and piercing blue eyes. He judges bakes (rise, crust, crumb) and spice (bloomed versus raw, heat balance). His rare **Bollywood handshake** honors an outstanding dish, with its own animation.
+- **Paul Bollywood, the master baker.** An Indian man who otherwise looks like the famous baker: silver hair, a goatee and piercing blue eyes. He judges bakes (rise, crust, crumb) and spice (bloomed versus raw, heat balance). His rare **Bollywood handshake** goes to a dish he scores 9 or more *and* loves by his own taste (9+), with its own animation of him reaching across the table. On the tier-1 pars only the goulash and the chili, with their bloomed spices, earn it.
 
 ## 18. Heat on the Pot Bottom (implemented)
 

@@ -179,7 +179,22 @@ function loop() {
 Sim.reset();
 Chef.select(SHELF[0]);
 // Dev: #demo pre-cooks a pot; #judge also jumps to judging.
-if (location.hash === '#bread') {
+// What's being cooked: a career level (scored against its recipe by its tier's judges) or free sandbox play.
+// Until the level select screen exists, dev hashes pick it: #level=chili, #panel=joe,gordo,paul, and
+// combine with the views below, e.g. #verdict&panel=gordo,paul,joe.
+const DEV = (() => {
+  const parts = location.hash.slice(1).split('&'), arg = {};
+  for (const p of parts) if (p.includes('=')) { const [k, v] = p.split('='); arg[k] = decodeURIComponent(v); }
+  return { view: parts[0].includes('=') ? '' : parts[0], ...arg };
+})();
+const Game = {
+  level: DEV.level ? Levels.byId(DEV.level) || null : null,
+  panel: DEV.panel ? DEV.panel.split(',').filter((id) => JUDGE_ROSTER[id]).slice(0, 3) : null,
+  judging() { return { level: this.level, panel: this.panel && this.panel.length === 3 ? this.panel : null }; },
+};
+if (Game.level) UI.banner(Game.level.title, Game.level.blurb);
+
+if (DEV.view === 'bread') {
   // Dev: a kneaded, leavened loaf baking in the pot oven (lid on).
   const ing = (id) => SHELF.find((s) => s.id === id);
   const pour = (id, secs) => { const g = ing(id); for (let f = 0; f < secs * 60; f++) { Sim.pour(g, 76 + ((f * 5) % 7) - 3, g.rate); Sim.step(); } };
@@ -188,13 +203,13 @@ if (location.hash === '#bread') {
   for (let f = 0; f < 480; f++) { ph += 0.12; const p = { x: Math.round(76 + Math.cos(ph) * 45), y: Math.round(80 + Math.sin(ph) * 4) }; if (prev) Sim.stir(p.x, p.y, p.x - prev.x, p.y - prev.y, 6); prev = p; Sim.step(); }
   Sim.lid = true; Sim.dial = 6; for (let f = 0; f < 60 * 40; f++) Sim.step();
   Sim.lid = false; Sim.events.length = 0; Chef.select(ing('flour'));
-} else if (location.hash === '#fire') {
+} else if (DEV.view === 'fire') {
   // Dev: a grease fire in full swing.
   const ing = (id) => SHELF.find((s) => s.id === id);
   for (let f = 0; f < 90; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }
   Sim.dial = 10; for (let f = 0; f < 60 * 12; f++) Sim.step();
   Sim.events.length = 0; Chef.select(ing('extinguisher'));
-} else if (location.hash === '#plate') {
+} else if (DEV.view === 'plate') {
   // Dev: a dry dish (seared beef, fish, fried egg) served on a plate.
   const ing = (id) => SHELF.find((s) => s.id === id);
   for (let f = 0; f < 24; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }
@@ -206,8 +221,8 @@ if (location.hash === '#bread') {
   for (let f = 0; f < 6; f++) { Sim.pour(ing('soy'), 76, 3); Sim.step(); }
   for (let f = 0; f < 300; f++) Sim.step();
   Sim.events.length = 0;
-  Judging.start(); Judging.k = 3; Judging.next('done');
-} else if (/^#(demo|judge|speak|verdict|eggs)/.test(location.hash)) {
+  Judging.start(Game.judging()); Judging.k = 3; Judging.next('done');
+} else if (/^(demo|judge|speak|verdict|eggs)$/.test(DEV.view)) {
   const ing = (id) => SHELF.find((s) => s.id === id);
   for (let f = 0; f < 60; f++) { Sim.pour(ing('oil'), 76, 4); Sim.step(); }
   for (let f = 0; f < 160; f++) { if (f % 8 === 0) Sim.pour(ing('onion'), 30 + (f * 3) % 90, 1); if (f % 8 === 4) Sim.pour(ing('carrot'), 50 + (f * 5) % 70, 1); Sim.step(); }
@@ -217,13 +232,13 @@ if (location.hash === '#bread') {
   Sim.dial = 7; for (let f = 0; f < 600; f++) Sim.step();
   Sim.events.length = 0;
   Chef.select(ing('chili'));
-  if (location.hash === '#eggs') {
+  if (DEV.view === 'eggs') {
     Sim.throwFish(40); Sim.dropCrackedEgg(100); for (let f = 0; f < 200; f++) Sim.step();
     Sim.throwEgg(120); for (let f = 0; f < 600; f++) Sim.step();
     Chef.select(ing('egg')); Chef.swapT = 0; Chef.cracked = true; input.y = POT_TOP - 4;
-  } else if (location.hash !== '#demo') Judging.start();
-  if (location.hash === '#speak') { Judging.k = 1; Judging.next('speak'); Judging.typed = 999; }
-  if (location.hash === '#verdict') { Judging.k = 3; Judging.next('done'); }
+  } else if (DEV.view !== 'demo') Judging.start(Game.judging());
+  if (DEV.view === 'speak') { Judging.k = 1; Judging.next('speak'); Judging.typed = 999; }
+  if (DEV.view === 'verdict') { Judging.k = 3; Judging.next('done'); }
 }
 Chef.say('Bonjour! Let\'s cook!', 120);
 loop();

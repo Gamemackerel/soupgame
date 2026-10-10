@@ -81,7 +81,7 @@ const UI = {
       }
       else this.tool = id;
     }
-    else if (h.type === 'serve') Judging.start();
+    else if (h.type === 'serve') Judging.start(Game.judging());
     else if (h.type === 'dial') { this.dragDial = true; this.setDial(x, y); }
     return true;
   },
