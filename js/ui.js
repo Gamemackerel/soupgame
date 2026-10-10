@@ -46,6 +46,8 @@ const TOOLS = [
 const TOOL_X = 266, TOOL_Y = 16, TOOL_H = 22;
 const DIAL = { x: 160, y: 227, r: 9 };
 const SERVE = { x: 266, y: 168, w: 50, h: 22 };
+const MENU_BTN = { x: 266, y: 150, w: 50, h: 14 };
+const TITLE_BOX = { x: 96, y: 0, w: 128, h: 12 };
 
 const UI = {
   tool: 'pour', hover: null, card: null, journal: false, banners: [], confirmClear: 0,
@@ -61,6 +63,8 @@ const UI = {
     for (let n = 0; n < SHELF.length; n++) if (this.hit(this.shelfSlot(n), x, y)) return { type: 'ing', n };
     for (let n = 0; n < TOOLS.length; n++) if (this.hit(this.toolSlot(n), x, y)) return { type: 'tool', n };
     if (this.hit(SERVE, x, y)) return { type: 'serve' };
+    if (this.hit(MENU_BTN, x, y)) return { type: 'menu' };
+    if (Game.level && this.hit(TITLE_BOX, x, y)) return { type: 'recipe' };
     if ((x - DIAL.x) ** 2 + (y - DIAL.y) ** 2 <= (DIAL.r + 4) ** 2) return { type: 'dial' };
     return null;
   },
@@ -81,7 +85,9 @@ const UI = {
       }
       else this.tool = id;
     }
-    else if (h.type === 'serve') Judging.start(Game.judging());
+    else if (h.type === 'serve') Game.serve();
+    else if (h.type === 'menu') Game.toMenu();
+    else if (h.type === 'recipe') this.showRecipe();
     else if (h.type === 'dial') { this.dragDial = true; this.setDial(x, y); }
     return true;
   },
@@ -94,11 +100,13 @@ const UI = {
   },
 
   showTaste(res) { this.card = { res, t: 0 }; },
+  // The level's order ticket: just the dish and its description (players work out the method).
+  showRecipe() { if (Game.level) this.card = { recipe: Game.level, t: 0 }; },
 
   banner(text, sub) { this.banners.push({ text, sub, t: 0 }); },
 
   update() {
-    if (this.card) { this.card.t++; if (this.card.t > 420) this.card = null; }
+    if (this.card) { this.card.t++; if (this.card.t > (this.card.recipe ? 900 : 420)) this.card = null; }
     if (this.confirmClear > 0) this.confirmClear--;
     if (this.banners.length) { const b = this.banners[0]; if (++b.t > 150) this.banners.shift(); }
   },
@@ -122,6 +130,10 @@ const UI = {
       rect(g, s.x + 1, s.y + 1, s.w - 2, s.h - 2, on ? [255, 214, 110] : [214, 176, 130]);
       g.drawImage(Art.toolIcon(tl.icon), s.x + 2, s.y + 2);
     });
+    // Back to the pass board.
+    const mh = this.hover && this.hover.type === 'menu';
+    rect(g, MENU_BTN.x, MENU_BTN.y, MENU_BTN.w, MENU_BTN.h, [96, 60, 40]);
+    rect(g, MENU_BTN.x + 1, MENU_BTN.y + 1, MENU_BTN.w - 2, MENU_BTN.h - 2, mh ? [236, 204, 160] : [214, 176, 130]);
     // Serve button.
     const pulse = Math.sin(Chef.t * 0.1) > 0 ? 1.05 : 1;
     rect(g, SERVE.x, SERVE.y, SERVE.w, SERVE.h, [60, 20, 20]);
@@ -159,6 +171,14 @@ const UI = {
   },
 
   drawCard(g) {
+    if (this.card.recipe) {
+      // Order ticket: paper with a clip and a perforated stub.
+      const x = 100, y = 18;
+      rect(g, x + 2, y + 2, 120, 64, [30, 20, 26]); rect(g, x, y, 120, 64, [250, 246, 234]);
+      for (let k = 3; k < 117; k += 3) rect(g, x + k, y + 12, 1, 1, [190, 180, 160]);
+      rect(g, x + 56, y - 3, 9, 6, [170, 174, 188]); rect(g, x + 57, y - 2, 7, 1, [230, 234, 242]);
+      return;
+    }
     const x = 92, y = 16;
     rect(g, x, y, 136, 86, [40, 24, 30]); rect(g, x + 1, y + 1, 134, 84, [255, 250, 238]);
     if (this.card.res.empty) return;
@@ -174,7 +194,9 @@ const UI = {
   },
 
   drawText(T, mx, my) {
-    T.text('SOUP POT', 160, 1, { size: 7, color: '#ffe9c0', align: 'center' });
+    T.text('THE PASS', MENU_BTN.x + MENU_BTN.w / 2, MENU_BTN.y + 4, { size: 5, color: '#3a2014', align: 'center' });
+    // In a level the dish's name takes the title spot; click it to read the recipe blurb again.
+    T.text(Game.level ? Game.level.title.toUpperCase() : 'SOUP POT', 160, 1, { size: Game.level && Game.level.title.length > 14 ? 6 : 7, color: '#ffe9c0', align: 'center' });
     T.text('PANTRY', 29, 4, { size: 6, color: '#7a3a2a', align: 'center' });
     T.text('TOOLS', 291, 4, { size: 6, color: '#7a3a2a', align: 'center' });
     TOOLS.forEach((tl, n) => {
@@ -205,6 +227,15 @@ const UI = {
   },
 
   drawCardText(T) {
+    if (this.card.recipe) {
+      const x = 100, y = 18, L = this.card.recipe;
+      T.text('ORDER', x + 4, y + 4, { size: 5, color: '#8a6a50' });
+      T.text(LEVEL_TIERS[L.tier].title.toUpperCase(), x + 116, y + 4, { size: 4, color: '#8a6a50', align: 'right' });
+      T.wrap(L.title.toUpperCase(), x + 4, y + 16, 112, { size: 7, color: '#2a1820' });
+      T.wrap(L.blurb, x + 4, y + 30, 112, { size: 5, color: '#4a3428' });
+      T.text('click to close', x + 116, y + 57, { size: 4, color: '#a08870', align: 'right' });
+      return;
+    }
     const x = 92, y = 16, r = this.card.res;
     if (r.empty) { T.text(r.line, x + 68, y + 38, { size: 6, color: '#3a2418', align: 'center' }); return; }
     T.text('TASTE', x + 4, y + 4, { size: 7, color: '#3a2418' });

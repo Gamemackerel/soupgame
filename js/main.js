@@ -30,10 +30,11 @@ screen.addEventListener('pointerdown', (e) => {
   const p = toInternal(e);
   input.x = input.px = p.x; input.y = input.py = p.y;
   screen.setPointerCapture(e.pointerId);
+  if (Menu.active) { Menu.click(p.x, p.y); return; }
   if (Judging.active) {
     if (Judging.phase === 'done') {
       const b = Judging.buttons().find((b) => UI.hit(b, p.x, p.y));
-      if (b) { if (b.id === 'new') Sim.reset(); Judging.active = false; }
+      if (b) Game.after(b.id);
     } else Judging.click();
     return;
   }
@@ -78,6 +79,7 @@ addEventListener('keydown', (e) => {
 });
 
 function update() {
+  if (Menu.active) { Menu.update(input.x, input.y); Chef.t++; return; }
   if (Judging.active) { Judging.update(); Chef.ladle = null; Chef.update(160, false, false); return; }
   UI.hover = UI.pick(input.x, input.y);
   const active = input.down && !input.consumed && !UI.dragDial && !UI.journal;
@@ -129,6 +131,13 @@ function drawCursor() {
 }
 
 function draw() {
+  if (Menu.active) {
+    Menu.draw(g); drawCursor();
+    sctx.imageSmoothingEnabled = false;
+    sctx.drawImage(off, 0, 0, screen.width, screen.height);
+    Menu.drawText(T);
+    return;
+  }
   if (Judging.active) {
     Judging.draw(g);
   } else {
@@ -180,8 +189,8 @@ Sim.reset();
 Chef.select(SHELF[0]);
 // Dev: #demo pre-cooks a pot; #judge also jumps to judging.
 // What's being cooked: a career level (scored against its recipe by its tier's judges) or free sandbox play.
-// Until the level select screen exists, dev hashes pick it: #level=chili, #panel=joe,gordo,paul, and
-// combine with the views below, e.g. #verdict&panel=gordo,paul,joe.
+// The game opens on the pass board (js/menu.js). Dev hashes skip it: #level=chili, #panel=joe,gordo,paul,
+// and combine with the views below, e.g. #verdict&panel=gordo,paul,joe.
 const DEV = (() => {
   const parts = location.hash.slice(1).split('&'), arg = {};
   for (const p of parts) if (p.includes('=')) { const [k, v] = p.split('='); arg[k] = decodeURIComponent(v); }
@@ -191,8 +200,42 @@ const Game = {
   level: DEV.level ? Levels.byId(DEV.level) || null : null,
   panel: DEV.panel ? DEV.panel.split(',').filter((id) => JUDGE_ROSTER[id]).slice(0, 3) : null,
   judging() { return { level: this.level, panel: this.panel && this.panel.length === 3 ? this.panel : null }; },
+
+  freshPot() { Sim.reset(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.journal = false; UI.card = null; Chef.select(SHELF[0]); paused = false; },
+  startLevel(level) {
+    this.level = level; this.panel = null;
+    this.freshPot(); Menu.active = false; Judging.active = false;
+    UI.showRecipe();
+  },
+  startSandbox() { this.level = null; this.freshPot(); Menu.active = false; Judging.active = false; Chef.say('Bonjour! Let\'s cook!', 120); },
+  toMenu() { Menu.active = true; Judging.active = false; },
+  // The next dish to play after this one: the next in its tier, else the first of the next open tier.
+  nextLevel() {
+    if (!this.level) return null;
+    const k = LEVELS.indexOf(this.level), next = LEVELS[k + 1];
+    return next && Progress.unlocked(next.tier) ? next : null;
+  },
+  serve() {
+    Judging.start(this.judging());
+    const L = Judging.levelResult;
+    if (L && this.level) {
+      const tierOpenBefore = Progress.unlocked(this.level.tier + 1);
+      Progress.record(this.level, L, Judging.handshake);
+      if (!tierOpenBefore && Progress.unlocked(this.level.tier + 1)) Menu.flash = { text: LEVEL_TIERS[this.level.tier + 1].title + ' unlocked!', t: 0 };
+    }
+  },
+  // A button on the judges' 'done' screen.
+  after(id) {
+    if (id === 'keep') Judging.active = false;
+    else if (id === 'new') { this.freshPot(); Judging.active = false; }
+    else if (id === 'retry') this.startLevel(this.level);
+    else if (id === 'next') { const n = this.nextLevel(); if (n) this.startLevel(n); else this.toMenu(); }
+    else if (id === 'menu') this.toMenu();
+  },
 };
-if (Game.level) UI.banner(Game.level.title, Game.level.blurb);
+Progress.load();
+if (Game.level) UI.showRecipe();
+if (!DEV.view && !DEV.level && !DEV.panel) Menu.active = true;
 
 if (DEV.view === 'bread') {
   // Dev: a kneaded, leavened loaf baking in the pot oven (lid on).
@@ -240,5 +283,5 @@ if (DEV.view === 'bread') {
   if (DEV.view === 'speak') { Judging.k = 1; Judging.next('speak'); Judging.typed = 999; }
   if (DEV.view === 'verdict') { Judging.k = 3; Judging.next('done'); }
 }
-Chef.say('Bonjour! Let\'s cook!', 120);
+if (!Game.level && !Menu.active) Chef.say('Bonjour! Let\'s cook!', 120);
 loop();

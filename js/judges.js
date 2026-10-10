@@ -343,8 +343,14 @@ const Judging = {
 
   // Buttons on the 'done' screen.
   buttons() {
-    return [{ id: 'keep', label: 'KEEP COOKING', x: 70, y: 196, w: 84, h: 18 },
-            { id: 'new', label: 'NEW POT', x: 166, y: 196, w: 84, h: 18 }];
+    let list = [['keep', 'KEEP COOKING'], ['new', 'NEW POT'], ['menu', 'THE PASS']];
+    if (this.level) {
+      const next = typeof Game !== 'undefined' && this.levelResult && this.levelResult.passed && Game.nextLevel();
+      list = [['retry', 'RETRY'], next ? ['next', 'NEXT DISH'] : null, ['menu', 'THE PASS']].filter(Boolean);
+    }
+    // Centered row of buttons.
+    const w = 78, gap = 6, x0 = 160 - (list.length * w + (list.length - 1) * gap) / 2;
+    return list.map(([id, label], n) => ({ id, label, x: Math.round(x0 + n * (w + gap)), y: 196, w, h: 18 }));
   },
 
   draw(g) {

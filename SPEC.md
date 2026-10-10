@@ -636,3 +636,22 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
   - heat 9 chars an unattended pot quickly
 - **Stirring prevents burning.** It spreads the contact around and brings cooler, moist food down onto the metal. An unstirred bottom layer dries out and chars first.
 - **Char sticks.** Burnt bits on the pot bottom are welded on: currents can't move them, and each ladle pass scrapes only a little loose (more with a hard stroke). Scraping it into the soup spreads its bitterness.
+
+## 19. The Pass: Level Select (implemented, `js/menu.js`)
+
+**The board:** the game opens on a kitchen pass.
+- Each tier is a steel ticket rail of 5 order tickets: the dish's key ingredient, its name, the best score ("NEW" if unplayed) and stamps.
+  - A green check means passed. One gold star is Good Soup, two are Perfect. A small handshake mark is Paul's handshake.
+- Locked rows show face-down, padlocked tickets.
+- Hovering a dish shows its description. **Sandbox** sits under the rails.
+
+**Unlocking:** tier 0 is always open. A tier opens once every dish in the tier before it is passed (6+), and the dishes within an open tier play in any order. Tiers 2 and 3 are "coming soon".
+
+**Saving:** progress lives in the browser (`localStorage`, key `soupgame.progress.v1`). It keeps each dish's best score, passed state, best badge and whether it ever earned a handshake. The game still plays if storage is unavailable; it just doesn't remember.
+
+**In a level:** the dish name replaces "SOUP POT" at the top. Its order ticket (name and description only; you work out the method) opens at the start, and clicking the name brings it back. **The Pass** button in the tools panel returns to the board.
+
+**After serving:**
+- **Levels:** Retry, Next Dish (only when you passed; the next dish on the board, if its tier is open) and The Pass.
+- **Sandbox:** Keep Cooking, New Pot and The Pass.
+- Unlocking a tier flashes a notice on the board.

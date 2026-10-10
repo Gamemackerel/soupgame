@@ -35,9 +35,9 @@ Do these together, because the judging format decides which dishes can be judged
 
 ### 3. Build the level select screen
 
-- [ ] Show all 4 tiers. Tiers 0 and 1 are playable; tiers 2 and 3 are greyed out.
-- [ ] Track completion and stars per level, and save progress between sessions.
-- [ ] Keep sandbox mode reachable from the menu.
+- [x] Show all 4 tiers on "The Pass" (`js/menu.js`): one ticket rail per tier. Tiers 0 and 1 are playable; tiers 2 and 3 are padlocked.
+- [x] Track completion, best score, badges and handshakes per level, and save progress between sessions (browser localStorage). Levels within an open tier play in any order; passing all five opens the next tier.
+- [x] Keep sandbox mode reachable from the menu.
 
 ### 4. Playtest and tune each level
 
