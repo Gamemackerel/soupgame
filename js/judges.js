@@ -218,7 +218,7 @@ Object.assign(JUDGE_ROSTER, {
   paul: {
     id: 'paul', name: 'Paul Bollywood', title: 'The Master Baker',
     blend: { match: 0.3, recipe: 0.3, taste: 0.4 },
-    skin: [176, 120, 84], hair: [206, 208, 216], iris: [70, 160, 250], shirt: [40, 50, 84], theme: [70, 110, 190],
+    skin: [234, 180, 144], hair: [206, 208, 216], iris: [70, 160, 250], shirt: [40, 50, 84], theme: [70, 110, 190],
     sounds: { good: ['*raises an eyebrow*', 'Hmm. Yes.'], bad: ['*stares*', 'Hmm. No.'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [];
@@ -823,10 +823,13 @@ function drawPaul(g, j, J, s) {
   // Head.
   ball(g, hx, hy, 15, skin);
   ball(g, hx - 15, hy + 2, 3, skin, false); ball(g, hx + 15, hy + 2, 3, skin, false);
-  // Silver hair, swept back and up.
-  ellipse(g, hx, hy - 9, 15, 7, rgb(j.hair, 0.6), 'top'); ellipse(g, hx, hy - 9, 14, 6, j.hair, 'top');
-  for (let k = 0; k < 4; k++) rect(g, hx - 8 + k * 5, hy - 14 + (k & 1), 4, 1, mix(j.hair, [255, 255, 255], 0.6));
-  rect(g, hx - 15, hy - 9, 3, 7, j.hair); rect(g, hx + 12, hy - 9, 3, 7, j.hair);   // sides
+  // Short cropped silver hair, textured and pushed up a little at the front.
+  ellipse(g, hx, hy - 8, 15, 8, rgb(j.hair, 0.6), 'top'); ellipse(g, hx, hy - 8, 14, 7, j.hair, 'top');
+  for (let k = -2; k <= 2; k++) tri(g, hx + k * 5, hy - 13 + Math.abs(k), 5, 3, j.hair);
+  for (let k = 0; k < 6; k++) rect(g, hx - 11 + k * 4, hy - 13 + (k & 1) * 2, 2, 1, mix(j.hair, [255, 255, 255], 0.55));
+  rect(g, hx - 15, hy - 8, 2, 6, j.hair); rect(g, hx + 13, hy - 8, 2, 6, j.hair);   // close-cropped sides
+  // Short silver beard along the jaw, joining the goatee.
+  for (let k = 0; k < 13; k++) { const a = 0.25 + k / 12 * 2.64; rect(g, Math.round(hx + Math.cos(a) * 13) - 1, Math.round(hy + 3 + Math.sin(a) * 11), 3, 2, rgb(j.hair, 0.92)); }
   // Eyes: piercing blue, with a skeptical brow.
   for (const sd of [-1, 1]) {
     const ex = hx + sd * 6, ey = hy + 1 + (sd > 0 ? -tilt : 0);

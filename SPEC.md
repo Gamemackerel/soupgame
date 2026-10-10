@@ -626,7 +626,7 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 **New judges:**
 - **Joe, the regular.** A friendly pizza-shop regular in a ball cap and hoodie, and a fair customer. He scores "would I order this again?": overall balance, warmth, filling, no flaws. Plain-spoken and honest.
 - **Gordo Hamsie, the head chef.** A satirical human caricature: spiky blond hair, a deeply furrowed forehead, chef whites, and a face that goes red when angry. An execution perfectionist who cares about raw, burnt, mushy, under-seasoning and sloppy technique. He rants in caps with bleeps that keep the first letter (S\*\*\*!) and creative insults.
-- **Paul Bollywood, the master baker.** An Indian man who otherwise looks like the famous baker: silver hair, a goatee and piercing blue eyes. He judges bakes (rise, crust, crumb) and spice (bloomed versus raw, heat balance). His rare **Bollywood handshake** goes to a dish he scores 9 or more *and* loves by his own taste (9+), with its own animation of him reaching across the table. On the tier-1 pars only the goulash and the chili, with their bloomed spices, earn it.
+- **Paul Bollywood, the master baker.** A lookalike of the famous baker: tanned, with short cropped silver hair, a short silver beard and goatee, piercing blue eyes and a dark open-collar shirt. He judges bakes (rise, crust, crumb) and spice (bloomed versus raw, heat balance). His rare **Bollywood handshake** goes to a dish he scores 9 or more *and* loves by his own taste (9+), with its own animation of him reaching across the table. On the tier-1 pars only the goulash and the chili, with their bloomed spices, earn it.
 
 ## 18. Heat on the Pot Bottom (implemented)
 
