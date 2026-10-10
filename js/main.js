@@ -25,6 +25,12 @@ function toInternal(e) {
 }
 const inGrid = (x, y) => x >= GX && x < GX + GW && y >= GY && y < GY + GH;
 const overPotArea = (x, y) => x >= GX - 12 && x < GX + GW + 12 && y >= 24 && y < GY + GH;
+// The ladle keeps working a little way outside the pot: it clamps to the nearest wall or the bottom,
+// so you can scrape along them by dragging just outside.
+const LADLE_MARGIN = 16;
+const ladleAt = (x, y) => (x >= GX - LADLE_MARGIN && x < GX + GW + LADLE_MARGIN && y >= GY - 6 && y < GY + GH + LADLE_MARGIN)
+  ? { x: Math.max(GX + 1, Math.min(GX + GW - 2, x)), y: Math.max(GY, Math.min(GY + GH - 2, y)) } : null;
+let prevLadle = null;
 
 screen.addEventListener('pointerdown', (e) => {
   const p = toInternal(e);
@@ -85,7 +91,7 @@ function update() {
   const active = input.down && !input.consumed && !UI.dragDial && !UI.journal;
   const pouring = active && UI.tool === 'pour' && overPotArea(input.x, input.y) && !!Chef.held && Chef.held.kind !== 'whole' && !Sim.lid;
   // With the ladle over the pot, the chef holds it in the soup at the cursor.
-  Chef.ladle = UI.tool === 'ladle' && inGrid(input.x, input.y) && !Sim.lid && !UI.journal ? { x: input.x, y: input.y } : null;
+  Chef.ladle = UI.tool === 'ladle' && !Sim.lid && !UI.journal ? ladleAt(input.x, input.y) : null;
   Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid) || !!Chef.ladle, pouring);
 
   if (!paused) {
@@ -94,9 +100,10 @@ function update() {
       const ing = Chef.held;
       if (ing.kind !== 'chunk' || Sim.frame % 8 === 0) Sim.pour(ing, gx, ing.rate);
     }
-    if (active && UI.tool === 'ladle' && inGrid(input.x, input.y)) {
-      Sim.stir((input.x - GX) | 0, (input.y - GY) | 0, input.x - input.px, input.y - input.py, 5);
-    }
+    // Stir with the ladle's (clamped) position, so dragging along outside the bottom scrapes it.
+    const lp = Chef.ladle;
+    if (active && lp && prevLadle) Sim.stir((lp.x - GX) | 0, (lp.y - GY) | 0, lp.x - prevLadle.x, lp.y - prevLadle.y, 5);
+    prevLadle = lp;
     Sim.step();
   }
   input.px = input.x; input.py = input.y;
@@ -189,7 +196,7 @@ Sim.reset();
 Chef.select(SHELF[0]);
 // Dev: #demo pre-cooks a pot; #judge also jumps to judging.
 // What's being cooked: a career level (scored against its recipe by its tier's judges) or free sandbox play.
-// The game opens on the pass board (js/menu.js). Dev hashes skip it: #level=chili, #panel=joe,gordo,paul,
+// The game opens on level select (js/menu.js). Dev hashes skip it: #level=chili, #panel=joe,gordo,paul,
 // and combine with the views below, e.g. #verdict&panel=gordo,paul,joe.
 const DEV = (() => {
   const parts = location.hash.slice(1).split('&'), arg = {};

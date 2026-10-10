@@ -51,7 +51,7 @@ A falling-sand cooking sandbox. The simulation lives inside a soup pot. Around i
 | Hold the mouse over the pot | Chef slides sideways to track the cursor's x and tilts the container. The pour stream falls from his hand to the cursor point |
 | Mouse wheel / `[` `]` | Pour rate or brush size |
 | Heat dial (drag or `1`–`9`, `0` = off) | Flame size and heat input. Continuous from 0 to 10 |
-| Ladle tool | Drag in the pot to stir. The chef holds a real ladle whose bowl follows the cursor. It displaces cells along the drag, shoves pieces through loose food (and passes the push on through a packed stew), scoops what's on the bottom up off the hot metal, and scrapes char loose a little at a time |
+| Ladle tool | Drag in the pot to stir. The chef holds a real ladle whose bowl follows the cursor. It keeps working just outside the pot (clamped to the nearest wall or the bottom), so you can scrape along them. It displaces cells along the drag, shoves pieces through loose food (and passes the push on through a packed stew), scoops what's on the bottom up off the hot metal, and scrapes char loose a little at a time |
 | Taste tool | Click the liquid. The chef sips, reacts, and a flavor readout appears (§6) |
 | Skimmer | Removes foam, scum and floating fat from the surface |
 | Lid toggle | Traps steam: faster boiling, no reduction, keeps aroma. Raises boil-over risk |
@@ -539,7 +539,12 @@ Each career level is a recipe the judges know. A level lists:
 
 **Scoring:** each level is judged 0–10 by its tier's panel. See §17.
 
-**Teaching feedback:** the result carries notes for the verdict screen:
+**Teaching feedback** comes from the judges, not a summary line:
+- The judge who weighs the recipe most names a missing technique, slip or ingredient.
+- Another judge names the biggest taste gap ("Not salty enough for a tomato soup.").
+- Flaws come up in the judges' own complaints, and flourishes in their praise.
+
+The result also keeps these notes for tools (`build-levels.js` prints them):
 - the biggest taste gap ("It was less salty than the recipe.")
 - each missing technique with its journal hint
 - any slips
@@ -637,9 +642,9 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - **Stirring prevents burning.** It spreads the contact around and brings cooler, moist food down onto the metal. An unstirred bottom layer dries out and chars first.
 - **Char sticks.** Burnt bits on the pot bottom are welded on: currents can't move them, and each ladle pass scrapes only a little loose (more with a hard stroke). Scraping it into the soup spreads its bitterness.
 
-## 19. The Pass: Level Select (implemented, `js/menu.js`)
+## 19. Level Select (implemented, `js/menu.js`)
 
-**The board:** the game opens on a kitchen pass.
+**The board:** the game opens on level select, styled as a kitchen pass.
 - Each tier is a steel ticket rail of 5 order tickets: the dish's key ingredient, its name, the best score ("NEW" if unplayed) and stamps.
   - A green check means passed. One gold star is Good Soup, two are Perfect. A small handshake mark is Paul's handshake.
 - Locked rows show face-down, padlocked tickets.
@@ -649,11 +654,11 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 
 **Saving:** progress lives in the browser (`localStorage`, key `soupgame.progress.v1`). It keeps each dish's best score, passed state, best badge and whether it ever earned a handshake. The game still plays if storage is unavailable; it just doesn't remember.
 
-**In a level:** the dish name replaces "SOUP POT" at the top. Its order ticket (name and description only; you work out the method) opens at the start, and clicking the name brings it back. **The Pass** button in the tools panel returns to the board.
+**In a level:** the dish name replaces "SOUP POT" at the top. Its order ticket (name and description only; you work out the method) opens at the start, and clicking the name brings it back. The **Levels** button in the tools panel returns to level select.
 
 **After serving:**
-- **Levels:** Retry, Next Dish (only when you passed; the next dish on the board, if its tier is open) and The Pass.
-- **Sandbox:** Keep Cooking, New Pot and The Pass.
+- **Levels:** Retry, Next Dish (only when you passed; the next dish on the board, if its tier is open) and Level Select.
+- **Sandbox:** Keep Cooking, New Pot and Level Select.
 - **Scores run 0–10.** Serving an empty pot in a level scores 0 and is chopped.
 - **Dev:** a small RESET button on the board wipes saved progress (click twice).
 - Unlocking a tier flashes a notice on the board.

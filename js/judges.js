@@ -291,6 +291,9 @@ const Judging = {
     // The judge who cares most about technique tells you what the recipe was missing.
     const stickler = L && (L.missing.length || L.slipped.length || L.missingIng.length)
       ? JUDGES.reduce((b, j, n) => (j.blend.recipe > JUDGES[b].blend.recipe ? n : b), 0) : -1;
+    // ...and the one who weighs the recipe's taste most (someone else, if possible) says where it drifted.
+    const taster = L && L.gap && !L.judges.some((x) => x.flourish)
+      ? JUDGES.reduce((b, j, n) => (n !== stickler && (b < 0 || j.blend.match > JUDGES[b].blend.match) ? n : b), -1) : -1;
     this.results = JUDGES.map((j, n) => {
       if (a.empty) return { score: 0, taste: 0, line: pick(['...Where is the food?', 'You served me an empty plate.', 'Is this a joke?']) };
       const r = raw[n], lj = L && L.judges[n];
@@ -301,6 +304,7 @@ const Judging = {
       if (n === stickler) lines.push(L.missing.length ? `Where's the ${(DISCOVERIES.find((d) => d.id === L.missing[0]) || { name: L.missing[0] }).name.toLowerCase()}? It's in the recipe.`
                                    : L.slipped.length ? `And the ${(DISCOVERIES.find((d) => d.id === L.slipped[0]) || { name: L.slipped[0] }).name.toLowerCase()}... careful.`
                                    : `You left out the ${(SHELF.find((s) => s.id === L.missingIng[0]) || { name: L.missingIng[0] }).name.toLowerCase()}.`);
+      if (n === taster) lines.push(`${L.gap.d < 0 ? 'Not' : 'Too'} ${AXIS_WORDS[L.gap.ax] || L.gap.ax}${L.gap.d < 0 ? ' enough' : ''} for a ${this.level.short.toLowerCase()}.`);
       if (lj && lj.flourish) lines.push(`The ${(SHELF.find((s) => s.id === L.extras[0]) || { name: L.extras[0] }).name.toLowerCase()}? Inspired.`);
       // Paul's rare handshake: a dish he scores 9 or more and genuinely loves (his own taste, 9+).
       const handshake = j.id === 'paul' && score >= 9 && r.score >= 9;
@@ -343,10 +347,10 @@ const Judging = {
 
   // Buttons on the 'done' screen.
   buttons() {
-    let list = [['keep', 'KEEP COOKING'], ['new', 'NEW POT'], ['menu', 'THE PASS']];
+    let list = [['keep', 'KEEP COOKING'], ['new', 'NEW POT'], ['menu', 'LEVEL SELECT']];
     if (this.level) {
       const next = typeof Game !== 'undefined' && this.levelResult && this.levelResult.passed && Game.nextLevel();
-      list = [['retry', 'RETRY'], next ? ['next', 'NEXT DISH'] : null, ['menu', 'THE PASS']].filter(Boolean);
+      list = [['retry', 'RETRY'], next ? ['next', 'NEXT DISH'] : null, ['menu', 'LEVEL SELECT']].filter(Boolean);
     }
     // Centered row of buttons.
     const w = 78, gap = 6, x0 = 160 - (list.length * w + (list.length - 1) * gap) / 2;
@@ -430,7 +434,6 @@ const Judging = {
         if (L) {
           const badge = L.badge === 'perfect' ? '  ·  Perfect badge!' : L.badge === 'good' ? '  ·  Good Soup badge' : '';
           T.text(`${this.level.title}: ${L.total.toFixed(1)} / 10${badge}${this.handshake ? '  ·  Handshake!' : ''}`, 160, 184, { size: 7, color: '#ffe9c0', align: 'center' });
-          if (this.phase === 'done' && L.notes.length) T.wrap(L.notes[0], 20, 220, W - 40, { size: 6, color: '#d8c0b0' });
         } else T.text('Average ' + this.avg.toFixed(1) + ' / 10', 160, 184, { size: 7, color: '#ffe9c0', align: 'center' });
       }
     }

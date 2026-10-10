@@ -35,7 +35,7 @@ Do these together, because the judging format decides which dishes can be judged
 
 ### 3. Build the level select screen
 
-- [x] Show all 4 tiers on "The Pass" (`js/menu.js`): one ticket rail per tier. Tiers 0 and 1 are playable; tiers 2 and 3 are padlocked.
+- [x] Show all 4 tiers on the level select (`js/menu.js`), styled as a kitchen pass with one ticket rail per tier. Tiers 0 and 1 are playable; tiers 2 and 3 are padlocked.
 - [x] Track completion, best score, badges and handshakes per level, and save progress between sessions (browser localStorage). Levels within an open tier play in any order; passing all five opens the next tier.
 - [x] Keep sandbox mode reachable from the menu.
 

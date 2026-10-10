@@ -73,7 +73,7 @@ const Menu = {
   update(mx, my) { this.t++; if (this.confirmReset > 0) this.confirmReset--; this.hover = this.pick(mx, my); if (this.flash && ++this.flash.t > 240) this.flash = null; },
 
   draw(g) {
-    // Stainless wall behind the pass, warm heat lamps along the top.
+    // Stainless wall behind the kitchen pass, warm heat lamps along the top.
     rect(g, 0, 0, W, H, [52, 54, 64]);
     for (let y = 0; y < H; y += 12) rect(g, 0, y, W, 1, [58, 60, 70]);
     for (let x = 30; x < W; x += 64) { ellipse(g, x, 3, 10, 3, [90, 70, 60]); g.fillStyle = 'rgba(255,170,80,0.08)'; g.beginPath(); g.moveTo(x - 8, 4); g.lineTo(x + 8, 4); g.lineTo(x + 30, 30); g.lineTo(x - 30, 30); g.fill(); }
@@ -123,7 +123,7 @@ const Menu = {
   },
 
   drawText(T) {
-    T.text('THE PASS', 160, 9, { size: 9, color: '#ffe9c0', align: 'center', shadow: true });
+    T.text('LEVEL SELECT', 160, 9, { size: 9, color: '#ffe9c0', align: 'center', shadow: true });
     for (const t of LEVEL_TIERS) {
       const open = Progress.unlocked(t.tier), y0 = BOARD.rowY + t.tier * BOARD.rowH;
       const levels = LEVELS.filter((l) => l.tier === t.tier);

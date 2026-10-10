@@ -198,7 +198,7 @@ const Levels = {
     const name = (i) => (SHELF.find((s) => s.id === i) || { name: i }).name.toLowerCase();
 
     // How close the taste is to the recipe. Axes the dish is about count more; small differences are free.
-    let match = a.empty ? 0 : 1;
+    let match = a.empty ? 0 : 1, gap = null;
     if (target && !a.empty) {
       let sw = 0, se = 0, worst = null;
       for (const ax of LEVEL_AXES) {
@@ -208,7 +208,7 @@ const Levels = {
         if (!worst || w * err > worst.e) worst = { ax, e: w * err, d: got - want };
       }
       match = Math.max(0, Math.min(1, 1 - se / sw / 0.22));
-      if (worst && worst.e > 0.05) notes.push(`It was ${worst.d < 0 ? 'less' : 'more'} ${AXIS_WORDS[worst.ax] || worst.ax} than the recipe.`);
+      if (worst && worst.e > 0.05) { gap = { ax: worst.ax, d: worst.d }; notes.push(`It was ${worst.d < 0 ? 'less' : 'more'} ${AXIS_WORDS[worst.ax] || worst.ax} than the recipe.`); }
     }
 
     const disc = (t) => DISCOVERIES.find((x) => x.id === t) || { name: t };
@@ -246,7 +246,7 @@ const Levels = {
       notes.push('Flourish: ' + extras.map(name).join(', ') + '.');
     }
     return { total: perfect ? 10 : Math.min(total, 9.9), passed: total >= LEVEL_PASS, badge: perfect ? 'perfect' : total >= LEVEL_GOOD ? 'good' : null,
-             match, technique, ingredients, recipe, judges, broke, missing, slipped, missingIng, extras, notes };
+             match, technique, ingredients, recipe, judges, broke, missing, slipped, missingIng, extras, gap, notes };
   },
 };
 
