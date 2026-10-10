@@ -31,7 +31,7 @@ const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CH
       LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26,
       YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33,
       EXTPOWDER = 34, DOUGH = 35, BREAD = 36, BAKEPOWDER = 37,
-      CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41;
+      CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41, RESIDUE = 42;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -83,6 +83,8 @@ defMat(FISH,    { brownRate: 0.15, name: 'fish', cls: C_CHUNK, dens: 1.05, cond:
                   leach: flavorVec({ umami: 0.07, rich: 0.05, aroma: 0.03 }), note: 'oceanic' });
 defMat(FISHFIN, { brownRate: 0.15, name: 'fish fin', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [104, 126, 160], burnAt: 200,
                   stops: [[0, [104, 126, 160]], [110, [176, 172, 168]], [190, [150, 96, 46]], [255, [30, 22, 18]]] });
+// What's left when a broth boils dry: its dissolved flavor and color, concentrated. Liquid dissolves it back.
+defMat(RESIDUE, { name: 'reduction', cls: C_POWDER, dens: 1.3, cond: 0.16, col: [150, 100, 60], burnAt: 190 });
 defMat(EXTPOWDER, { name: 'extinguisher powder', cls: C_POWDER, dens: 0.95, cond: 0.05, col: [246, 246, 250],
                     solu: flavorVec({ bitter: 1.5, salty: 0.3 }) });
 // Dough: flour that has soaked up liquid. How it behaves depends on its water (F_WATER, per flour):
@@ -109,6 +111,7 @@ defMat(FISHEYE, { name: 'fish eye', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [
 // What a solid tastes like when you bite it (before cooking adjustments in Taste.eatFlavor).
 // Powders sitting on dry food are seasoning: a few grains spread over a plate.
 const EAT = [];
+EAT[RESIDUE] = flavorVec({});   // all its flavor is what it carries
 EAT[ONION] = flavorVec({ sweet: 0.25, aroma: 0.3, umami: 0.05 });
 EAT[GARLIC] = flavorVec({ aroma: 0.8, sweet: 0.05 });
 EAT[CARROT] = flavorVec({ sweet: 0.3, aroma: 0.1 });

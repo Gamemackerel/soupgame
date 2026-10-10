@@ -35,6 +35,7 @@ Sim.react = function (x, y, i, m) {
     case ROUX: return reactRoux(this, x, y, i);
     case LUMP: return reactLump(this, x, y, i);
     case SODA: return reactSoda(this, x, y, i);
+    case RESIDUE: return reactResidue(this, x, y, i);
     case TOMATO: return reactChunk(this, x, y, i, m) || reactTomato(this, x, y, i);
     case ONION: case GARLIC: case CARROT: case CELERY: case MEAT: case HERB:
     case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED: case BREAD:
@@ -72,7 +73,8 @@ function reactBroth(S, x, y, i) {
   // Curdling: dairy + acid + heat, or dairy at a hard boil.
   if (fl[o + F_WHITE] > 0.35 && t > 80 && rnd() < 0.08) {
     // The further past the dairy's tolerance the acid goes, the likelier it splits; borderline rarely does.
-    const over = fl[o + F_SOUR] - (0.25 * fl[o + F_WHITE] + 0.1);
+    // Heat and acid work together: at a boil, dairy tolerates about half the acid it would off the boil.
+    const over = fl[o + F_SOUR] - (0.25 * fl[o + F_WHITE] + 0.1) * (t >= 97 ? 0.5 : 1);
     const acid = over > 0 && rnd() < Math.min(1, over / 0.3);
     if (acid || (t >= 100 && S.dial >= 8 && rnd() < 0.15)) {
       S.discover('curdle'); S.emit('curdle', x, y);
@@ -253,7 +255,7 @@ function reactSpice(S, x, y, i, m) {
       const vec = MAT[m].solu, o = j * NF;
       for (let k = 0; k < NF; k++) {
         let v = vec[k];
-        if (k === F_AROMA) v *= bloomed ? 2.8 : intoOil ? 1 : 0.5;   // spice aromatics are fat-soluble: water gets half
+        if (k === F_AROMA) v *= bloomed ? 4 : intoOil ? 1 : 0.35;   // spice aromatics are fat-soluble: water extracts only a third
         if (k === F_HEAT) v *= intoOil ? 1.5 : bloomed ? 1 : 0.6;   // capsaicin dissolves in fat; plain water barely extracts it
         S.fl[o + k] += v;
       }
@@ -322,6 +324,27 @@ function neutralize(S, x, y, i) {
   }
 }
 
+// Dried-down soup: liquid dissolves it back (rehydrating the broth's color and flavor);
+// left dry on a hot pan, it scorches.
+function reactResidue(S, x, y, i) {
+  const j = S.findNb(x, y, isBroth);
+  if (j >= 0) {
+    if (rnd() < (S.stirT[i] ? 0.3 : 0.08) * (S.temp[j] > 60 ? 2 : 1)) {
+      const a = i * NF, b = j * NF;
+      for (let k = 0; k < NF; k++) S.fl[b + k] += S.fl[a + k];
+      S.setCell(i, EMPTY);
+      return true;
+    }
+    return false;
+  }
+  // Scorches gradually on hot metal (like food does): about a minute at full heat, never at a moderate flame.
+  if (S.temp[i] > MAT[RESIDUE].burnAt && rnd() < 0.0003 * (S.temp[i] - MAT[RESIDUE].burnAt + 5)) {
+    if (S.cook[i] >= 250) { burn(S, x, y, i); return true; }
+    S.cook[i] = Math.min(255, S.cook[i] + 4);
+  }
+  return false;
+}
+
 function burn(S, x, y, i) {
   S.setCell(i, BURNT, S.temp[i]);
   if (y > 0 && S.mat[i - GW] === EMPTY) S.setCell(i - GW, SMOKE, 200);
@@ -375,7 +398,7 @@ function reactChunk(S, x, y, i, m) {
 
   // An overcooked potato falls apart and melts into the soup, thickening it.
   if (M.collapse && S.cook[i] >= 170 && pieceWet && rnd() < 0.01) {
-    const o = i * NF; S.setCell(i, BROTH, t); S.fl[o + F_BODY] = 5; S.fl[o + F_UMAMI] = 0.05; S.flags.thick = (S.flags.thick || 0) + 1; if (S.flags.thick > 25) S.discover('thicken');
+    const o = i * NF; S.setCell(i, BROTH, t); S.fl[o + F_BODY] = 5; S.fl[o + F_UMAMI] = 0.05; S.flags.mash = (S.flags.mash || 0) + 1; if (S.flags.mash > 12) S.discover('thicken');   // potato falling apart into the soup
     return true;
   }
   // Sizzling on a hot pan perfumes the kitchen even with no liquid to carry it.
@@ -475,6 +498,9 @@ function lerpC(c, t, r, g, b) {
   c[0] += (r - c[0]) * t; c[1] += (g - c[1]) * t; c[2] += (b - c[2]) * t;
 }
 
+// How strongly a pigment amount tints the broth (0..1, saturating).
+const tint = (v, k) => (v > 0 ? 1 - Math.exp(-k * v) : 0);
+
 Sim.render = function (data) {
   const { mat, temp, cook, life, shade, fl } = this;
   const c = [0, 0, 0];
@@ -485,17 +511,19 @@ Sim.render = function (data) {
       if (m === EMPTY) { data[p + 3] = 0; continue; }
       const M = MAT[m], sh = (shade[i] & 15) - 8;
       let a = 255;
-      if (m === BROTH) {
+      if (m === BROTH || m === RESIDUE) {
         const o = i * NF;
-        c[0] = 128; c[1] = 184; c[2] = 226;
-        lerpC(c, fl[o + F_GOLD] * 0.5 + fl[o + F_RICH] * 0.12, 232, 186, 70);
-        lerpC(c, fl[o + F_RED] * 0.35, 196, 52, 36);
-        lerpC(c, fl[o + F_BROWN] * 0.3 + fl[o + F_UMAMI] * 0.05, 128, 70, 30);
-        lerpC(c, fl[o + F_WHITE] * 0.4 + fl[o + F_BODY] * 0.08, 246, 240, 226);
+        if (m === RESIDUE) { c[0] = 150; c[1] = 104; c[2] = 66; } else { c[0] = 128; c[1] = 184; c[2] = 226; }
+        // Pigment saturates: a little tints the broth clearly, more makes it deeper, so a reducing soup darkens.
+        lerpC(c, tint(fl[o + F_GOLD] + fl[o + F_RICH] * 0.25, 1.5) * 0.8, 232, 186, 70);
+        lerpC(c, tint(fl[o + F_RED], 4) * 0.9, 206, 70, 40);
+        lerpC(c, tint(fl[o + F_BROWN] + fl[o + F_UMAMI] * 0.15, 2) * 0.75, 128, 70, 30);
+        lerpC(c, tint(fl[o + F_WHITE] + fl[o + F_BODY] * 0.2, 1.5) * 0.85, 246, 240, 226);
         lerpC(c, fl[o + F_BITTER] * 0.4, 60, 50, 40);
-        a = 200 + Math.min(55, (fl[o + F_BODY] + fl[o + F_WHITE] + fl[o + F_RED]) * 30);
+        a = m === RESIDUE ? 255 : 200 + Math.min(55, (fl[o + F_BODY] + fl[o + F_WHITE] + fl[o + F_RED]) * 30);
+        if (m === RESIDUE) { c[0] *= 0.8; c[1] *= 0.8; c[2] *= 0.8; }   // a sticky, concentrated film
         // Surface highlight.
-        if (y > 0 && mat[i - GW] === EMPTY) lerpC(c, 0.35, 255, 255, 255);
+        else if (y > 0 && mat[i - GW] === EMPTY) lerpC(c, 0.35, 255, 255, 255);
       } else if (m === OIL) {
         c[0] = 236; c[1] = 196; c[2] = 70;
         if (temp[i] > 160) lerpC(c, ((flick + x) & 7) / 20, 255, 240, 160);

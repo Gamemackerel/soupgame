@@ -248,13 +248,16 @@ Taste.analyzeBowl = function () {
   const bake = doughy ? Taste.bakeReport(counts) : null;
 
   const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO, FISH, CORN, POTATO, BEANS, PASTA];
-  let chunks = 0, raw = 0;
+  let chunks = 0, raw = 0, rawStarch = false;
   for (const m of chunkMats) {
     chunks += counts[m] || 0;
     // Starchy pieces need longer: pasta and potato are 'raw' (chalky, hard) until well softened, and a
     // crunchy bit of pasta stands out even when it's a small part of the pot.
     const starchy = MAT[m].starch && m !== CORN;
-    if (counts[m] && avgCook(m) < (starchy ? 60 : 30) && m !== HERB) raw += counts[m] * (starchy ? 4 : 1);
+    if (counts[m] && avgCook(m) < (starchy ? 60 : 30) && m !== HERB) {
+      raw += counts[m] * (starchy ? 4 : 1);
+      if (starchy && counts[m] >= 10) rawStarch = true;   // a crunchy bit of pasta or potato stands out whatever else is in the bowl
+    }
   }
   const burntFrac = (counts[BURNT] || 0) / Math.max(1, total);
   const p = Taste.perceive({ raw: bite, broth: nonOil, oil: g.oil, oilHeat: oilHeat / Math.max(1, edible) }, burntFrac, plate);
@@ -275,7 +278,7 @@ Taste.analyzeBowl = function () {
     curdled: type === 'baked' ? 0 : Math.min(1, (counts[CURD] || 0) / 40),   // buttermilk curds belong in a bake
     lumps: Math.min(1, ((counts[LUMP] || 0) + (type === 'baked' ? 0 : counts[DOUGH] || 0)) / 30),   // raw dough in soup = lumps
     scrambled: Math.min(1, (counts[SCRAMBLE] || 0) / 40),
-    raw: Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0)),
+    raw: Math.max(rawStarch ? 0.6 : 0, Math.min(1, raw / Math.max(1, chunks) * (chunks > 10 ? 1 : 0))),
     gritty: Math.min(1, grit / 60),
     // A plate can carry some oil; a soup with an oil slick is greasy much sooner.
     // A stew is in between (it's eaten from a bowl, but the oil clings to the solids).

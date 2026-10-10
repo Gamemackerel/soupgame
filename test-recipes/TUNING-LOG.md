@@ -136,3 +136,16 @@ Goals:
 | An unkneaded loaf with pockets of raw flour scored like a kneaded one (p15) | ANALYSIS | The bake judges penalize pockets of raw flour |
 | p48 compared two thoroughly burnt pans | CLAIM | The sauté now runs 80 s at heat 8, where stirring is the difference: 3 vs 17 burnt bits, bitterness 0.45 vs 0.99, judges 5.3 vs 2.8 |
 | Serving fish stew without fish scored like a slightly-off fish stew | ANALYSIS (design) | Wrong-dish rule (SPEC §17) |
+
+## Round 6: reduction color, seeping, bloom (2026-10-10)
+
+| Finding | Category | Fix |
+|---|---|---|
+| A reducing soup looked paler, not deeper. Boiling bubbles dumped their contents into a neighbor and re-condensed at the surface as clear water, so the surface read nearly clear (0.10 red per cell vs 1.04 at the bottom) | CHEMISTRY | A boiling bubble carries what's dissolved in it and folds back in with it. Only steam that actually escapes is pure water, and it leaves its flavor in the liquid below. The soup stays evenly colored and concentrates as it reduces |
+| Boiling a broth dry deleted its color and flavor | CHEMISTRY | The last liquid leaves a dried-down **reduction** on the pot. Liquid dissolves it back, so you can rehydrate to about the original color. On a hot dry pan it scorches gradually (about a minute at full heat, never at a moderate flame) |
+| Tomato broth barely looked tinted | RENDER | Pigment tints saturate: a little colors the broth clearly, more deepens it. Red tints toward orange-red |
+| A full bed of food settled on the bottom over a long boil | CHEMISTRY | Broth seeps down through loose solids, and bubbles push up through them. The boil tosses any sunken piece, not just ones touching the bottom, so a pile fluidizes from the top |
+| The risky creamy tomato soup stopped curdling once bubbles stopped creating concentrated hot spots (p03, p29, s13) | CHEMISTRY | Heat and acid work together: at a boil, dairy tolerates half the acid. Milk boiled into a tomato soup splits; the soda trick and the gentle version don't |
+| Undercooked pasta in a full minestrone sat on the forbidden-flaw line | ANALYSIS | A real quantity of undercooked pasta or potato is always a clear raw flaw |
+| Creamy corn par sometimes missed "Thickened" (20 collapsed potato cells, threshold 25) | CHEMISTRY | Potato collapse has its own count, threshold 12 (par collapses 20–31, rushed 0) |
+| p06: blooming cumin barely beat dumping it in water (0.32 vs 0.29) | CHEMISTRY | Bloomed spice gives 4× its aroma; spice in plain water a third |

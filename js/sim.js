@@ -185,6 +185,14 @@ function moveGrain(x, y, i, m, diagP) {
   }
 }
 
+// Loose solids (grains, bits of food not part of a whole piece) leave gaps that liquid and bubbles
+// work through. Whole pieces, dough and char welded to the pot don't.
+function porous(j) {
+  const S = Sim, m = S.mat[j], c = CLS[m];
+  return (c === C_POWDER || (c === C_CHUNK && !S.body[j] && m !== DOUGH)) && !S.stuck(j);
+}
+const SEEP = 0.05;   // per-frame chance a broth cell works its way down past a loose solid below it
+
 function moveLiquid(x, y, i, m) {
   const S = Sim, mat = S.mat, d = DENS[m];
   // Oil and egg get folded into the broth by boiling and stirring.
@@ -197,6 +205,12 @@ function moveLiquid(x, y, i, m) {
     if (isOpen(mj)) { S.swap(i, j); return; }
     // Heavier liquid sinks through lighter liquid gradually (oil rises as beads, not instantly).
     if (CLS[mj] === C_LIQUID && DENS[mj] < d) { if (rnd() < settleP(d, DENS[mj]) * 1.2) S.swap(i, j); return; }
+    // Water seeps down through the gaps in a bed of loose solids, so it still reaches the pot bottom.
+    if (m === BROTH && rnd() < SEEP) {
+      if (porous(j)) { S.swap(i, j); return; }
+      const sx = x + (rnd() < 0.5 ? -1 : 1);
+      if (sx >= 0 && sx < GW && porous(j + sx - x)) { S.swap(i, j + sx - x); return; }
+    }
     const dx = rnd() < 0.5 ? -1 : 1, nx = x + dx;
     if (nx >= 0 && nx < GW) {
       const k = j + dx, mk = mat[k];
@@ -307,9 +321,9 @@ Sim.cellRGB = function (i) {
   const m = this.mat[i], M = MAT[m];
   if (m === BROTH) {
     const o = i * NF, c = [128, 184, 226];
-    lerpC(c, this.fl[o + F_RED] * 0.35, 196, 52, 36);
-    lerpC(c, this.fl[o + F_BROWN] * 0.3, 128, 70, 30);
-    lerpC(c, this.fl[o + F_WHITE] * 0.4, 246, 240, 226);
+    lerpC(c, tint(this.fl[o + F_RED], 4) * 0.9, 206, 70, 40);
+    lerpC(c, tint(this.fl[o + F_BROWN], 2) * 0.75, 128, 70, 30);
+    lerpC(c, tint(this.fl[o + F_WHITE], 1.5) * 0.85, 246, 240, 226);
     return c;
   }
   return M.col.slice();
@@ -497,8 +511,9 @@ Sim.moveBodies = function () {
     // Sink or float by density, slowly. A rolling boil keeps heavy pieces tumbling instead of settling.
     const sinking = d > dl, boil = hot / n > 0.5 ? this.turb : 0;
     const p = settleP(d, dl) * 0.7 * (sinking ? 1 - Math.min(0.85, boil * 0.9) : 1);
-    if (sinking && boil > 0.3 && cells.some((i) => i >= (GH - 2) * GW) && rnd() < (boil - 0.3) * 0.25) {
-      if (tryBody(this, cells, b, 0, -1) || tryBody(this, cells, b, rnd() < 0.5 ? -1 : 1, -1)) continue;   // bubbles lift it off the bottom
+    // Bubbles lift sunken pieces: a pile on the bottom fluidizes from the top down instead of packing solid.
+    if (sinking && boil > 0.3 && rnd() < (boil - 0.3) * (cells.some((i) => i >= (GH - 3) * GW) ? 0.25 : 0.15)) {
+      if (tryBody(this, cells, b, 0, -1) || tryBody(this, cells, b, rnd() < 0.5 ? -1 : 1, -1)) continue;
     }
     if (rnd() < p) {
       const dy = sinking ? 1 : -1;
@@ -763,6 +778,7 @@ Sim.findSurface = function () {
 
 function leaveTop(x, i, m) {
   const S = Sim;
+  if (m === STEAM && S.dropSolutes(i, x, 0)) return;
   if (S.lid) {
     if (m === STEAM && rnd() < 0.3) S.setCell(i, BROTH, 95);   // steam beads on the lid and drips back
     else if (m === FIRE) S.life[i] = Math.max(0, S.life[i] - 6); // lid smothers fire
@@ -787,7 +803,7 @@ function moveGas(x, y, i, m) {
     if (m === STEAM && S.life[i] >= 80) {
       S.bubblePops++;
       if (rnd() > 0.009) {    // nearly every bubble re-condenses; a few escape as steam (slow reduction)
-        S.setCell(i, BROTH, 99);
+        S.keepFlavor(i, () => S.setCell(i, BROTH, 99));
         // Bursting bubbles fling droplets up off the surface, and over the rim of a full pot.
         if (rnd() < S.turb * 0.4) {
           const up = 1 + rint(4);
@@ -796,6 +812,7 @@ function moveGas(x, y, i, m) {
         }
         return;
       }
+      if (S.dropSolutes(i, x, y)) return;   // escaping: the water goes, the flavor stays in the pot
     }
     if (S.lid && m === STEAM) { if (rnd() < 0.03) { S.setCell(i, BROTH, 95); return; } }   // fogs and condenses under the lid
     else if (--S.life[i] === 0) { S.setCell(i, EMPTY); return; }
@@ -812,8 +829,10 @@ function moveGas(x, y, i, m) {
   if (nx >= 0 && nx < GW) {
     const k = j + dx, mk = mat[k];
     if (mk === EMPTY || CLS[mk] === C_LIQUID) { S.swap(i, k); return; }
-    if (mat[i + dx] === EMPTY && rnd() < 0.5) S.swap(i, i + dx);
+    if (mat[i + dx] === EMPTY && rnd() < 0.5) { S.swap(i, i + dx); return; }
   }
+  // Boiling bubbles push up through a bed of loose solids rather than staying trapped under it.
+  if (m === STEAM && porous(j) && rnd() < 0.3) { if (S.temp[j] < 100) S.temp[j] += (100 - S.temp[j]) * 0.35; S.swap(i, j); }
 }
 
 function moveFire(x, y, i) {
@@ -911,15 +930,39 @@ Sim.heatPass = function () {
 };
 
 Sim.makeBubble = function (i, x, y) {
-  // Hand this cell's flavor to a liquid neighbour so boiling concentrates the soup;
-  // the last of the liquid boiling away leaves it as a glaze on the food instead.
-  const j = this.findNb(x, y, (m) => m === BROTH);
-  if (j >= 0) {
-    const a = i * NF, b = j * NF;
-    for (let k = 0; k < NF; k++) this.fl[b + k] += this.fl[a + k] * (k === F_AROMA ? 0.97 : k === F_ALCOHOL ? 0.8 : 1);
-  } else this.glaze(i, x, y);
-  this.setCell(i, STEAM, 100);
+  // A boiling bubble is a parcel of the soup: it carries what's dissolved in it as it rises, and most
+  // bubbles fold back into the soup at the surface. Only steam that actually escapes is pure water
+  // (it leaves its flavor behind, see dropSolutes), so reducing a soup concentrates it.
+  const o = i * NF;
+  this.fl[o + F_AROMA] *= 0.97; this.fl[o + F_ALCOHOL] *= 0.8;   // volatile notes go up with the steam
   this.bubbles++;
+  if (this.findNb(x, y, (m) => m === BROTH) < 0 && this.dropSolutes(i, x, y)) return;   // the last of the liquid
+  this.keepFlavor(i, () => this.setCell(i, STEAM, 100));
+};
+
+// Run `change` on cell i (which resets it) but keep its dissolved flavor.
+Sim.keepFlavor = function (i, change) {
+  const o = i * NF, saved = this.fl.slice(o, o + NF);
+  change();
+  this.fl.set(saved, o);
+};
+
+// Water leaving the pot leaves its dissolved flavor behind: into the liquid below or beside it, else
+// onto food it touches, else as a dried-down reduction on the spot. Returns true if the cell became that residue.
+Sim.dropSolutes = function (i, x, y) {
+  const o = i * NF;
+  let total = 0;
+  for (let k = 0; k < NF; k++) if (k !== F_AROMA && k !== F_ALCOHOL) total += Math.abs(this.fl[o + k]);
+  if (total < 0.05) return false;   // plain water: nothing to leave
+  const j = y < GH - 1 && this.mat[i + GW] === BROTH ? i + GW : this.findNb(x, y, (m) => m === BROTH);
+  if (j >= 0 && j !== i) {
+    for (let k = 0; k < NF; k++) this.fl[j * NF + k] += this.fl[o + k];
+    this.fl.fill(0, o, o + NF);
+    return false;
+  }
+  if (this.findNb(x, y, (m) => CLS[m] === C_CHUNK || m === OIL) >= 0) { this.glaze(i, x, y); this.fl.fill(0, o, o + NF); return false; }
+  this.keepFlavor(i, () => this.setCell(i, RESIDUE, this.temp[i]));
+  return true;
 };
 
 // Leave a cell's dissolved flavor on whatever food or oil it touches (sauce reducing onto meat).
