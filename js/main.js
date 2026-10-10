@@ -25,12 +25,17 @@ function toInternal(e) {
 }
 const inGrid = (x, y) => x >= GX && x < GX + GW && y >= GY && y < GY + GH;
 const overPotArea = (x, y) => x >= GX - 12 && x < GX + GW + 12 && y >= 24 && y < GY + GH;
-// The ladle keeps working a little way outside the pot: it clamps to the nearest wall or the bottom,
-// so you can scrape along them by dragging just outside.
-const LADLE_MARGIN = 16;
-const ladleAt = (x, y) => (x >= GX - LADLE_MARGIN && x < GX + GW + LADLE_MARGIN && y >= GY - 6 && y < GY + GH + LADLE_MARGIN)
-  ? { x: Math.max(GX + 1, Math.min(GX + GW - 2, x)), y: Math.max(GY, Math.min(GY + GH - 2, y)) } : null;
-let prevLadle = null;
+// The ladle goes into the pot when the cursor enters it, then keeps working up to LADLE_MARGIN px outside:
+// it clamps to the nearest wall or the bottom, so you can scrape along them by dragging just outside.
+// It only comes out again past that margin (and only goes back in from inside the pot).
+const LADLE_MARGIN = 25;
+let ladleIn = false, prevLadle = null;
+function ladleAt(x, y) {
+  const near = x >= GX - LADLE_MARGIN && x < GX + GW + LADLE_MARGIN && y >= GY - LADLE_MARGIN && y < GY + GH + LADLE_MARGIN;
+  if (inGrid(x, y)) ladleIn = true;
+  else if (!near) ladleIn = false;
+  return ladleIn ? { x: Math.max(GX + 1, Math.min(GX + GW - 2, x)), y: Math.max(GY, Math.min(GY + GH - 2, y)) } : null;
+}
 
 screen.addEventListener('pointerdown', (e) => {
   const p = toInternal(e);
@@ -91,7 +96,7 @@ function update() {
   const active = input.down && !input.consumed && !UI.dragDial && !UI.journal;
   const pouring = active && UI.tool === 'pour' && overPotArea(input.x, input.y) && !!Chef.held && Chef.held.kind !== 'whole' && !Sim.lid;
   // With the ladle over the pot, the chef holds it in the soup at the cursor.
-  Chef.ladle = UI.tool === 'ladle' && !Sim.lid && !UI.journal ? ladleAt(input.x, input.y) : null;
+  Chef.ladle = UI.tool === 'ladle' && !Sim.lid && !UI.journal ? ladleAt(input.x, input.y) : (ladleIn = false, null);
   Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid) || !!Chef.ladle, pouring);
 
   if (!paused) {

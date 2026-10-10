@@ -238,11 +238,12 @@ Taste.analyzeBowl = function () {
   const grit = flourGrit + (counts[SODA] || 0) + (plate ? Math.max(0, seasoning - edible * 0.25) :
                type === 'stew' ? Math.max(0, seasoning - edible * 0.1) : (counts[SALT] || 0) + (counts[SUGAR] || 0));
   // Raw egg white left in the bowl is as bad as raw veg (a runny yolk is fine).
-  raw += (counts[EGG] || 0) + (counts[DOUGH] || 0);
+  // (Raw dough floating in a soup is already counted as lumps, so only count it as raw elsewhere.)
+  raw += (counts[EGG] || 0) + (type === 'soup' || type === 'stew' ? 0 : counts[DOUGH] || 0);
   chunks += (counts[DOUGH] || 0) + (counts[BREAD] || 0) + (counts[EGG] || 0) + (counts[YOLK] || 0) + (counts[WHITE_COOKED] || 0) + (counts[YOLK_COOKED] || 0) + (counts[FISHFIN] || 0);
   const oilShare = g.oil / Math.max(1, edible);
   const flaws = {
-    burnt: Math.min(1, burntFrac * 20),
+    burnt: Math.min(1, burntFrac * 25),   // a little char goes a long way
     curdled: type === 'baked' ? 0 : Math.min(1, (counts[CURD] || 0) / 40),   // buttermilk curds belong in a bake
     lumps: Math.min(1, ((counts[LUMP] || 0) + (type === 'baked' ? 0 : counts[DOUGH] || 0)) / 30),   // raw dough in soup = lumps
     scrambled: Math.min(1, (counts[SCRAMBLE] || 0) / 40),
@@ -256,7 +257,7 @@ Taste.analyzeBowl = function () {
     // Pasta cooked far past done turns to mush.
     mushy: Math.min(1, mushyCells / Math.max(1, counts[PASTA] || 0) * 1.5),
   };
-  const flawSum = flaws.burnt * 0.3 + flaws.curdled * 0.2 + flaws.lumps * 0.15 + flaws.scrambled * 0.1 +
+  const flawSum = flaws.burnt * 0.4 + flaws.curdled * 0.2 + flaws.lumps * 0.15 + flaws.scrambled * 0.1 +
                   flaws.raw * 0.15 + flaws.gritty * 0.1 + flaws.greasy * 0.15 + flaws.shell * 0.2 + flaws.chemical * 0.4 +
                   flaws.mushy * 0.15;
   return {

@@ -494,10 +494,14 @@ Sim.moveBodies = function () {
                : tryBody(this, cells, b, 0, 1);
       if (ok) continue;
     }
-    // Sink or float by density, slowly.
-    const p = settleP(d, dl) * 0.7;
+    // Sink or float by density, slowly. A rolling boil keeps heavy pieces tumbling instead of settling.
+    const sinking = d > dl, boil = hot / n > 0.5 ? this.turb : 0;
+    const p = settleP(d, dl) * 0.7 * (sinking ? 1 - Math.min(0.85, boil * 0.9) : 1);
+    if (sinking && boil > 0.3 && cells.some((i) => i >= (GH - 2) * GW) && rnd() < (boil - 0.3) * 0.25) {
+      if (tryBody(this, cells, b, 0, -1) || tryBody(this, cells, b, rnd() < 0.5 ? -1 : 1, -1)) continue;   // bubbles lift it off the bottom
+    }
     if (rnd() < p) {
-      const dy = d > dl ? 1 : -1;
+      const dy = sinking ? 1 : -1;
       if (tryBody(this, cells, b, 0, dy)) continue;
       if (dy > 0 && rnd() < 0.4) tryBody(this, cells, b, rnd() < 0.5 ? -1 : 1, 1);
     } else if (rnd() < 0.03) {
@@ -861,8 +865,11 @@ Sim.heatPass = function () {
   // Burner heats the pot bottom.
   const base = (GH - 1) * GW;
   for (let x = 0; x < GW; x++) {
-    const i = base + x;
-    temp[i] += (this.panT - temp[i]) * COND[mat[i]] * 0.5;
+    const i = base + x, m = mat[i];
+    // Wet food is mostly water and a char film is thin: both pass the pan's heat on about as well as water.
+    let k = COND[m];
+    if (m === BURNT || (CLS[m] === C_CHUNK && (mat[i - GW] === BROTH || (x > 0 && mat[i - 1] === BROTH) || (x < GW - 1 && mat[i + 1] === BROTH)))) k = Math.max(k, 0.2);
+    temp[i] += (this.panT - temp[i]) * k * 0.5;
   }
   // Pairwise conduction (right and down neighbours).
   for (let y = 0; y < GH; y++) {
@@ -886,6 +893,12 @@ Sim.heatPass = function () {
       const i = y * GW + x, m = mat[i];
       // Open pot: air stays near room temperature. Lid on: the trapped air heats up like an oven.
       if (m === EMPTY) { temp[i] += (airT - temp[i]) * 0.08; continue; }
+      // Wet food (or char) can't run much past boiling: its extra heat boils the water touching it,
+      // so a pot bottom covered in food still bubbles up around and under the pieces.
+      if ((CLS[m] === C_CHUNK || m === BURNT) && temp[i] > 102) {
+        const j = mat[i - GW] === BROTH && y > 0 ? i - GW : x > 0 && mat[i - 1] === BROTH ? i - 1 : x < GW - 1 && mat[i + 1] === BROTH ? i + 1 : -1;
+        if (j >= 0) { const d = (temp[i] - 100) * 0.5; temp[i] -= d; temp[j] += d; }
+      }
       if (y === 0 || mat[i - GW] === EMPTY) temp[i] += (20 - temp[i]) * loss;
       if (m === BROTH && temp[i] > 100) {
         const acc = cook[i] + (temp[i] - 100) * 1.2;

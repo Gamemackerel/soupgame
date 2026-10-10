@@ -17,6 +17,7 @@ const LEVELS = [
     id: 'tomato-soup', short: 'Tomato Soup', icon: 'tomato', tier: 0, title: 'Tomato Soup', teaches: 'heat and seasoning',
     blurb: 'Soften the onion and garlic, melt the tomatoes down, season, and finish with fresh herbs.',
     hint: 'Herbs go in at the very end, off the heat.',
+    essential: ['tomato'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'garlic', 'tomato', 'water', 'salt', 'herbs'],
     techniques: ['sweat', 'tomato', 'dissolve'],
     avoid: ['herbloss'],
@@ -37,6 +38,7 @@ const LEVELS = [
     id: 'creamy-corn', short: 'Corn Soup', icon: 'corn', tier: 0, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
     blurb: 'Simmer potato until it falls apart and thickens the soup, then stir in milk over low heat.',
     hint: 'Milk splits if the pot is boiling hard. Turn the flame down first.',
+    essential: ['corn'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'potato', 'corn', 'water', 'salt', 'milk'],
     techniques: ['sweat', 'thicken'],
     forbid: ['curdled', 'raw'],
@@ -51,6 +53,7 @@ const LEVELS = [
     id: 'flatbread', short: 'Flatbread', icon: 'flour', tier: 0, title: 'Pan Flatbread', teaches: 'dough and browning',
     blurb: 'Stir flour, water and a pinch of salt into a dough, then bake it under the lid until golden.',
     hint: 'The lid turns the pot into an oven.',
+    essential: ['flour'],   // without these it isn't the dish at all
     ingredients: ['oil', 'flour', 'water', 'salt'],
     techniques: ['dough', 'baked', 'crust'],
     forbid: ['burnt'],
@@ -64,6 +67,7 @@ const LEVELS = [
     id: 'fish-stew', short: 'Fish Stew', icon: 'fish', tier: 0, title: 'Fish Stew', teaches: 'layering and timing',
     blurb: 'Build a tomato and wine base, simmer the potatoes, then add the fish late so it just flakes.',
     hint: 'Fish needs a minute, not an hour.',
+    essential: ['fish'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'garlic', 'wine', 'tomato', 'potato', 'water', 'salt', 'fish', 'herbs'],
     techniques: ['sweat', 'tomato', 'flake'],
     forbid: ['burnt', 'raw'],
@@ -71,6 +75,7 @@ const LEVELS = [
           'add potato 4', 'wait 20s', 'pour water 9s', 'pour salt 1.2s', 'wait 90s', 'throw fish 1', 'heat 4', 'wait 60s',
           'heat 0', 'add herbs 2', 'serve'],
     mistakes: [
+      { name: 'no fish', remove: ['throw fish 1'] },
       { name: 'no base', steps: ['pour water 9s', 'add potato 4', 'heat 5', 'pour salt 1.2s', 'wait 90s', 'throw fish 1', 'heat 4', 'wait 60s', 'serve'] },
       { name: 'fish raw', replace: { 'wait 60s': 'wait 5s' } },
     ],
@@ -79,6 +84,7 @@ const LEVELS = [
     id: 'minestrone', short: 'Minestrone', icon: 'pasta', tier: 0, title: 'Minestrone', teaches: 'timing many ingredients',
     blurb: 'Soften the vegetables, build the tomato broth, then add beans and pasta so everything finishes together.',
     hint: 'Pasta goes in near the end. Too long and it turns to mush.',
+    essential: ['pasta', 'beans'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'carrot', 'celery', 'garlic', 'tomato', 'beans', 'potato', 'water', 'salt', 'pasta', 'herbs'],
     techniques: ['mirepoix', 'tomato'],
     forbid: ['mushy', 'raw', 'burnt'],
@@ -96,6 +102,7 @@ const LEVELS = [
     id: 'french-onion', short: 'French Onion', icon: 'onion', tier: 1, title: 'French Onion Soup', teaches: 'patience',
     blurb: 'Caramelize a mountain of onions low and slow, deglaze with wine, and simmer into a deep broth.',
     hint: 'The onions take longer than you think. Much longer.',
+    essential: ['onion'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'wine', 'water', 'salt', 'herbs'],
     techniques: ['caramelize', 'deglaze'],
     forbid: ['burnt'],
@@ -110,6 +117,7 @@ const LEVELS = [
     id: 'beef-chowder', short: 'Chowder', icon: 'potato', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
     blurb: 'Sear the beef, sweat the vegetables, make a roux in the fat, add potatoes, and finish with milk.',
     hint: 'Flour into hot fat, not into water.',
+    essential: ['meat', 'potato', 'milk'],   // without these it isn't the dish at all
     ingredients: ['oil', 'meat', 'onion', 'carrot', 'celery', 'flour', 'water', 'potato', 'milk', 'salt'],
     techniques: ['fond', 'roux', 'thicken'],
     forbid: ['curdled', 'lumps', 'burnt'],
@@ -125,6 +133,7 @@ const LEVELS = [
     id: 'goulash', short: 'Goulash', icon: 'meat', tier: 1, title: 'Goulash', teaches: 'browning and blooming spice',
     blurb: 'Slow-cook the onions, brown the beef, bloom the spices in the fat, then simmer with tomato.',
     hint: 'Spices wake up in hot fat, not in water.',
+    essential: ['meat', 'chili'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'meat', 'chili', 'cumin', 'tomato', 'water', 'salt'],
     techniques: ['caramelize', 'fond', 'bloom'],
     forbid: ['burnt'],
@@ -140,6 +149,7 @@ const LEVELS = [
     id: 'sponge-cake', short: 'Sponge Cake', icon: 'egg', tier: 1, title: 'Pot-Oven Sponge Cake', teaches: 'baking chemistry',
     blurb: 'Whisk a sweet batter with eggs and baking powder and bake it under the lid until it rises.',
     hint: 'Baking powder makes it rise. A gentle flame keeps it from burning.',
+    essential: ['flour', 'egg', 'sugar'],   // without these it isn't the dish at all
     ingredients: ['flour', 'sugar', 'egg', 'milk', 'oil', 'powder'],
     techniques: ['batter', 'rise', 'baked', 'potoven'],
     forbid: ['burnt', 'shell'],
@@ -154,6 +164,7 @@ const LEVELS = [
     id: 'chili', short: 'Chili', icon: 'chili', tier: 1, title: 'Chili con Carne', teaches: 'heat, spice and a long simmer',
     blurb: 'Brown the beef, soften onion and garlic, bloom chili and cumin, then simmer with tomato and beans.',
     hint: 'Bloom the spices in the fat before any liquid goes in.',
+    essential: ['meat', 'chili'],   // without these it isn't the dish at all
     ingredients: ['oil', 'meat', 'onion', 'garlic', 'chili', 'cumin', 'tomato', 'beans', 'water', 'salt'],
     techniques: ['fond', 'bloom', 'tomato'],
     forbid: ['burnt'],
@@ -176,7 +187,7 @@ const LEVELS = [
 // taste, beyond par) adds 1 from that judge: a perfect 10 takes par plus a flourish every judge loves.
 // Caps: anything the recipe needs missing → below 8 (no badge); a forbidden flaw → below 6 (chopped).
 const LEVEL_AXES = ['salty', 'sweet', 'sour', 'bitter', 'umami', 'rich', 'heat', 'aroma', 'body'];
-const LEVEL_PASS = 6, LEVEL_GOOD = 8, LEVEL_PAR = 9;
+const LEVEL_PASS = 6, LEVEL_GOOD = 8, LEVEL_PAR = 9, WRONG_DISH_MAX = 3;
 const NOT_A_FLOURISH = new Set(['water', 'extinguisher']);
 const FLAW_NAMES = { burnt: 'burnt', curdled: 'split dairy', lumps: 'lumps', scrambled: 'scrambled egg', raw: 'undercooked',
                      gritty: 'undissolved seasoning', greasy: 'greasy', shell: 'eggshell', chemical: 'extinguisher powder', mushy: 'mushy pasta' };
@@ -221,6 +232,17 @@ const Levels = {
     const ingredients = 1 - missingIng.length / level.ingredients.length;
     if (missingIng.length) notes.push('The recipe also calls for ' + missingIng.map(name).join(', ') + '.');
     const recipe = 0.5 * technique + 0.5 * ingredients;
+
+    // Not the dish at all: a defining ingredient missing, most of the recipe missing, or the wrong kind of dish
+    // (a soup for a cake). The judges say so, and give at most a few points for whatever it tastes like.
+    const missingEss = (level.essential || []).filter((i) => !used.has(i));
+    const wrongKind = target && (target.type === 'baked') !== (a.type === 'baked');
+    if (missingEss.length || ingredients < 0.5 || wrongKind) {
+      const judges = ids.map((id, n) => ({ id, score: Math.round(Math.max(0, Math.min(1, tastes[n] / 8)) * WRONG_DISH_MAX * 10) / 10, flourish: false }));
+      const total = Math.round(judges.reduce((s, j) => s + j.score, 0) / judges.length * 10) / 10;
+      return { total, passed: false, badge: null, match, technique, ingredients, recipe, judges, broke: [], missing, slipped, missingIng, extras: [],
+               gap: null, wrong: { missing: missingEss, kind: wrongKind }, notes: [`That isn't ${level.title.toLowerCase()}.`].concat(notes) };
+    }
     const extras = [...used].filter((i) => !level.ingredients.includes(i) && !NOT_A_FLOURISH.has(i));
 
     const judges = ids.map((id, n) => {

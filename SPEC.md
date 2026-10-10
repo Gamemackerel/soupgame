@@ -51,7 +51,7 @@ A falling-sand cooking sandbox. The simulation lives inside a soup pot. Around i
 | Hold the mouse over the pot | Chef slides sideways to track the cursor's x and tilts the container. The pour stream falls from his hand to the cursor point |
 | Mouse wheel / `[` `]` | Pour rate or brush size |
 | Heat dial (drag or `1`–`9`, `0` = off) | Flame size and heat input. Continuous from 0 to 10 |
-| Ladle tool | Drag in the pot to stir. The chef holds a real ladle whose bowl follows the cursor. It keeps working just outside the pot (clamped to the nearest wall or the bottom), so you can scrape along them. It displaces cells along the drag, shoves pieces through loose food (and passes the push on through a packed stew), scoops what's on the bottom up off the hot metal, and scrapes char loose a little at a time |
+| Ladle tool | Drag in the pot to stir. The chef holds a real ladle whose bowl follows the cursor. It goes in when the cursor enters the pot and keeps working up to 25 px outside it (clamped to the nearest wall or the bottom), so you can scrape along them; it only comes out past that. It displaces cells along the drag, shoves pieces through loose food (and passes the push on through a packed stew), scoops what's on the bottom up off the hot metal, and scrapes char loose a little at a time |
 | Taste tool | Click the liquid. The chef sips, reacts, and a flavor readout appears (§6) |
 | Skimmer | Removes foam, scum and floating fat from the surface |
 | Lid toggle | Traps steam: faster boiling, no reduction, keeps aroma. Raises boil-over risk |
@@ -604,6 +604,13 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - **Soft caps:**
   - A missing required ingredient or technique caps the score below 8 (no badge, but you can still pass).
   - A forbidden flaw caps it below 6 (chopped).
+- **Not the dish at all:** the dish is wrong if any of these hold:
+  - one of the level's defining ingredients is missing (fish for fish stew)
+  - fewer than half the recipe's ingredients went in
+  - it's the wrong kind of dish (a soup for a cake)
+
+  Each judge then says it isn't the dish, in their own voice ("WHERE'S THE FISH?! This is NOT a FISH STEW!"), and scores it out of 3 on taste alone.
+- **Mixed verdicts read as one thought:** praise and criticism are joined with "but" or "however" ("A lovely crust. But under-seasoned.").
 - **A perfect 10 takes par plus a flourish.** A flawless par recipe lands around 9.
   - **Flourish:** an extra ingredient not in the recipe.
   - It earns a bonus only if the judges' taste score beats the par recipe's (precomputed by `build-levels.js`).

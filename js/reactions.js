@@ -11,6 +11,8 @@ const TOMATO_MELT = flavorVec({ sour: 2, umami: 5, red: 10, sweet: 0.5, body: 1.
 const LEACH_K = 2; // how strongly chunks flavor the soup
 // Caramelization pace: sweating, then slow browning in fat (tuned so onions take ~2 min at heat 5).
 // Browning alone stops at deep brown; past that, only scorching on the metal takes food to char.
+// Share of split dairy that turns into solid curd (the rest becomes whey).
+const CURD_SOLIDS = 0.16;
 const BROWN_MAX = 230;
 // Moist vegetables are held near 110°C until they dry (brown) past `dryFrom`; `pass` lets some pan heat through.
 const MOIST_K = { dryFrom: 100, slope: 1.5, pass: 0.6 };
@@ -71,9 +73,11 @@ function reactBroth(S, x, y, i) {
     const over = fl[o + F_SOUR] - (0.25 * fl[o + F_WHITE] + 0.1);
     const acid = over > 0 && rnd() < Math.min(1, over / 0.3);
     if (acid || (t >= 100 && S.dial >= 8 && rnd() < 0.15)) {
-      S.setCell(i, CURD, t);
       S.discover('curdle'); S.emit('curdle', x, y);
-      return true;
+      // Only the milk's protein clumps into curds (about a sixth of it); the rest separates into thin whey
+      // that stays in the soup, its creaminess gone, so it can't split again.
+      if (rnd() < CURD_SOLIDS) { S.setCell(i, CURD, t); return true; }
+      fl[o + F_RICH] *= 0.5; fl[o + F_WHITE] = Math.min(fl[o + F_WHITE] * 0.2, 0.3);
     }
   }
   return false;

@@ -124,3 +124,15 @@ Goals:
 - p48: stirred vs unstirred hot sauté
 - p49: onions low and slow vs high heat
 - p50: patient vs rushed onions
+
+## Round 5: boiling under food, curdling, char, wrong dishes (2026-10-10)
+
+| Finding | Category | Fix |
+|---|---|---|
+| A pot bottom covered in food stopped boiling: turbulence sank from 0.8 to 0.5, food settled onto the bottom (up to 99 of 152 cells), and wet food ran to 113 °C | CHEMISTRY | Wet food and char on the pot bottom take the pan's heat about as well as water. Wet food can't run past boiling: its extra heat boils the water touching it, so bubbles keep forming under and around the pieces. A rolling boil holds heavy pieces up and lifts them off the bottom. Under the same load, turbulence holds at 0.85–0.9, food stays at 98–100 °C and keeps churning |
+| A splash of milk in a sour soup turned into a mass of curd | CHEMISTRY | Split dairy now becomes about one part curd to five parts whey: thin liquid with its creaminess gone, which can't split again. 0.3 s of milk no longer curdles; 1 s gives about 120 curd specks instead of 678 cells of solid curd |
+| Flour lumps in a soup counted twice, as lumps and as raw food (x06) | ANALYSIS | Raw dough in a soup or stew counts only as lumps |
+| A scorched tomato soup could still earn the Good Soup badge; judges barely minded burnt garlic (p13) | ANALYSIS | The char flaw reads stronger (a little char goes a long way) and weighs more in the judges' flaw total |
+| An unkneaded loaf with pockets of raw flour scored like a kneaded one (p15) | ANALYSIS | The bake judges penalize pockets of raw flour |
+| p48 compared two thoroughly burnt pans | CLAIM | The sauté now runs 80 s at heat 8, where stirring is the difference: 3 vs 17 burnt bits, bitterness 0.45 vs 0.99, judges 5.3 vs 2.8 |
+| Serving fish stew without fish scored like a slightly-off fish stew | ANALYSIS (design) | Wrong-dish rule (SPEC §17) |

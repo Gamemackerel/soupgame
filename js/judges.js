@@ -121,6 +121,7 @@ function judgeBakeClassic(a) {
   if (b.water > 1.8 && b.kind !== 'pancake' && b.kind !== 'crêpe') { s -= 1; bad.push('Soggy and gummy inside.'); }
   if (b.water < 0.4) { s -= 1; bad.push('Dry and crumbly.'); }
   if (b.soda > 0.08) { s -= 2; bad.push('Soapy. Too much baking soda, no acid.'); }
+  if (a.flaws.gritty > 0.3) { s -= 1.5; bad.push('Pockets of raw flour. It was never mixed properly.'); }
   if (b.gluten > 0.25 && (b.kind === 'bread' || b.kind === 'flatbread')) { s += 0.5; good.push('Good chew. It was kneaded properly.'); }
   return { score: s - a.flawSum * 4, good, bad };
 }
@@ -135,6 +136,7 @@ function judgeBakeFlavor(a) {
   if (a.notes.includes('toasty') || b.crust > 0.2) { good.push('That toasty crust smell!'); s += 1.5; }
   if (b.rich > 0.3 || b.egg > 0.2) { good.push('Rich. Is that egg? Butter?'); s += 1; }
   if (p.bitter > 0.35) { bad.push('Bitter. Soapy, almost.'); s -= 2; }
+  if (a.flaws.gritty > 0.3) { bad.push('Dry floury bits in it!'); s -= 1.5; }
   return { score: s + Math.min(2, a.notes.length * 0.5) - a.flawSum * 4, good, bad };
 }
 function judgeBakeComfort(a) {
@@ -235,6 +237,7 @@ Object.assign(JUDGE_ROSTER, {
         if (b.wantsCrust) { if (b.crust > 0.25) { s += 1; good.push('Nice colour on it.'); } else if (b.crust < 0.08) { s -= 0.5; bad.push('Pale. Bake it longer.'); } }
         if (b.burnt > 0.2) { s -= 2; bad.push('The bottom\'s burnt.'); }
         if (b.soda > 0.08) { s -= 2; bad.push('Soapy. Too much soda.'); }
+        if (a.flaws.gritty > 0.3) { s -= 1.5; bad.push('Pockets of raw flour. Under-mixed.'); }
         if (b.water > 1.8 && b.kind !== 'pancake' && b.kind !== 'crêpe') { s -= 1; bad.push('Stodgy. Too wet.'); }
         if (spiceUsed()) { s += 0.5; good.push('A little spice in a bake. Bold. I like it.'); }
         return { score: s - a.flawSum * 5, good, bad };
@@ -257,6 +260,32 @@ Object.assign(JUDGE_ROSTER, {
     },
   },
 });
+
+// "Lovely crust." + "Under-seasoned." → "Lovely crust. But under-seasoned." (shouting stays shouting).
+function butJoin(a, b) {
+  if (!a || !b) return a || b;
+  const word = pick(['But', 'However,']);
+  const shout = b === b.toUpperCase() && /[A-Z]/.test(b);
+  if (shout) return `${a} ${word.toUpperCase()} ${b}`;
+  const keepCap = /^(I\b|I'|[A-Z]{2,})/.test(b);
+  return `${a} ${word} ${keepCap ? b : b[0].toLowerCase() + b.slice(1)}`;
+}
+
+// When the dish served isn't the one ordered: each judge says so in their own way, then a word on the taste.
+function wrongDishLine(j, level, wrong, r) {
+  const dish = level.short.toLowerCase();
+  const ing = wrong.missing.length ? ({ meat: 'beef', beans: 'beans' }[wrong.missing[0]] || wrong.missing[0]) : null;
+  const lines = {
+    joe: ing ? `Uh... I ordered the ${dish}? Where's the ${ing}?` : `Uh... I ordered the ${dish}? This is something else.`,
+    biscuit: ing ? `Wait... where's the ${ing}?! This isn't ${dish}!` : `Sniff sniff... this isn't ${dish}!`,
+    pounce: ing ? `A ${dish} without ${ing}? This is not a ${dish}.` : `I asked for a ${dish}. This is not a ${dish}.`,
+    nanny: ing ? `Oh dear, there's no ${ing}. This isn't ${dish}, is it?` : `Oh dear, this isn't ${dish}, is it?`,
+    gordo: ing ? `WHERE'S THE ${ing.toUpperCase()}?! This is NOT a ${dish.toUpperCase()}!` : `What IS this? It's NOT a ${dish.toUpperCase()}!`,
+    paul: ing ? `No ${ing}. That isn't a ${dish}. Not even close.` : `That isn't a ${dish}. Not even close.`,
+  };
+  const tasty = r.score >= 7 ? ' Tastes good, mind you.' : r.score >= 5 ? ' It tastes all right, I suppose.' : '';
+  return pick(j.sounds.bad) + ' ' + lines[j.id] + tasty;
+}
 
 const JUDGE_IDS = Object.keys(JUDGE_ROSTER);
 const JUDGE_SLOTS = [76, 160, 244];
@@ -298,9 +327,10 @@ const Judging = {
       if (a.empty) return { score: 0, taste: 0, line: pick(['...Where is the food?', 'You served me an empty plate.', 'Is this a joke?']) };
       const r = raw[n], lj = L && L.judges[n];
       const score = Math.max(0, Math.min(10, Math.round(lj ? lj.score : r.score)));
-      // Lead with praise or criticism depending on how it went.
-      const lines = score >= 6 ? [pick(r.good.length ? r.good : ['Not bad.']), r.bad[0]]
-                               : [pick(r.bad.length ? r.bad : ['Something is missing.']), r.good[0]];
+      if (L && L.wrong) return { score, taste: r.score, line: wrongDishLine(j, this.level, L.wrong, r) };
+      // Lead with praise or criticism depending on how it went, and join the two with a "but".
+      const lines = score >= 6 ? [butJoin(pick(r.good.length ? r.good : ['Not bad.']), r.bad[0])]
+                               : [butJoin(pick(r.bad.length ? r.bad : ['Something is missing.']), r.good[0])];
       if (n === stickler) lines.push(L.missing.length ? `Where's the ${(DISCOVERIES.find((d) => d.id === L.missing[0]) || { name: L.missing[0] }).name.toLowerCase()}? It's in the recipe.`
                                    : L.slipped.length ? `And the ${(DISCOVERIES.find((d) => d.id === L.slipped[0]) || { name: L.slipped[0] }).name.toLowerCase()}... careful.`
                                    : `You left out the ${(SHELF.find((s) => s.id === L.missingIng[0]) || { name: L.missingIng[0] }).name.toLowerCase()}.`);
