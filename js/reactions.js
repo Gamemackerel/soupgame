@@ -401,7 +401,8 @@ function reactChunk(S, x, y, i, m) {
     if (c < BROWN_MAX && rnd() < (t - 110) / 60 * (M.brownRate || 0.25)) c++;   // browning (only when dry; bread only on its crust)
   }
   if (m === HERB && c >= 120 && S.cook[i] < 120) S.discover('herbloss');
-  if (c >= 80 && S.cook[i] < 80 && pieceOily && m !== MEAT && m !== HERB) S.discover('sweat');
+  // Sweating is for aromatics: onion, garlic, carrot and celery going soft in gentle fat.
+  if (c >= 80 && S.cook[i] < 80 && pieceOily && (m === ONION || m === GARLIC || m === CARROT || m === CELERY)) S.discover('sweat');
   if (c >= 150 && S.cook[i] < 150) {
     // One browned sliver isn't caramelized onions: it takes a good share of the batch.
     if (m === ONION || m === CARROT || m === GARLIC) { S.flags.caramel = (S.flags.caramel || 0) + 1; S.addNote('caramel', 0.03); }
