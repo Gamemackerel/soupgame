@@ -285,16 +285,16 @@ const Judging = {
     const a = this.analysis;
     if (typeof Plating !== 'undefined' && typeof document !== 'undefined') Plating.build(a);
     const raw = JUDGES.map((j) => (a.empty ? null : j.evaluate(a)));
-    this.levelResult = this.level && !a.empty
-      ? Levels.score(this.level, a, Sim.happened, Sim.used, JUDGES.map((j) => j.id), raw.map((r) => r.score)) : null;
+    this.levelResult = !this.level ? null : a.empty ? Levels.empty(JUDGES.map((j) => j.id))
+      : Levels.score(this.level, a, Sim.happened, Sim.used, JUDGES.map((j) => j.id), raw.map((r) => r.score));
     const L = this.levelResult;
     // The judge who cares most about technique tells you what the recipe was missing.
     const stickler = L && (L.missing.length || L.slipped.length || L.missingIng.length)
       ? JUDGES.reduce((b, j, n) => (j.blend.recipe > JUDGES[b].blend.recipe ? n : b), 0) : -1;
     this.results = JUDGES.map((j, n) => {
-      if (a.empty) return { score: 1, taste: 1, line: pick(['...Where is the food?', 'You served me an empty plate.', 'Is this a joke?']) };
+      if (a.empty) return { score: 0, taste: 0, line: pick(['...Where is the food?', 'You served me an empty plate.', 'Is this a joke?']) };
       const r = raw[n], lj = L && L.judges[n];
-      const score = Math.max(1, Math.min(10, Math.round(lj ? lj.score : r.score)));
+      const score = Math.max(0, Math.min(10, Math.round(lj ? lj.score : r.score)));
       // Lead with praise or criticism depending on how it went.
       const lines = score >= 6 ? [pick(r.good.length ? r.good : ['Not bad.']), r.bad[0]]
                                : [pick(r.bad.length ? r.bad : ['Something is missing.']), r.good[0]];

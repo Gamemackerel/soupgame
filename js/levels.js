@@ -184,6 +184,13 @@ const FLAW_NAMES = { burnt: 'burnt', curdled: 'split dairy', lumps: 'lumps', scr
 const Levels = {
   byId(id) { return LEVELS.find((l) => l.id === id); },
 
+  // Nothing in the pot: a zero from everyone.
+  empty(ids) {
+    return { total: 0, passed: false, badge: null, match: 0, technique: 0, ingredients: 0, recipe: 0,
+             judges: ids.map((id) => ({ id, score: 0, flourish: false })), broke: [], missing: [], slipped: [], missingIng: [], extras: [],
+             notes: ['Nothing was served. Cook something first!'] };
+  },
+
   // a: Taste.analyzeBowl(); happened/used: Sets from the pot; ids: the panel; tastes: each judge's own score (evaluate).
   score(level, a, happened, used, ids, tastes) {
     const target = (typeof LEVEL_TARGETS !== 'undefined' && LEVEL_TARGETS[level.id]) || null;
@@ -231,7 +238,7 @@ const Levels = {
     if (broke.length) { total = Math.min(total, LEVEL_PASS - 0.1); notes.unshift('The judges can\'t forgive: ' + broke.map((f) => FLAW_NAMES[f] || f).join(', ') + '.'); }
     // Keep each judge's card consistent with a capped total.
     if (total < raw) for (const j of judges) j.score *= total / raw;
-    for (const j of judges) j.score = Math.max(1, Math.min(10, j.score));
+    for (const j of judges) j.score = Math.max(0, Math.min(10, j.score));
     total = Math.round(total * 10) / 10;
     const perfect = judges.every((j) => j.score >= 9.95) && total >= 9.95;
     if (judges.some((j) => j.flourish)) {

@@ -654,4 +654,6 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 **After serving:**
 - **Levels:** Retry, Next Dish (only when you passed; the next dish on the board, if its tier is open) and The Pass.
 - **Sandbox:** Keep Cooking, New Pot and The Pass.
+- **Scores run 0–10.** Serving an empty pot in a level scores 0 and is chopped.
+- **Dev:** a small RESET button on the board wipes saved progress (click twice).
 - Unlocking a tier flashes a notice on the board.

@@ -11,6 +11,7 @@ const Progress = {
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch (e) { /* ignore */ } },
 
   best(id) { return this.data.best[id] || null; },
+  reset() { this.data = { best: {} }; this.save(); },
   passed(id) { const b = this.best(id); return !!(b && b.passed); },
 
   // Keep the best score, and every badge or handshake ever earned on the dish.
@@ -38,9 +39,10 @@ const Progress = {
 // ---------- The pass board ----------
 const BOARD = { rowY: 28, rowH: 44, labelW: 66, ticketX: 74, ticketW: 44, ticketH: 38, gap: 4 };
 const SANDBOX_BTN = { x: 120, y: 218, w: 80, h: 16 };
+const RESET_BTN = { x: 284, y: 226, w: 32, h: 10 };   // dev: wipe saved progress (click twice)
 
 const Menu = {
-  active: false, t: 0, hover: null, flash: null,
+  active: false, t: 0, hover: null, flash: null, confirmReset: 0,
 
   ticket(tier, n) {
     return { x: BOARD.ticketX + n * (BOARD.ticketW + BOARD.gap), y: BOARD.rowY + tier * BOARD.rowH + 5 + (n & 1), w: BOARD.ticketW, h: BOARD.ticketH };
@@ -48,6 +50,7 @@ const Menu = {
 
   pick(x, y) {
     if (UI.hit(SANDBOX_BTN, x, y)) return { type: 'sandbox' };
+    if (UI.hit(RESET_BTN, x, y)) return { type: 'reset' };
     for (const t of LEVEL_TIERS) {
       const levels = LEVELS.filter((l) => l.tier === t.tier);
       for (let n = 0; n < 5; n++) if (UI.hit(this.ticket(t.tier, n), x, y)) return { type: 'level', tier: t.tier, level: levels[n] || null };
@@ -58,11 +61,16 @@ const Menu = {
   click(x, y) {
     const h = this.pick(x, y);
     if (!h) return;
+    if (h.type === 'reset') {
+      if (this.confirmReset > 0) { Progress.reset(); this.confirmReset = 0; this.flash = { text: 'Progress reset', t: 0 }; }
+      else this.confirmReset = 180;
+      return;
+    }
     if (h.type === 'sandbox') Game.startSandbox();
     else if (h.level && Progress.unlocked(h.tier)) Game.startLevel(h.level);
   },
 
-  update(mx, my) { this.t++; this.hover = this.pick(mx, my); if (this.flash && ++this.flash.t > 240) this.flash = null; },
+  update(mx, my) { this.t++; if (this.confirmReset > 0) this.confirmReset--; this.hover = this.pick(mx, my); if (this.flash && ++this.flash.t > 240) this.flash = null; },
 
   draw(g) {
     // Stainless wall behind the pass, warm heat lamps along the top.
@@ -103,6 +111,10 @@ const Menu = {
         if (best && best.handshake) { rect(g, r.x + r.w - 10, y + 20, 4, 3, [176, 120, 84]); rect(g, r.x + r.w - 7, y + 21, 4, 3, [236, 196, 160]); }
       }
     }
+    // Dev reset.
+    const armed = this.confirmReset > 0;
+    rect(g, RESET_BTN.x, RESET_BTN.y, RESET_BTN.w, RESET_BTN.h, armed ? [150, 40, 40] : [70, 72, 84]);
+    rect(g, RESET_BTN.x + 1, RESET_BTN.y + 1, RESET_BTN.w - 2, RESET_BTN.h - 2, armed ? [220, 70, 60] : [96, 98, 110]);
     // Sandbox button.
     const hs = this.hover && this.hover.type === 'sandbox';
     rect(g, SANDBOX_BTN.x, SANDBOX_BTN.y, SANDBOX_BTN.w, SANDBOX_BTN.h, [40, 24, 30]);
@@ -128,6 +140,7 @@ const Menu = {
       });
     }
     T.text('SANDBOX', 160, SANDBOX_BTN.y + 5, { size: 6, color: '#3a2020', align: 'center' });
+    T.text(this.confirmReset > 0 ? 'SURE?' : 'RESET', RESET_BTN.x + RESET_BTN.w / 2, RESET_BTN.y + 3, { size: 4, color: '#eef', align: 'center' });
     // Hovered dish: its blurb along the bottom.
     const h = this.hover;
     if (h && h.type === 'level' && h.level && Progress.unlocked(h.tier)) T.wrap(h.level.title + ': ' + h.level.blurb, 8, 208, 104, { size: 4, color: '#c8cad8' });
