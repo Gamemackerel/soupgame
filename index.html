@@ -10,9 +10,24 @@
   html, body { margin: 0; height: 100%; background: #1b1420; overflow: hidden; }
   body { display: flex; align-items: center; justify-content: center; }
   canvas { image-rendering: pixelated; image-rendering: crisp-edges; cursor: none; }
+  #mobile { display: none; max-width: 320px; padding: 24px; text-align: center; color: #f2e8d8; font: 14px/1.6 Silkscreen, monospace; }
+  #mobile h1 { margin: 0 0 16px; font-size: 28px; font-weight: 400; color: #ffe9c0; }
+  #mobile p { margin: 0 0 12px; color: #d8c0b0; }
+  .mobile #screen { display: none; } .mobile #mobile { display: block; }
 </style>
+<script>
+  // Phones and tablets with no mouse or trackpad: the game needs a precise pointer that can hover and drag, so they
+  // get a note instead. (#desktop in the URL skips this.)
+  window.SOUP_MOBILE = !location.hash.includes('desktop') && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+  if (window.SOUP_MOBILE) document.documentElement.classList.add('mobile');
+</script>
 </head>
 <body>
+<div id="mobile">
+  <h1>SOUP POT</h1>
+  <p>Sorry, Soup Pot isn't available on mobile yet.</p>
+  <p>Please visit on a desktop or laptop computer to play.</p>
+</div>
 <canvas id="screen"></canvas>
 <script src="js/materials.js"></script>
 <script src="js/sim.js"></script>

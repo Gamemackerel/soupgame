@@ -21,6 +21,7 @@ const Music = {
 
   // Decode up front (an offline context needs no permission), so it's ready the moment sound is allowed.
   load() {
+    if (window.SOUP_MOBILE) return;   // the game doesn't run on phones: don't download the music
     try { const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (typeof s.music === 'number') this.volume = s.music; } catch (e) {}
     const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     if (!OAC) return;

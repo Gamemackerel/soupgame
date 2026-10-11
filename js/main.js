@@ -619,4 +619,4 @@ if (DEV.view === 'bread') {
   if (DEV.view === 'verdict') { Judging.k = 3; Judging.next('done'); }
 }
 if (!Game.level && !Menu.active) Chef.say('Bonjour! Let\'s cook!', 120);
-loop();
+if (!window.SOUP_MOBILE) loop();   // (phones get the "desktop only" note in index.html instead)
