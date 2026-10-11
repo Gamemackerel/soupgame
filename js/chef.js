@@ -16,6 +16,8 @@ const REACTIONS = {
   flambe:   { mood: 'shock', say: ['Flambé!', 'Voilà!'], t: 70, hop: true },
   curdle:   { mood: 'worried', say: ['It split...', 'Curdled!'], t: 60 },
   full:     { mood: 'worried', say: ['Pot\'s full!'], t: 60 },
+  fireball: { mood: 'panic', say: [], t: 120, shake: true, recoil: true },
+  disaster: { mood: 'panic', say: [], t: 200, shake: true },
 };
 
 const Chef = {
@@ -25,6 +27,19 @@ const Chef = {
   hand: { x: 160, y: 96 },
   cracked: false, crackT: 0, throwT: 0, aiming: false, hinted: false,
   danceT: 0, danceWait: 500, swayX: 0, swayBob: 0,
+  stains: [], soot: 0,   // splats on his whites (relative to his body) and soot on his face
+
+  // A flying bit of food reaching the chef: sometimes it sticks to him.
+  hit(p) {
+    const by = Math.round(Math.sin(this.t * 0.07) + this.swayBob) + CHEF_LIFT;
+    const dx = p.x - this.x, dy = p.y - by;
+    if (Math.abs(dx) > 20 || dy < 40 || dy > 118 || Math.random() > 0.35) return false;
+    if (this.stains.length > 90) this.stains.shift();
+    this.stains.push({ dx: Math.round(dx), dy: Math.round(dy), c: p.c.slice(), r: Math.random() < 0.3 ? 2 : 1 });
+    if (this.moodT < 10 && Math.random() < 0.3) { this.mood = 'gross'; this.moodT = 40; }
+    return true;
+  },
+  clean() { this.stains = []; this.soot = 0; },
 
   onRim(y) { return y >= POT_TOP - 9 && y <= POT_TOP + 5; },
   crack() { this.crackT = 14; this.say(['Crack!', '*tap tap*'][(Math.random() * 2) | 0], 40); },
@@ -124,6 +139,15 @@ const Chef = {
     // Face.
     this.drawFace(g, cx, hy);
 
+    // Splats on his coat and face; soot from fire darkens him.
+    for (const s of this.stains) rect(g, cx + s.dx - (s.r >> 1), by + s.dy - (s.r >> 1), s.r, s.r, s.c);
+    if (Sim.disaster) this.soot = Math.min(1, this.soot + 0.0008);
+    if (this.soot > 0) {
+      g.fillStyle = `rgba(40,30,30,${this.soot * 0.55})`;
+      ellipse(g, cx, hy, 13, 13, g.fillStyle);
+      for (let k = 0; k < 6; k++) rect(g, cx - 14 + ((k * 37) % 28), hy - 22 + ((k * 13) % 10), 3, 2, `rgba(40,30,30,${this.soot * 0.6})`);
+      rect(g, cx - 18, 96 + by, 36, 20, `rgba(40,30,30,${this.soot * 0.3})`);
+    }
     // Sweat when the heat's high or panicking.
     if (Sim.dial >= 8 || this.mood === 'panic') {
       const sy = hy - 6 + ((t >> 2) % 8);
@@ -203,7 +227,8 @@ const Chef = {
   drawLadle(g, sh) {
     const lx = Math.round(this.ladle.x), ly = Math.round(this.ladle.y);
     // The hand reaches just over the rim; a deep pot gets the long-handled end of the ladle.
-    const hy = Math.max(POT_TOP - 14, Math.min(POT_TOP + 8, ly - 34)), hx = Math.round(lx + 12 + (sh.x - lx) * 0.1);
+    const hy = this.ladle.air ? Math.max(28, ly - 26) : Math.max(POT_TOP - 14, Math.min(POT_TOP + 8, ly - 34));
+    const hx = Math.round(lx + 12 + (sh.x - lx) * 0.1);
     arm(g, sh.x, sh.y, hx, hy);
     const dx = hx - lx, dy = hy - (ly - 3), len = Math.max(1, Math.hypot(dx, dy)), ux = dx / len, uy = dy / len;
     for (let k = 0; k <= len + 6; k++) {

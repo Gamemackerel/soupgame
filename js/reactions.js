@@ -126,6 +126,8 @@ function splatter(S, x, y, i, j) {
     const ty = y - up;
     if (ty >= 0 && S.mat[ty * GW + x] === EMPTY) { S.swap(j, ty * GW + x); break; }
   }
+  // Water on a burning pot: a fireball.
+  if (S.fire > 0.15 && S.frame - (S.lastFireball || -999) > 120) { S.lastFireball = S.frame; S.fireball(x, y); }
   // Water on a grease fire makes it worse.
   if (S.findNb(x, y, isFire) >= 0 || S.temp[j] > 220) {
     for (let k = 0; k < 6; k++) {
@@ -156,17 +158,18 @@ function reactOil(S, x, y, i) {
   // Oil past its smoke point builds up (cook counts seconds of smoking) before the vapour catches.
   if (t > 185) { if (S.cook[i] < 255) S.cook[i]++; } else if (S.cook[i] > 0) S.cook[i]--;
   if (t > 185 && y > 0 && S.mat[i - GW] === EMPTY) {
-    if (t > 205 && S.cook[i] > 200 && rnd() < 0.03) {
+    if (t > 205 && S.cook[i] > 200 && !S.lid && !S.smother && rnd() < 0.03) {
       // Past its smoke point the oil vapour catches: a tongue of flame shoots up.
       for (let k = 1; k <= 3 + rint(4); k++) if (y - k >= 0 && S.mat[i - k * GW] === EMPTY) S.setCell(i - k * GW, FIRE, 300);
       S.addNote('smoky', 0.01); S.addNote('burnt', 0.004);
       S.discover('greasefire'); S.emit('fire', x, y);
+      S.ignite(0.3);
     } else if (rnd() < 0.01) {
       S.setCell(i - GW, SMOKE, 200); S.addNote('smoky', 0.002); S.emit('smoke', x, y, 120);
     }
   }
   // Fire feeds on oil.
-  if (S.findNb(x, y, isFire) >= 0 && rnd() < 0.004) { S.setCell(i, SMOKE, 250); return true; }
+  if (S.findNb(x, y, isFire) >= 0 && rnd() < 0.0008) { S.setCell(i, SMOKE, 250); return true; }   // slowly: a pot of oil burns for minutes
   return false;
 }
 
@@ -206,7 +209,7 @@ function reactExtinguisher(S, x, y, i) {
     if (S.mat[j] === FIRE) { S.setCell(j, rnd() < 0.5 ? SMOKE : EMPTY, 60); put = true; }
     else if (S.temp[j] > 40) S.temp[j] -= (S.temp[j] - 20) * 0.08;
   }
-  if (put) { S.discover('extinguish'); S.emit('extinguish', x, y, 60); }
+  if (put) { S.discover('extinguish'); S.emit('extinguish', x, y, 60); S.fire = Math.max(0, S.fire - 0.06); S.smother = 300; }   // a blanket of powder: no air for a while
   const j = S.findNb(x, y, isLiquid);
   if (j >= 0 && rnd() < 0.01) { S.addFlavor(j, MAT[EXTPOWDER].solu); S.setCell(i, EMPTY); return true; }
   return false;

@@ -686,3 +686,28 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
   | Beef | raw, pink, cooked, seared, charred |
   | Fish | raw, translucent, flaky, dry |
   | Onion | raw, crunchy, soft, caramelized, dark |
+
+## 21. Fire, Mess and the Ladle (implemented)
+
+**Grease fire.**
+- Once oil catches (past its smoke point, uncovered), the fire burns wherever hot oil is open to the air.
+- It builds over roughly 10 seconds, throws flames up and out of the pot, keeps its own oil hot and burns through it slowly (minutes).
+- The kitchen glows orange while it burns.
+- **Putting it out:**
+  - The lid smothers it within a second or two and keeps the pot from reigniting for a few seconds after.
+  - The extinguisher does the same.
+  - Turning the burner off doesn't put it out: burning oil keeps itself hot.
+
+**Disasters (rare).**
+- **Fireball:** water poured onto burning oil throws a fireball. The screen shakes, the chef is sooted, and it becomes a kitchen fire. (The "Fireball!" discovery.)
+- **Kitchen fire:** a full-strength grease fire left burning for about 15 seconds climbs the wall and hood. Black smoke rolls along the ceiling, soot builds on the wall and the chef's face, and it rages until the lid or extinguisher puts it out. The soot stays until a fresh pot. (The "Kitchen Fire" discovery.)
+
+**Flying food.**
+- A piece flung out of the pot flies out whole, every cell on the same path, then bounces on the stovetop, rests a while and fades.
+- Flung food and splatter that reach the chef can stain his whites and face; it clears with a fresh pot.
+
+**The ladle.**
+- It comes out when the cursor first enters the pot, then follows the cursor everywhere, held up in the air away from the pot.
+- Moving it through the pot stirs; no click is needed.
+- Just outside the walls or bottom, it presses against them to scrape.
+- Clicking an ingredient or any control puts it away until the cursor enters the pot again.

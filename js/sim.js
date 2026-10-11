@@ -18,6 +18,8 @@ const Sim = {
   happened: new Set(), used: new Set(),   // this pot only: techniques that occurred, ingredients that went in
   bubbles: 0, lastEmit: {}, flags: {}, turb: 0, swirl: 0, surface: GH,
   pushBodies: new Set(), pushDir: null, pushChain: 0, blocker: 0,
+  fire: 0, fireBig: 0, fuel: [], disaster: false, soot: 0, shake: 0, smother: 0,   // grease fire state (see firePass)
+  hitChef: null,   // set by the game: does a flying particle hit the chef? (stains him)
 };
 
 function rnd() { return Math.random(); }
@@ -38,6 +40,7 @@ Sim.reset = function () {
   this.mat.fill(0); this.temp.fill(20); this.cook.fill(0); this.life.fill(0);
   this.stirT.fill(0); this.fl.fill(0); this.fond.fill(0); this.body.fill(0); this.bodyVel.clear(); this.bodyShape.clear(); this.bodyPart.fill(0);
   this.panT = 20; this.notes = {}; this.particles = []; this.flags = {}; this.happened = new Set(); this.used = new Set();
+  this.fire = 0; this.fireBig = 0; this.fuel = []; this.disaster = false; this.soot = 0; this.shake = 0; this.smother = 0;
   this.turb = 0; this.swirl = 0; this.surface = GH;
 };
 
@@ -114,8 +117,9 @@ Sim.findNb = function (x, y, pred) {
 };
 
 Sim.particle = function (p) {
-  if (this.particles.length < 400) this.particles.push(p);
+  if (this.particles.length < 700) this.particles.push(p);
 };
+const FLOOR_Y = GY + GH + 10;   // the stovetop around the pot, where flung food lands
 
 // ---------------- Movement ----------------
 
@@ -352,10 +356,12 @@ Sim.overflowPass = function () {
 
 // A piece flung up out of the pot: it leaves as a little shower of bits that arc over the rim.
 Sim.ejectBody = function (cells, v) {
+  // The whole piece flies out together (every cell shares one velocity), then lands on the stovetop.
+  const cx = cells.reduce((s, i) => s + (i % GW), 0) / cells.length;
+  const vx = v.vx * 0.5 + (cx < GW / 2 ? -1 : 1) * (0.8 + rnd()), vy = Math.min(-1.5, v.vy * 0.6);
   for (const i of cells) {
     const x = i % GW, y = (i / GW) | 0;
-    if (rnd() < 0.6) this.particle({ x: GX + x, y: GY + y, vx: v.vx * 0.5 + (x < GW / 2 ? -1 : 1) * (0.8 + rnd()), vy: Math.min(-1.5, v.vy * 0.6),
-                                     life: 120, max: 120, c: this.cellRGB(i), kind: 'drop' });
+    this.particle({ x: GX + x, y: GY + y, vx, vy, life: 600, max: 600, c: this.cellRGB(i), kind: 'debris' });
     this.setCell(i, EMPTY);
   }
   this.emit('overflow', 0, 0, 30);
@@ -837,7 +843,7 @@ function moveGas(x, y, i, m) {
 
 function moveFire(x, y, i) {
   const S = Sim, mat = S.mat;
-  if (S.life[i] <= 1) { S.setCell(i, rnd() < 0.5 ? SMOKE : EMPTY, 200); return; }
+  if (S.life[i] <= 1) { S.setCell(i, rnd() < (S.fire > 0.3 ? 0.12 : 0.5) ? SMOKE : EMPTY, 200); return; }
   S.life[i]--;
   // Heat surroundings.
   if (y > 0) S.temp[i - GW] += 6;
@@ -1010,6 +1016,78 @@ Sim.diffuse = function () {
 
 // ---------------- Main step ----------------
 
+// ---------------- Grease fire ----------------
+// Once oil catches, the fire is a thing of its own: it burns wherever hot oil is open to the air, grows,
+// throws flames out of the pot and keeps its own oil hot. A lid smothers it fast, the extinguisher knocks it
+// back, and it dies when the burning oil runs out or cools. Water on it makes a fireball; a big fire left
+// alone becomes a kitchen fire (rare, and memorable).
+Sim.ignite = function (amount) { if (!this.smother) this.fire = Math.max(this.fire, amount); };
+
+Sim.firePass = function () {
+  if (this.shake > 0) this.shake--;
+  if (this.lid) this.smother = 240;          // no air under the lid: nothing can catch for a while after either
+  else if (this.smother > 0) this.smother--;
+  if (this.fire <= 0 && !this.disaster) return;
+  // The burning surface: the topmost cell of each column, if it's hot oil.
+  if ((this.frame & 3) === 0) {
+    this.fuel.length = 0;
+    for (let x = 0; x < GW; x++) for (let y = 0; y < GH; y++) {
+      const i = y * GW + x, m = this.mat[i];
+      if (m === EMPTY || CLS[m] === C_GAS || m === FIRE) continue;
+      if (m === OIL && this.temp[i] > 170) this.fuel.push(i);
+      break;
+    }
+  }
+  const fuel = this.fuel;
+  if (this.lid || this.smother) this.fire *= this.lid ? 0.92 : 0.97;
+  else if (fuel.length) this.fire = Math.min(1, this.fire + 0.0003 + 0.0009 * Math.min(1, fuel.length / 30));   // builds over ~10-15 s
+  else this.fire -= 0.008;
+  if (this.fire < 0.02) { this.fire = 0; this.fireBig = 0; if (this.disaster) this.disaster = false; return; }
+  for (const i of fuel) {
+    const j = i - GW;
+    if (j >= 0 && this.mat[j] === EMPTY && rnd() < this.fire * 0.06) this.setCell(j, FIRE, 320);
+    this.temp[i] = Math.min(260, this.temp[i] + this.fire * 0.8);   // burning oil keeps itself hot
+  }
+  // Flames leap up out of the pot.
+  if (fuel.length && !this.lid) {
+    const n = this.fire * Math.min(5, fuel.length * 0.1) + (rnd() < this.fire ? 1 : 0);
+    for (let k = 0; k < n; k++) {
+      const i = fuel[(rnd() * fuel.length) | 0];
+      this.particle({ x: GX + (i % GW) + rnd() * 2 - 1, y: GY + ((i / GW) | 0) - 1, vx: (rnd() - 0.5) * 0.6, vy: -(1 + this.fire * 2.6 + rnd()),
+                      life: 16 + this.fire * 34 + rnd() * 10, max: 50, c: [255, 200, 80], kind: 'flame', s: this.fire > 0.6 ? 3 : 2 });
+    }
+  }
+  if (rnd() < this.fire * 0.04) this.addNote('smoky', 0.01);
+  // A big fire left burning turns into a kitchen fire.
+  this.fireBig = this.fire > 0.85 && !this.lid ? this.fireBig + 1 : Math.max(0, this.fireBig - 3);
+  if (this.fireBig > 900 && !this.disaster) this.kitchenFire();
+  if (this.disaster) {
+    this.soot = Math.min(1, this.soot + 0.0008);
+    for (let k = 0; k < 3; k++) {
+      // Flames climbing the wall and hood around the pot, and black smoke rolling along the ceiling.
+      const x = GX - 30 + rnd() * (GW + 60), y = GY - 8 - rnd() * 50;
+      this.particle({ x, y, vx: (rnd() - 0.5) * 0.8, vy: -(0.8 + rnd() * 1.6), life: 25 + rnd() * 25, max: 50, c: [255, 180, 70], kind: 'flame', s: 3 });
+    }
+    if (rnd() < 0.5) this.particle({ x: GX - 40 + rnd() * (GW + 80), y: GY - 30 - rnd() * 40, vx: (rnd() - 0.5) * 0.6, vy: -0.4 - rnd() * 0.4, life: 120, max: 120, c: [40, 34, 36], kind: 'soot', s: 4 });
+  }
+};
+
+Sim.fireball = function (x, y) {
+  this.fire = 1; this.shake = 30;
+  for (let k = 0; k < 90; k++) {
+    const a = -Math.PI / 2 + (rnd() - 0.5) * 2.2, v = 2 + rnd() * 4.5;
+    this.particle({ x: GX + x, y: GY + y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 25 + rnd() * 30, max: 55, c: [255, 220, 120], kind: 'flame', s: 3 + rint(2) });
+  }
+  this.discover('fireball'); this.emit('fireball', x, y, 20);
+  this.kitchenFire();
+};
+
+Sim.kitchenFire = function () {
+  if (this.disaster) return;
+  this.disaster = true; this.shake = Math.max(this.shake, 40);
+  this.discover('kitchenfire'); this.emit('disaster', GW / 2, 0, 10);
+};
+
 // Caramelized means a good share of the batch has browned, not one sliver (checked twice a second).
 // Seared works the same way, but only the outside of a piece browns, so a smaller share does it.
 Sim.checkCaramel = function () {
@@ -1032,6 +1110,7 @@ Sim.step = function () {
   this.bubbles = 0;
   this.bubblePops = 0;
   this.heatPass();
+  this.firePass();
   if (this.frame % 10 === 0) this.surface = this.findSurface();
   // Boiling energy, smoothed: a rolling boil churns everything, a simmer barely moves it.
   const tgt = Math.min(1, this.bubbles / 8) + (this.dial > 0 ? 0.04 : 0);
@@ -1071,7 +1150,15 @@ Sim.updateParticles = function () {
   for (let n = ps.length - 1; n >= 0; n--) {
     const p = ps[n];
     p.life--;
-    if (p.kind === 'spill' || p.kind === 'drop') {
+    if (p.kind === 'debris') {
+      // A bit of food flung out of the pot: arcs, bounces on the stovetop, rests a while, fades.
+      if (!p.rest) {
+        p.vy += 0.15; p.x += p.vx; p.y += p.vy;
+        if (p.y >= FLOOR_Y && p.vy > 0) { p.y = FLOOR_Y; p.vy = -p.vy * 0.3; p.vx *= 0.5; if (Math.abs(p.vy) < 0.6) { p.rest = 1; p.vx = p.vy = 0; } }
+      }
+    } else if (p.kind === 'flame') {
+      p.x += p.vx + Math.sin((this.frame + n * 7) * 0.3) * 0.3; p.y += p.vy; p.vy *= 0.97; p.vx *= 0.95;
+    } else if (p.kind === 'spill' || p.kind === 'drop') {
       p.vy += 0.15; p.x += p.vx; p.y += p.vy;
       if (p.kind === 'spill' && p.y > 206) {
         this.panT -= 0.6;
@@ -1083,6 +1170,8 @@ Sim.updateParticles = function () {
       p.x += p.vx + Math.sin((this.frame + n * 13) * 0.08) * 0.15; p.y += p.vy;
     }
     if (p.kind === 'drop' && p.y > 214) { p.life = 0; if (rnd() < 0.3) this.emit('hiss', p.x, p.y, 20); }
+    // Flying food and drops that sail into the chef stain his whites.
+    if ((p.kind === 'debris' || p.kind === 'drop') && !p.rest && p.y < GY - 6 && this.hitChef && this.hitChef(p)) p.life = 0;
     if (p.life <= 0 || p.y > H) ps.splice(n, 1);
   }
 };

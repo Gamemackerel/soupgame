@@ -25,16 +25,18 @@ function toInternal(e) {
 }
 const inGrid = (x, y) => x >= GX && x < GX + GW && y >= GY && y < GY + GH;
 const overPotArea = (x, y) => x >= GX - 12 && x < GX + GW + 12 && y >= 24 && y < GY + GH;
-// The ladle goes into the pot when the cursor enters it, then keeps working up to LADLE_MARGIN px outside:
-// it clamps to the nearest wall or the bottom, so you can scrape along them by dragging just outside.
-// It only comes out again past that margin (and only goes back in from inside the pot).
+// The ladle comes out when the cursor first enters the pot, then follows it everywhere (held up in the air
+// away from the pot). Just outside the walls or bottom it presses against them, so you can scrape.
+// Clicking an ingredient or a control puts it away until the cursor enters the pot again.
 const LADLE_MARGIN = 25;
 let ladleIn = false, prevLadle = null;
 function ladleAt(x, y) {
-  const near = x >= GX - LADLE_MARGIN && x < GX + GW + LADLE_MARGIN && y >= GY - LADLE_MARGIN && y < GY + GH + LADLE_MARGIN;
   if (inGrid(x, y)) ladleIn = true;
-  else if (!near) ladleIn = false;
-  return ladleIn ? { x: Math.max(GX + 1, Math.min(GX + GW - 2, x)), y: Math.max(GY, Math.min(GY + GH - 2, y)) } : null;
+  if (!ladleIn) return null;
+  // Beside or below the pot (within the margin): pressed against the wall or bottom, scraping.
+  const beside = x >= GX - LADLE_MARGIN && x < GX + GW + LADLE_MARGIN && y >= GY && y < GY + GH + LADLE_MARGIN;
+  if (beside) return { x: Math.max(GX + 1, Math.min(GX + GW - 2, x)), y: Math.max(GY, Math.min(GY + GH - 2, y)) };
+  return { x, y, air: true };   // anywhere else, the chef just holds it up where you point
 }
 
 screen.addEventListener('pointerdown', (e) => {
@@ -51,6 +53,7 @@ screen.addEventListener('pointerdown', (e) => {
   }
   input.down = true;
   input.consumed = UI.click(p.x, p.y);
+  if (input.consumed) ladleIn = false;   // reaching for a control puts the ladle down
   // Whole eggs and fish are one click each: crack on the rim, drop, or throw.
   const held = Chef.held;
   if (!input.consumed && UI.tool === 'pour' && held && held.kind === 'whole' && overPotArea(p.x, p.y) && !Sim.lid) {
@@ -105,9 +108,10 @@ function update() {
       const ing = Chef.held;
       if (ing.kind !== 'chunk' || Sim.frame % 8 === 0) Sim.pour(ing, gx, ing.rate);
     }
-    // Stir with the ladle's (clamped) position, so dragging along outside the bottom scrapes it.
+    // Moving the ladle through the pot stirs (no click needed). Its clamped position means dragging
+    // along just outside the walls or bottom scrapes them.
     const lp = Chef.ladle;
-    if (active && lp && prevLadle) Sim.stir((lp.x - GX) | 0, (lp.y - GY) | 0, lp.x - prevLadle.x, lp.y - prevLadle.y, 5);
+    if (lp && !lp.air && prevLadle && !prevLadle.air) Sim.stir((lp.x - GX) | 0, (lp.y - GY) | 0, lp.x - prevLadle.x, lp.y - prevLadle.y, 5);
     prevLadle = lp;
     Sim.step();
   }
@@ -118,6 +122,7 @@ function update() {
       const d = DISCOVERIES.find((d) => d.id === ev.id);
       if (d) UI.banner(d.name, d.desc);
     }
+    if (ev.t === 'fireball') Chef.soot = Math.min(1, Chef.soot + 0.6);
     Chef.react(ev);
   }
   Sim.events.length = 0;
@@ -127,10 +132,32 @@ function update() {
 function drawParticles() {
   for (const p of Sim.particles) {
     const a = Math.max(0, Math.min(1, p.life / p.max));
+    if (p.kind === 'flame' || p.kind === 'soot') continue;
+    if (p.kind === 'debris') {
+      // Flung food: solid while flying, fading out after it has rested a while.
+      g.fillStyle = rgb(p.c, 1, p.rest ? Math.min(1, p.life / 120) : 1);
+      g.fillRect(p.x | 0, p.y | 0, 1, 1);
+      continue;
+    }
     const s = p.kind === 'wisp' ? 2 : 1;
     g.fillStyle = rgb(p.c, 1, p.kind === 'wisp' ? a * 0.6 : a);
     g.fillRect(p.x | 0, p.y | 0, s, p.kind === 'spill' ? 3 : s);
   }
+  // Black smoke, then flames on top with an additive glow.
+  for (const p of Sim.particles) if (p.kind === 'soot') {
+    const a = Math.max(0, Math.min(1, p.life / p.max)), s = p.s + (1 - a) * 6;
+    g.fillStyle = rgb(p.c, 1, a * 0.5); g.fillRect((p.x - s / 2) | 0, (p.y - s / 2) | 0, s | 0, s | 0);
+  }
+  g.globalCompositeOperation = 'lighter';
+  for (const p of Sim.particles) if (p.kind === 'flame') {
+    const a = Math.max(0, Math.min(1, p.life / p.max)), s = p.s || 2;
+    // Hot core (white-yellow → orange → red as it rises and cools) inside a faint, rounder glow.
+    const c = a > 0.65 ? [255, 200, 70] : a > 0.35 ? [250, 120, 30] : [190, 45, 20];
+    const x = p.x | 0, y = p.y | 0, h = Math.max(1, Math.round(s * (0.3 + a * 0.5)));
+    g.fillStyle = rgb(c, 1, a * 0.08); g.fillRect(x - h, y - h, h * 2 + 1, h * 2 + 2);
+    g.fillStyle = rgb(c, 1, Math.min(0.9, a * 1.2)); g.fillRect(x - (h >> 1), y - (h >> 1), h, h + 1);
+  }
+  g.globalCompositeOperation = 'source-over';
 }
 
 function drawCursor() {
@@ -155,6 +182,8 @@ function draw() {
   } else {
     const t = Sim.frame;
     g.drawImage(background, 0, 0);
+    // Soot from a kitchen fire stays on the wall until a fresh pot.
+    if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
     Chef.draw(g, input.x, input.y);
     Art.drawFlames(g, Sim.dial, t, false);
     Art.drawPotBack(g);
@@ -181,12 +210,16 @@ function draw() {
     Art.drawFlames(g, Sim.dial, t, true);
     Chef.drawArms(g, input.x);
     drawParticles();
+    // The whole kitchen glows orange while something is on fire.
+    if (Sim.fire > 0) { g.fillStyle = `rgba(255,120,40,${Sim.fire * (Sim.disaster ? 0.16 : 0.08) * (0.8 + Math.random() * 0.4)})`; g.fillRect(0, 0, W, H); }
     UI.draw(g, input.x, input.y);
   }
   drawCursor();
 
   sctx.imageSmoothingEnabled = false;
-  sctx.drawImage(off, 0, 0, screen.width, screen.height);
+  const shake = Sim.shake > 0 && !Judging.active ? Math.min(3, Sim.shake / 10) : 0;
+  sctx.fillStyle = '#000'; if (shake) sctx.fillRect(0, 0, screen.width, screen.height);
+  sctx.drawImage(off, Math.round((Math.random() - 0.5) * 2 * shake) * T.s, Math.round((Math.random() - 0.5) * 2 * shake) * T.s, screen.width, screen.height);
   if (Judging.active) Judging.drawText(T);
   else { UI.drawText(T, input.x, input.y); Chef.drawText(T); }
 }
@@ -213,7 +246,7 @@ const Game = {
   panel: DEV.panel ? DEV.panel.split(',').filter((id) => JUDGE_ROSTER[id]).slice(0, 3) : null,
   judging() { return { level: this.level, panel: this.panel && this.panel.length === 3 ? this.panel : null }; },
 
-  freshPot() { Sim.reset(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.journal = false; UI.card = null; Chef.select(SHELF[0]); paused = false; },
+  freshPot() { Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.journal = false; UI.card = null; Chef.select(SHELF[0]); paused = false; },
   startLevel(level) {
     this.level = level; this.panel = null;
     this.freshPot(); Menu.active = false; Judging.active = false;
@@ -245,6 +278,8 @@ const Game = {
     else if (id === 'menu') this.toMenu();
   },
 };
+// Food and drops flying out of the pot can splat onto the chef.
+Sim.hitChef = (p) => Chef.hit(p);
 Progress.load();
 if (Game.level) UI.showRecipe();
 if (!DEV.view && !DEV.level && !DEV.panel) Menu.active = true;

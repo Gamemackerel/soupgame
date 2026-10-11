@@ -202,6 +202,8 @@ const DISCOVERIES = [
   { id: 'fizz',       name: 'Volcano!',       hint: 'A white powder meets something sour.', desc: 'Baking soda + acid = foaming overflow.' },
   { id: 'flambe',     name: 'Flambé',         hint: 'Wine… and fire…',                 desc: 'Alcohol burns off in a sheet of flame, leaving mellow sweetness.' },
   { id: 'greasefire', name: 'Grease Fire',    hint: 'Oil has a limit.',                desc: 'Oil past its smoke point ignites. LID smothers it; water makes it WORSE.' },
+  { id: 'fireball',   name: 'Fireball!',      hint: 'Never do this.',                  desc: 'Water on burning oil flashes to steam and throws the fire everywhere.' },
+  { id: 'kitchenfire', name: 'Kitchen Fire',  hint: 'Some fires grow if you let them.', desc: 'A big grease fire left burning climbs the walls. Lid! Extinguisher!' },
   { id: 'splatter',   name: 'Splatter',       hint: 'Water into very hot oil.',        desc: 'Water flashes to steam under oil and spits everywhere.' },
   { id: 'thicken',    name: 'Thickened',      hint: 'Body comes from starch.',         desc: 'Roux dissolved in simmering liquid makes it thick and velvety.' },
   { id: 'crack',      name: 'Clean Crack',    hint: 'Eggs have a rim to meet.',        desc: 'Tap an egg on the pot rim, then drop it in: no shell in your soup.' },
