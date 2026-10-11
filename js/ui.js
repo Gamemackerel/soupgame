@@ -31,9 +31,6 @@ const T = {
     const w = c.measureText(str).width + 4 * s, h = size + 3 * s;
     c.strokeStyle = color; c.lineWidth = s; c.strokeRect(-w / 2, -h / 2, w, h);
     c.fillStyle = color; c.fillText(str, 0, s * 0.5);
-    // Ink that didn't take: a few pale specks.
-    c.globalCompositeOperation = 'destination-out';
-    for (let k = 0; k < 7; k++) c.fillRect(((k * 37) % 100 / 100 - 0.5) * w, ((k * 53) % 100 / 100 - 0.5) * h, s, s);
     c.restore();
   },
   bubble(str, x, y) {

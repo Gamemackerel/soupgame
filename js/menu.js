@@ -129,8 +129,8 @@ const Menu = {
         T.wrap(lv.short.toUpperCase(), r.x + 3, y + 26, r.w - 4, { size: 4, color: '#2a1820' });
         T.text(best ? best.score.toFixed(1) : 'NEW', r.x + r.w - 3, y + 1, { size: 4, color: best ? (best.passed ? '#2a7a3a' : '#a03a2a') : '#8a6a50', align: 'right' });
         // Earned a badge: stamped right across the ticket.
-        if (best && best.badge === 'good') T.stamp('GOOD SOUP', r.x + r.w / 2, y + 20, { size: 5, color: 'rgba(196,36,36,0.82)' });
-        if (best && best.badge === 'perfect') T.stamp('PERFECT', r.x + r.w / 2, y + 20, { size: 6, color: 'rgba(212,150,20,0.9)' });
+        if (best && best.badge === 'good') T.stamp('GOOD SOUP', r.x + r.w / 2, y + 20, { size: 5, color: 'rgba(196,36,36,0.97)' });
+        if (best && best.badge === 'perfect') T.stamp('PERFECT', r.x + r.w / 2, y + 20, { size: 6, color: 'rgba(212,150,20,0.97)' });
       });
     }
     T.text('BACK', 160, BACK_BTN.y + 5, { size: 6, color: '#3a2020', align: 'center' });
