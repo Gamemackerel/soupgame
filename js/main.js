@@ -121,6 +121,7 @@ function update() {
   Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour') || !!Chef.ladle || !!Chef.spoon, pouring);
 
   Tip.update();
+  Spill.update();
   if (Game.level && !Game.timedOut && Game.timeLeft() <= 0) { Game.timedOut = true; UI.banner("TIME'S UP!", 'The judges are waiting. Your dish goes out as it is.'); Game.serve(); }
   if (!paused && !Tip.active) {
     if (Chef.pouring) {
@@ -229,11 +230,80 @@ function drawPot(t, glow, g = window.g) {
   if (Sim.lid) Art.drawLid(g, t, Chef.spoon && overPotArea(input.x, input.y) ? 7 : 0, Sim.dial >= 7 && Sim.turb > 0.3);
 }
 
+// ---------- Spills: physics for food that has left the pot ----------
+// Anything poured out falls under gravity, lands on the stovetop and piles up (solids stack; liquids spread
+// into a thin puddle, then stop, and slowly evaporate). It only vanishes when it leaves the screen.
+const SPILL_FLOOR = GY + GH + 9;   // the stovetop's surface, just in front of the pot's base
+const Spill = {
+  moving: [], img: null, cv: null, ctx: null,
+  solid: new Uint8Array(W * H), liquid: new Uint8Array(W * H),
+  init() { this.cv = makeCanvas(W, H); this.ctx = this.cv.getContext('2d'); this.img = this.ctx.createImageData(W, H); },
+  clear() { this.moving.length = 0; this.solid.fill(0); this.liquid.fill(0); if (this.img) this.img.data.fill(0); },
+  add(x, y, vx, vy, c, liquid) { if (this.moving.length < 12000) this.moving.push({ x, y, vx, vy, c, liquid }); },
+  free(x, y) { return x >= 0 && x < W && y >= 0 && y < SPILL_FLOOR && !this.solid[y * W + x] && !this.liquid[y * W + x]; },
+  // (A cell moved past the screen's edge just leaves.)
+  put(x, y, c, liquid) {
+    const i = y * W + x, d = this.img.data;
+    (liquid ? this.liquid : this.solid)[i] = 1;
+    d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = liquid ? 220 : 255;
+  },
+  take(i) { this.solid[i] = this.liquid[i] = 0; this.img.data[i * 4 + 3] = 0; },
+  update() {
+    if (!this.img) this.init();
+    // Flying bits: gravity, until they hit the stovetop or something that's already landed.
+    const m = this.moving;
+    for (let k = m.length - 1; k >= 0; k--) {
+      const p = m[k];
+      p.vy += 0.2; p.vx *= 0.99;
+      const steps = Math.max(1, Math.ceil(Math.hypot(p.vx, p.vy)));
+      for (let s = 0; s < steps; s++) {
+        const nx = p.x + p.vx / steps, ny = p.y + p.vy / steps;
+        if (nx < 0 || nx >= W || ny >= H) { m.splice(k, 1); break; }   // off screen: gone
+        if (ny >= 0 && !this.free(Math.round(nx), Math.round(ny))) {
+          const x = Math.round(p.x), y = Math.round(p.y);
+          if (this.free(x, y)) this.put(x, y, p.c, p.liquid);
+          m.splice(k, 1); break;
+        }
+        p.x = nx; p.y = ny;
+      }
+    }
+    // Landed spill is falling sand: it drops, tumbles down the sides of piles, and liquid runs sideways
+    // into a thin puddle (and off the edge of the stove, out of view). Puddles slowly evaporate.
+    const d = this.img.data, flip = (Chef.t & 1) === 1;
+    for (let y = SPILL_FLOOR - 1; y >= 0; y--) {
+      for (let k = 0; k < W; k++) {
+        const x = flip ? W - 1 - k : k, i = y * W + x, liq = this.liquid[i];
+        if (!liq && !this.solid[i]) continue;
+        if (liq && Math.random() < 0.0015) { this.take(i); continue; }
+        const c = [d[i * 4], d[i * 4 + 1], d[i * 4 + 2]];
+        const move = (nx, ny) => { this.take(i); if (nx >= 0 && nx < W) this.put(nx, ny, c, liq); };
+        if (this.free(x, y + 1)) { move(x, y + 1); continue; }
+        const dx = Math.random() < 0.5 ? -1 : 1;
+        if (this.free(x + dx, y + 1) || x + dx < 0 || x + dx >= W) { move(x + dx, y + 1); continue; }
+        if (this.free(x - dx, y + 1) || x - dx < 0 || x - dx >= W) { move(x - dx, y + 1); continue; }
+        if (liq) {
+          for (const s of [dx, -dx]) {
+            const nx = x + s;
+            if (nx < 0 || nx >= W) { this.take(i); break; }
+            if (this.free(nx, y)) { move(nx, y); break; }
+          }
+        }
+      }
+    }
+  },
+  draw(g) {
+    if (!this.img) return;
+    this.ctx.putImageData(this.img, 0, 0);
+    g.drawImage(this.cv, 0, 0);
+    for (const p of this.moving) { g.fillStyle = rgb(p.c); g.fillRect(p.x | 0, p.y | 0, 1, 1); }
+  },
+};
+
 // Emptying the pot: the chef flips it (table-flip style) and it rolls over on its bottom-left edge, sliding
-// right as it goes so it stays in frame, to ~140° (still slanted, like a real pour). It holds there 4 s, then
+// right as it goes so it stays in frame, to ~140° (still slanted, like a real pour). It holds there 1 s, then
 // rolls back. Throughout, the contents feel real gravity: "down" is worked out in the pot's own tilted frame
 // every frame, so the soup sloshes to the low wall as it starts to tip, then pours out over the rim.
-const TIP_ROLL = 55, TIP_HOLD = 240, TIP_MAX = Math.PI * 0.78;
+const TIP_ROLL = 55, TIP_HOLD = 60, TIP_MAX = Math.PI * 0.78;
 const DIRS8 = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
 const Tip = {
   active: false, t: 0,
@@ -286,10 +356,11 @@ const Tip = {
         if (Sim.mat[j] === EMPTY) { Sim.swap(i, j); break; }
       }
     }
+    // Out over the rim: each cell carries on outside the pot as a spill, moving out of the mouth and down.
+    const a = -TIP_MAX * this.turn(), ox = Math.sin(a) * 1.2, oy = -Math.cos(a) * 1.2;   // the rim's outward direction on screen
     for (const i of exits) {
       const [px, py] = this.map(GX + (i % GW), GY - 1);
-      if (Math.random() < 0.7) Sim.particle({ x: px, y: py, vx: gx * 1.5 + (Math.random() - 0.5) * 0.6, vy: Math.max(0.3, gy * 1.5),
-                                              life: 400, max: 400, c: Sim.cellRGB(i), kind: 'debris' });
+      Spill.add(px, py, ox + (Math.random() - 0.5) * 0.4, oy + Math.random() * 0.3, Sim.cellRGB(i), CLS[Sim.mat[i]] === C_LIQUID);
       Sim.setCell(i, EMPTY);
     }
   },
@@ -335,12 +406,13 @@ function draw() {
     Art.drawFlames(g, Sim.dial, t, true);
     Chef.flipping = Tip.active ? Math.min(1, Tip.turn() * 2.5) : 0;
     Chef.drawArms(g, input.x);
-    if (!Tip.active) drawParticles();
+    if (!Tip.active) { drawParticles(); Spill.draw(g); }
     // The whole kitchen glows orange while something is on fire.
     if (Sim.fire > 0) { g.fillStyle = `rgba(255,120,40,${Sim.fire * (Sim.disaster ? 0.16 : 0.08) * (0.8 + Math.random() * 0.4)})`; g.fillRect(0, 0, W, H); }
     UI.draw(g, input.x, input.y);
     if (Tip.active) {
       Tip.draw(g, t, glow);
+      Spill.draw(g);
       drawParticles();
     }
   }
@@ -377,7 +449,7 @@ const Game = {
   judging() { return { level: this.level, panel: this.panel && this.panel.length === 3 ? this.panel : null }; },
 
   tipPot() { Tip.start(); },
-  freshPot() { Tip.active = false; Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; Chef.select(SHELF[0]); paused = false; },
+  freshPot() { Tip.active = false; Spill.clear(); Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; Chef.select(SHELF[0]); paused = false; },
   timeLeft() { return this.level ? Levels.timeLimit(this.level) - (Sim.frame - this.levelStart) / 60 : Infinity; },
   startLevel(level) {
     this.level = level; this.panel = null; this.timedOut = false;

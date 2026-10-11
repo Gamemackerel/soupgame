@@ -788,7 +788,11 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - Real gravity acts the whole way through: each frame, "down" is worked out in the pot's tilted frame.
   - The contents slosh to the low side as it starts to tip, liquids level out and grains pile and slide.
   - Past horizontal they pour over the rim onto the stovetop.
-- It holds about 4 seconds, then rolls back, empty.
+- It holds about 1 second, then rolls back, empty.
+- **Spills** keep their physics outside the pot (a falling-sand layer in screen space).
+  - What pours out flies out of the rim, lands on the stovetop and piles up: solids tumble down the sides of the pile, and liquid runs into a thin puddle and off the edge of the stove.
+  - Puddles slowly evaporate.
+  - Anything that leaves the screen is gone, and the rest stays until a fresh pot.
 - The pot is drawn as one solid image while it moves.
 
 **Story levels have a time limit:** the par recipe's cooking time × 1.5 plus a minute, rounded up to 30 s (3:00 for flatbread to 10:30 for goulash).
