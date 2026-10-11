@@ -76,7 +76,7 @@ const Chef = {
 
   update(cursorX, overPot, pouring) {
     this.t++;
-    this.tx = overPot ? Math.max(112, Math.min(208, cursorX)) : 160;
+    if (overPot) this.tx = Math.max(112, Math.min(208, cursorX));   // otherwise he stays where he was (e.g. at ease by a menu)
     this.x += (this.tx - this.x) * 0.12;
     this.pouring = pouring && this.held && this.swapT === 0;
     this.aiming = overPot && this.held && this.held.kind === 'whole';
