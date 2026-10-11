@@ -63,48 +63,28 @@ function makeCanvas(w, h) {
 
 // ---------------- Ingredient icons (16x16) ----------------
 
-// A plain vegetable shape: one color with a single soft highlight.
-function veg(g, cx, cy, rx, ry, c) { ellipse(g, cx, cy, rx, ry, c); ellipse(g, cx - Math.ceil(rx / 3), cy - Math.ceil(ry / 3), Math.max(1, rx >> 1), Math.max(1, ry >> 1), mix(c, [255, 255, 255], 0.3)); }
+// A plain food shape: one flat color.
+function veg(g, cx, cy, rx, ry, c) { ellipse(g, cx, cy, rx, ry, c); }
 const ICON_DRAW = {
   // Placeholders, kept deliberately plain so the redraw isn't steered: every liquid is the same bottle, every
-  // spice the same jar and every powder the same sack, tinted by the ingredient's color; vegetables are simple
-  // two-tone shapes. (Tomato, fish and egg keep their detail.)
-  liquid(g, c) {
-    rect(g, 6, 1, 4, 3, rgb(c, 0.7));                                   // neck
-    rect(g, 4, 4, 8, 11, c); rect(g, 5, 5, 2, 9, mix(c, [255, 255, 255], 0.4));
-  },
+  // spice the same jar and every powder the same sack, tinted by the ingredient's color; vegetables, meat and
+  // fish are flat blobs of the right color. (Tomato and egg keep their detail.)
+  liquid(g, c) { rect(g, 6, 1, 4, 3, rgb(c, 0.7)); rect(g, 4, 4, 8, 11, c); },   // neck, body
   spice(g, c) {
     rect(g, 4, 3, 8, 2, [150, 150, 160]);                               // lid
     rect(g, 4, 5, 8, 10, [220, 228, 236]); rect(g, 5, 7, 6, 7, c);      // glass, contents
   },
-  powder(g, c) {
-    rect(g, 5, 3, 6, 2, rgb(c, 0.85));                                  // tied top
-    rect(g, 3, 5, 10, 10, c); rect(g, 4, 6, 2, 8, mix(c, [255, 255, 255], 0.4));
-  },
+  powder(g, c) { rect(g, 5, 3, 6, 2, rgb(c, 0.85)); rect(g, 3, 5, 10, 10, c); },   // tied top, sack
   onion(g) { veg(g, 8, 9, 5, 5, [214, 160, 92]); rect(g, 8, 3, 1, 2, [214, 160, 92]); },
   garlic(g) { veg(g, 8, 9, 5, 5, [246, 240, 226]); rect(g, 8, 3, 1, 2, [246, 240, 226]); },
-  carrot(g) {
-    for (let y = 0; y < 11; y++) rect(g, 8 - Math.max(1, 3 - (y >> 2)), 4 + y, Math.max(1, 3 - (y >> 2)) * 2, 1, [244, 128, 32]);
-    rect(g, 6, 5, 1, 6, [255, 176, 100]); rect(g, 7, 1, 2, 3, [80, 170, 70]);
-  },
-  celery(g) { rect(g, 6, 2, 4, 13, [150, 210, 90]); rect(g, 6, 3, 1, 11, [200, 240, 150]); },
+  carrot(g) { veg(g, 8, 9, 3, 6, [244, 128, 32]); rect(g, 7, 2, 2, 2, [80, 170, 70]); },
+  celery(g) { veg(g, 8, 8, 2, 6, [150, 210, 90]); },
   tomato(g) { ball(g, 8, 9, 6, [228, 50, 44], false); rect(g, 6, 3, 5, 1, [70, 150, 60]); rect(g, 8, 2, 1, 2, [70, 150, 60]); },
 
 
-  drumstick(g) {
-    // A roast drumstick: golden, shaded meaty end, tapering to a white bone knob.
-    const skin = [214, 146, 70], dark = [166, 100, 44], light = [246, 196, 120];
-    ellipse(g, 6, 6, 5, 5, dark); ellipse(g, 6, 6, 4, 4, skin);
-    ellipse(g, 5, 4, 2, 2, light); rect(g, 8, 8, 2, 1, dark);
-    for (let k = 0; k < 4; k++) rect(g, 8 + k, 8 + k, 3 - (k >> 1), 2, k < 2 ? skin : dark);   // the meat narrows toward the bone
-    rect(g, 11, 11, 2, 2, [244, 238, 224]);
-    ball(g, 13, 14, 1, [250, 246, 236], false); ball(g, 14, 12, 1, [250, 246, 236], false);   // the bone's knob
-  },
+  drumstick(g) { veg(g, 7, 7, 5, 5, [214, 146, 70]); rect(g, 11, 11, 3, 2, [244, 238, 224]); },   // chicken: a lump with a bit of bone
 
-  meat(g) {
-    ellipse(g, 8, 9, 6, 5, [206, 84, 96]); ellipse(g, 7, 8, 4, 3, [226, 110, 120]);
-    rect(g, 3, 12, 10, 1, [250, 236, 230]); rect(g, 10, 6, 2, 2, [250, 236, 230]); ball(g, 13, 9, 1, [250, 246, 240], false);
-  },
+  meat(g) { veg(g, 8, 9, 6, 5, [206, 84, 96]); },
   egg(g) { ellipse(g, 8, 9, 5, 6, [250, 246, 236]); ellipse(g, 7, 7, 2, 3, [255, 255, 255]); rect(g, 10, 12, 2, 1, [220, 214, 200]); },
   eggcracked(g) {
     ellipse(g, 5, 10, 4, 4, [250, 246, 236], 'bottom'); ellipse(g, 11, 10, 4, 4, [250, 246, 236], 'bottom');
@@ -112,18 +92,18 @@ const ICON_DRAW = {
     ellipse(g, 8, 6, 2, 2, [255, 190, 40]); rect(g, 8, 8, 1, 3, [255, 200, 70]);
   },
   fish(g) {
-    ellipse(g, 7, 8, 6, 4, [150, 172, 196]); ellipse(g, 6, 9, 4, 2, [200, 214, 230]);
-    for (let k = 0; k < 4; k++) rect(g, 12 + k, 8 - k, 1, k * 2 + 1, [104, 126, 160]);
-    rect(g, 5, 3, 4, 2, [104, 126, 160]); rect(g, 3, 7, 2, 2, [24, 24, 34]); rect(g, 3, 7, 1, 1, [255, 255, 255]);
+    veg(g, 7, 8, 6, 4, [150, 172, 196]);
+    for (let k = 0; k < 3; k++) rect(g, 12 + k, 8 - k, 1, k * 2 + 1, [150, 172, 196]);   // tail
+    rect(g, 3, 7, 1, 1, [24, 24, 34]);   // eye
   },
   extinguisher(g) {
-    rect(g, 5, 4, 7, 11, [220, 40, 40]); rect(g, 5, 4, 2, 11, [250, 110, 100]); rect(g, 10, 4, 2, 11, [170, 20, 30]);
+    rect(g, 5, 4, 7, 11, [220, 40, 40]);
     rect(g, 6, 2, 5, 2, [60, 60, 70]); rect(g, 10, 1, 4, 2, [40, 40, 50]); rect(g, 13, 2, 1, 5, [40, 40, 50]);
     rect(g, 6, 8, 5, 3, [250, 250, 250]);
   },
   corn(g) { veg(g, 8, 8, 3, 6, [252, 212, 64]); rect(g, 6, 13, 4, 2, [100, 160, 70]); },
   potato(g) { veg(g, 8, 9, 6, 5, [190, 146, 90]); },
-  beans(g) { ball(g, 5, 10, 3, [206, 160, 118], false); ball(g, 10, 10, 3, [170, 70, 60], false); ball(g, 8, 6, 3, [220, 184, 140], false); },   // pinto, kidney, pinto
+  beans(g) { veg(g, 5, 10, 3, 3, [206, 160, 118]); veg(g, 10, 10, 3, 3, [170, 70, 60]); veg(g, 8, 6, 3, 3, [220, 184, 140]); },   // pinto, kidney, pinto
   pasta(g) {
     for (const [x, y] of [[3, 5], [9, 4], [5, 10], [10, 10]]) { rect(g, x, y, 4, 3, [236, 206, 128]); rect(g, x + 1, y + 1, 2, 1, [200, 160, 90]); rect(g, x, y, 4, 1, [250, 230, 170]); }
   },
