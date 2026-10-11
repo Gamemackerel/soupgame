@@ -35,8 +35,8 @@ const LEVELS = [
     ],
   },
   {
-    id: 'creamy-corn', short: 'Corn Soup', icon: 'corn', tier: 0, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
-    blurb: 'Simmer potato until it falls apart and thickens the soup, then stir in cream over low heat.',
+    id: 'creamy-corn', short: 'Creamy Corn', icon: 'corn', tier: 0, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
+    blurb: 'Sweat onion, add corn and potato, and simmer until the potato falls apart and thickens the soup. Then stir in milk over low heat.',
     hint: 'Cream splits if the pot is boiling hard. Turn the flame down first.',
     essential: ['corn'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'potato', 'corn', 'water', 'salt', 'milk'],
