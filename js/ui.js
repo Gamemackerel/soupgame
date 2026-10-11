@@ -42,7 +42,7 @@ const TOOLS = [
   { id: 'lid', icon: 'lid', label: 'Lid' },
   { id: 'clear', icon: 'trash', label: 'Empty' },
   { id: 'journal', icon: 'book', label: 'Journal', sandbox: true },
-  { id: 'quit', icon: 'sad', label: 'Quit' },
+  { id: 'quit', icon: 'door', label: 'Quit' },
 ];
 // The tools shown right now (the Journal button is a sandbox thing; in story it lives in Settings).
 const tools = () => TOOLS.filter((t) => !t.sandbox || !Game.level);
@@ -178,7 +178,7 @@ const UI = {
     if (this.card.recipe) {
       // Order ticket: paper with a clip and a perforated stub.
       const x = 100, y = 18;
-      rect(g, x + 2, y + 2, 120, 64, [30, 20, 26]); rect(g, x, y, 120, 64, [250, 246, 234]);
+      rect(g, x + 2, y + 2, 120, 80, [30, 20, 26]); rect(g, x, y, 120, 80, [250, 246, 234]);
       for (let k = 3; k < 117; k += 3) rect(g, x + k, y + 12, 1, 1, [190, 180, 160]);
       rect(g, x + 56, y - 3, 9, 6, [170, 174, 188]); rect(g, x + 57, y - 2, 7, 1, [230, 234, 242]);
       return;
@@ -244,10 +244,10 @@ const UI = {
       T.text('ORDER', x + 4, y + 4, { size: 5, color: '#8a6a50' });
       T.text(LEVEL_TIERS[L.tier].title.toUpperCase(), x + 116, y + 4, { size: 4, color: '#8a6a50', align: 'right' });
       T.wrap(L.title.toUpperCase(), x + 4, y + 16, 112, { size: 7, color: '#2a1820' });
-      T.wrap(L.blurb, x + 4, y + 30, 112, { size: 5, color: '#4a3428' });
+      T.wrap(L.blurb, x + 4, y + 29, 112, { size: 5, color: '#4a3428' });
       const lim = Levels.timeLimit(L);
-      T.text(`Time limit ${(lim / 60) | 0}:${String(lim % 60).padStart(2, '0')}`, x + 4, y + 57, { size: 4, color: '#a03a2a' });
-      T.text('click to close', x + 116, y + 57, { size: 4, color: '#a08870', align: 'right' });
+      T.text(`Time limit ${(lim / 60) | 0}:${String(lim % 60).padStart(2, '0')}`, x + 4, y + 72, { size: 4, color: '#a03a2a' });
+      T.text('click to close', x + 116, y + 72, { size: 4, color: '#a08870', align: 'right' });
       return;
     }
     const x = 92, y = 16, r = this.card.res;

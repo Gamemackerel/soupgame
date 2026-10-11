@@ -3,6 +3,9 @@
 const screen = document.getElementById('screen');
 const sctx = screen.getContext('2d');
 const off = makeCanvas(W, H), g = off.getContext('2d');
+window.g = g;
+// The pot is drawn upright into its own image while it's being tipped, then rotated as one solid piece.
+const potCanvas = makeCanvas(W, H), potCtx = potCanvas.getContext('2d');
 const simCanvas = makeCanvas(GW, GH), simCtx = simCanvas.getContext('2d');
 const simImg = simCtx.createImageData(GW, GH);
 // The default kitchen, and Papa Dom's pizza shop for the first tier.
@@ -26,7 +29,7 @@ function toInternal(e) {
 }
 const inGrid = (x, y) => x >= GX && x < GX + GW && y >= GY && y < GY + GH;
 const overPotArea = (x, y) => x >= GX - 12 && x < GX + GW + 12 && y >= 24 && y < GY + GH;
-// With the ladle, the chef reaches wherever the cursor is in the kitchen (held up in the air away from
+// With the ladle, the chef reaches wherever the cursor is in the kitchen (and keeps going over a menu while you hold the button) (held up in the air away from
 // the pot). Just outside the walls or bottom it presses against them, so you can scrape. Over the side
 // panels or the controls along the bottom he stops and just holds it.
 const LADLE_MARGIN = 25;
@@ -107,7 +110,9 @@ function update() {
   // Over a menu (or with the lid on) the chef stands at ease: hand on hip, holding whatever he has.
   Chef.onMenu = !inKitchen(input.x, input.y);
   // With the lid on, the ladle just comes to rest on top of it.
-  Chef.ladle = UI.tool === 'ladle' && !Chef.onMenu && !Tip.active
+  // Holding the button down keeps working the ladle even if the cursor strays over a menu.
+  const ladleHeld = input.down && !input.consumed && UI.tool === 'ladle';
+  Chef.ladle = UI.tool === 'ladle' && (!Chef.onMenu || ladleHeld) && !Tip.active
     ? (Sim.lid ? { x: Math.max(GX + 4, Math.min(GX + GW - 4, input.x)), y: Math.min(input.y, POT_TOP - 7), air: true } : ladleAt(input.x, input.y)) : null;
   Chef.idleLadle = UI.tool === 'ladle' && !Chef.ladle;
   // The tasting spoon works the same way: in the kitchen he reaches it wherever you point.
@@ -127,7 +132,8 @@ function update() {
     // Moving the ladle through the pot stirs (no click needed). Its clamped position means dragging
     // along just outside the walls or bottom scrapes them.
     const lp = Chef.ladle;
-    if (lp && !lp.air && prevLadle && !prevLadle.air) Sim.stir((lp.x - GX) | 0, (lp.y - GY) | 0, lp.x - prevLadle.x, lp.y - prevLadle.y, 5);
+    // Just moving the ladle stirs at about 2/3 power; clicking and holding works it at full power.
+    if (lp && !lp.air && prevLadle && !prevLadle.air) Sim.stir((lp.x - GX) | 0, (lp.y - GY) | 0, lp.x - prevLadle.x, lp.y - prevLadle.y, 5, ladleHeld ? 1 : 0.67);
     prevLadle = lp;
     Sim.step();
   }
@@ -192,7 +198,7 @@ function drawCursor(plain) {
 
 // Story levels: a countdown on the kitchen wall. When it runs out, the dish goes to the judges as it is.
 function drawTimer(g) {
-  const left = Game.timeLeft(), x = 206, y = 54, w = 42, h = 16;
+  const left = Game.timeLeft(), x = 225, y = 54, w = 36, h = 16;   // right of where the chef can stand
   rect(g, x - 1, y - 1, w + 2, h + 2, [30, 26, 30]); rect(g, x, y, w, h, [16, 14, 18]);
   const blink = left < 30 && (Chef.t >> 4) & 1;
   const s = Math.max(0, Math.ceil(left)), str = ((s / 60) | 0) + ':' + String(s % 60).padStart(2, '0');
@@ -200,7 +206,7 @@ function drawTimer(g) {
 }
 
 // The pot and everything in it (drawn in place, or rotated while it's being tipped out).
-function drawPot(t, glow) {
+function drawPot(t, glow, g = window.g) {
   Art.drawPotBack(g);
   Sim.render(simImg.data);
   simCtx.putImageData(simImg, 0, 0);
@@ -223,35 +229,65 @@ function drawPot(t, glow) {
   if (Sim.lid) Art.drawLid(g, t, Chef.spoon && overPotArea(input.x, input.y) ? 7 : 0, Sim.dial >= 7 && Sim.turb > 0.3);
 }
 
-// Emptying the pot: tip it over, pour everything out onto the floor, set it back.
+// Emptying the pot: it rolls over on its bottom edge (sliding right as it goes, so it stays in frame) until it's
+// fully upside down, holds there while real gravity dumps everything out of the rim onto the stovetop, then
+// rolls back. While it's inverted the contents are flipped in the sim, so "down" is toward the rim.
+const TIP_ROLL = 55, TIP_HOLD = 240, TIP_MAX = Math.PI * 0.78;   // ~140°: most of the way over, still slanted
 const Tip = {
   active: false, t: 0,
   start() {
     if (this.active) return;
     this.active = true; this.t = 0; Sim.lid = false;
-    // Everything in the pot, ordered so it pours out from the top and the side nearest the rim first.
-    this.queue = [];
-    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { const i = y * GW + x, m = Sim.mat[i]; if (m !== EMPTY && CLS[m] !== C_GAS && m !== FIRE) this.queue.push(i); }
-    this.perFrame = Math.ceil(this.queue.length / 60);
     Chef.react({ t: 'overflow' });
   },
-  angle() { const u = this.t < 40 ? this.t / 40 : this.t < 100 ? 1 : Math.max(0, 1 - (this.t - 100) / 30); return (1 - Math.cos(u * Math.PI)) / 2 * Math.PI / 4; },
+  phase() { return this.t < TIP_ROLL ? 'roll' : this.t < TIP_ROLL + TIP_HOLD ? 'dump' : 'back'; },
+  // How far over it is: 0 upright → 1 fully tipped.
+  turn() {
+    const u = this.t < TIP_ROLL ? this.t / TIP_ROLL : this.t < TIP_ROLL + TIP_HOLD ? 1 : Math.max(0, 1 - (this.t - TIP_ROLL - TIP_HOLD) / TIP_ROLL);
+    return (1 - Math.cos(u * Math.PI)) / 2;
+  },
+  // Roll about the bottom-left corner while sliding right (and up), so it stays in frame as it goes over.
+  slide() { const u = this.turn(); return [(POT_R - POT_L) * u, (POT_TOP - POT_BOT) * 0.85 * u]; },
+  transform(g) {
+    const [sx, sy] = this.slide();
+    g.translate(sx, sy); g.translate(POT_L, POT_BOT); g.rotate(-TIP_MAX * this.turn()); g.translate(-POT_L, -POT_BOT);
+  },
+  // Where a point on the upright pot ends up on screen.
+  map(x, y) {
+    const a = -TIP_MAX * this.turn(), [sx, sy] = this.slide(), dx = x - POT_L, dy = y - POT_BOT;
+    return [POT_L + dx * Math.cos(a) - dy * Math.sin(a) + sx, POT_BOT + dx * Math.sin(a) + dy * Math.cos(a) + sy];
+  },
   update() {
     if (!this.active) return;
     this.t++;
-    if (this.t > 30 && this.t <= 90 && this.queue.length) {
-      // The pot drains as it tips: cells leave the pot and stream out of the rim's corner onto the floor.
-      const a = this.angle(), h = POT_BOT - POT_TOP, rx = POT_L - Math.sin(a) * h, ry = POT_BOT - Math.cos(a) * h;
-      for (let k = 0; k < this.perFrame && this.queue.length; k++) {
-        const i = this.queue.shift();
-        if (Sim.mat[i] === EMPTY) continue;
-        if (k < 14) Sim.particle({ x: rx + Math.random() * 6, y: ry + Math.random() * 4, vx: -(0.8 + Math.random() * 1.8), vy: Math.random() * 0.8,
-                                   life: 400, max: 400, c: Sim.cellRGB(i), kind: 'debris' });
+    Chef.mood = 'shock'; Chef.moodT = 20;
+    if (this.t === TIP_ROLL) { Sim.flipRows(); Sim.inverted = true; }
+    if (this.phase() === 'dump') {
+      Sim.step(); Sim.events.length = 0;
+      // Whatever reaches the rim (the flipped grid's bottom row) falls out onto the stovetop.
+      for (let x = 0; x < GW; x++) {
+        const i = (GH - 1) * GW + x, m = Sim.mat[i];
+        if (m === EMPTY || CLS[m] === C_GAS || m === FIRE || Math.random() > 0.6) continue;
+        if (Math.random() < 0.5) {
+          const [px, py] = this.map(GX + x, GY);
+          Sim.particle({ x: px, y: py, vx: -0.6 + (Math.random() - 0.5), vy: 0.5 + Math.random(), life: 400, max: 400, c: Sim.cellRGB(i), kind: 'debris' });
+        }
         Sim.setCell(i, EMPTY);
       }
     }
-    if (this.t === 92) Sim.reset();
-    if (this.t >= 130) { this.active = false; Chef.say('Fresh start!', 60); }
+    if (this.t === TIP_ROLL + TIP_HOLD) Sim.reset();   // whatever's still clinging comes out with a last shake
+    if (this.t >= TIP_ROLL * 2 + TIP_HOLD) { this.active = false; Chef.mood = 'idle'; Chef.say('Fresh start!', 60); }
+  },
+  // Draw the pot upright into its own image (contents flipped while inverted), then rotate it as one piece.
+  draw(g, t, glow) {
+    potCtx.clearRect(0, 0, W, H);
+    if (this.phase() === 'dump') {
+      Art.drawPotBack(potCtx);
+      Sim.render(simImg.data); simCtx.putImageData(simImg, 0, 0);
+      potCtx.save(); potCtx.translate(GX, GY + GH); potCtx.scale(1, -1); potCtx.drawImage(simCanvas, 0, 0); potCtx.restore();
+      Art.drawPotFront(potCtx, 0);
+    } else drawPot(t, glow, potCtx);
+    g.save(); g.imageSmoothingEnabled = false; this.transform(g); g.drawImage(potCanvas, 0, 0); g.restore();
   },
 };
 
@@ -272,23 +308,21 @@ function draw() {
     g.drawImage(!Game.level ? BG.kitchen : Game.level.tier === 0 ? BG.pizza : BG.show, 0, 0);
     // Soot from a kitchen fire stays on the wall until a fresh pot.
     if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
+    if (Game.level) drawTimer(g);   // on the back wall, behind the chef
     Chef.draw(g, input.x, input.y);
     Art.drawFlames(g, Sim.dial, t, false);
-    if (Game.level) drawTimer(g);
     const glow = Math.max(0, Math.min(1, (Sim.panT - 150) / 120));
     if (glow > 0) { g.fillStyle = `rgba(255,80,30,${0.18 * glow})`; ellipse(g, 160, GY + GH + 10, 72, 4, g.fillStyle); }   // warm light on the grate
     if (!Tip.active) drawPot(t, glow);
     Art.drawFlames(g, Sim.dial, t, true);
+    Chef.flipping = Tip.active ? Math.min(1, Tip.turn() * 2.5) : 0;
     Chef.drawArms(g, input.x);
     if (!Tip.active) drawParticles();
     // The whole kitchen glows orange while something is on fire.
     if (Sim.fire > 0) { g.fillStyle = `rgba(255,120,40,${Sim.fire * (Sim.disaster ? 0.16 : 0.08) * (0.8 + Math.random() * 0.4)})`; g.fillRect(0, 0, W, H); }
     UI.draw(g, input.x, input.y);
     if (Tip.active) {
-      // Emptying: the pot tips over to the left (pivoting on its bottom corner) and everything pours out onto the floor.
-      g.save(); g.translate(POT_L, POT_BOT); g.rotate(-Tip.angle()); g.translate(-POT_L, -POT_BOT);
-      drawPot(t, glow);
-      g.restore();
+      Tip.draw(g, t, glow);
       drawParticles();
     }
   }

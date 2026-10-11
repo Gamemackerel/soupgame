@@ -119,9 +119,15 @@ const ICON_DRAW = {
     ball(g, 8, 8, 2, [190, 120, 60], false);
   },
   drumstick(g) {
-    ellipse(g, 7, 7, 5, 5, [214, 150, 80]); ellipse(g, 6, 6, 3, 3, [236, 180, 110]);
-    rect(g, 10, 10, 2, 4, [250, 246, 236]); ball(g, 12, 14, 1, [250, 246, 236], false); ball(g, 10, 14, 1, [250, 246, 236], false);
+    // A roast drumstick: golden, shaded meaty end, tapering to a white bone knob.
+    const skin = [214, 146, 70], dark = [166, 100, 44], light = [246, 196, 120];
+    ellipse(g, 6, 6, 5, 5, dark); ellipse(g, 6, 6, 4, 4, skin);
+    ellipse(g, 5, 4, 2, 2, light); rect(g, 8, 8, 2, 1, dark);
+    for (let k = 0; k < 4; k++) rect(g, 8 + k, 8 + k, 3 - (k >> 1), 2, k < 2 ? skin : dark);   // the meat narrows toward the bone
+    rect(g, 11, 11, 2, 2, [244, 238, 224]);
+    ball(g, 13, 14, 1, [250, 246, 236], false); ball(g, 14, 12, 1, [250, 246, 236], false);   // the bone's knob
   },
+
   meat(g) {
     ellipse(g, 8, 9, 6, 5, [206, 84, 96]); ellipse(g, 7, 8, 4, 3, [226, 110, 120]);
     rect(g, 3, 12, 10, 1, [250, 236, 230]); rect(g, 10, 6, 2, 2, [250, 236, 230]); ball(g, 13, 9, 1, [250, 246, 240], false);
@@ -178,6 +184,13 @@ const TOOL_DRAW = {
   spoon(g) { rect(g, 7, 7, 2, 8, [200, 206, 220]); ellipse(g, 8, 5, 3, 4, [200, 206, 220]); ellipse(g, 7, 4, 1, 2, [250, 252, 255]); },
   lid(g) { ellipse(g, 8, 10, 7, 3, [170, 178, 196]); ellipse(g, 8, 9, 6, 2, [214, 220, 232]); rect(g, 6, 5, 4, 3, [60, 50, 50]); rect(g, 7, 5, 2, 1, [110, 100, 100]); },
   book(g) { rect(g, 3, 3, 10, 11, [170, 70, 60]); rect(g, 4, 4, 8, 9, [250, 240, 220]); rect(g, 8, 4, 1, 9, [200, 180, 160]); rect(g, 5, 6, 2, 1, [150, 130, 110]); rect(g, 9, 6, 2, 1, [150, 130, 110]); },
+  door(g) {
+    rect(g, 3, 1, 10, 15, [90, 60, 40]);                   // frame
+    rect(g, 4, 2, 8, 14, [40, 30, 30]);                    // the dark doorway behind
+    rect(g, 4, 2, 6, 14, [176, 116, 64]); rect(g, 4, 2, 6, 1, [206, 146, 90]);   // the door, swung partly open
+    rect(g, 5, 4, 4, 4, [156, 100, 54]); rect(g, 5, 10, 4, 4, [156, 100, 54]);   // panels
+    rect(g, 8, 9, 1, 1, [250, 214, 110]);                  // knob
+  },
   sad(g) {
     ball(g, 8, 8, 6, [250, 214, 110], false); ellipse(g, 8, 8, 6, 6, [250, 214, 110]);
     rect(g, 5, 6, 1, 2, [60, 40, 30]); rect(g, 10, 6, 1, 2, [60, 40, 30]);

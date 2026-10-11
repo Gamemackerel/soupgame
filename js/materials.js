@@ -176,7 +176,7 @@ const SHELF = [
   { id: 'flour',   name: 'Flour',       kind: 'powder', mat: FLOUR, rate: 3, icon: 'bag',    c: [236, 226, 204] },
   { id: 'chili',   name: 'Chili Flakes',kind: 'powder', mat: CHILI, rate: 2, icon: 'jar',    c: [208, 44, 30] },
   { id: 'cumin',   name: 'Cumin',       kind: 'powder', mat: CUMIN, rate: 2, icon: 'jar',    c: [170, 116, 52] },
-  { id: 'pepper',  name: 'Black Pepper',kind: 'powder', mat: PEPPER, rate: 2, icon: 'grinder', c: [60, 54, 52] },
+  { id: 'pepper',  name: 'Black Pepper',kind: 'powder', mat: PEPPER, rate: 2, icon: 'jar',    c: [60, 54, 52] },
   { id: 'soda',    name: 'Baking Soda', kind: 'powder', mat: SODA,  rate: 3, icon: 'box',    c: [240, 120, 60] },
   { id: 'powder',  name: 'Baking Powder', kind: 'powder', mat: BAKEPOWDER, rate: 3, icon: 'box', c: [90, 140, 220] },
   { id: 'yeast',   name: 'Yeast',       kind: 'powder', mat: YEAST, rate: 2, icon: 'packet', c: [214, 190, 140] },

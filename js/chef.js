@@ -202,6 +202,16 @@ const Chef = {
       else if (k === 'spray') { ang = 2.2; ix += Math.round(Math.sin(this.pourPhase * 0.5) * 2); }
       else { ang = 1.2 + Math.sin(this.pourPhase * 0.4) * 0.3; }
     }
+    // Emptying the pot: both arms fly up, table-flip style.
+    if (this.flipping) {
+      const u = this.flipping;
+      for (const sd of [-1, 1]) {
+        const s0 = sd < 0 ? shL : sh, hx = cx + sd * (26 + 6 * u), hy = POT_TOP - 2 - u * 46;
+        const ex = cx + sd * (30 + 4 * u), ey = 92 + by - u * 12;
+        arm(g, s0.x, s0.y, ex, ey); arm(g, ex, ey, hx, hy); ball(g, hx, hy, 3, SKIN);
+      }
+      return;
+    }
     // Left hand rests on the rim (on his hip while he stands at ease with the ladle); right hand holds the item.
     if (this.idleLadle) {
       const ex = cx - 30, ey = 97, hx = cx - 19, hy = POT_TOP - 4;

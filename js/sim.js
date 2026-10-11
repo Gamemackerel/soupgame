@@ -36,11 +36,18 @@ Sim.newBody = function (kind = BK_FIRM) {
   return this.nextBody;
 };
 
+// Turn the pot's contents upside down (for emptying it): row y swaps with row GH-1-y, so gravity now pulls
+// everything toward the rim. Pieces lose their remembered shapes and momentum.
+Sim.flipRows = function () {
+  for (let y = 0; y < GH >> 1; y++) for (let x = 0; x < GW; x++) this.swap(y * GW + x, (GH - 1 - y) * GW + x);
+  this.bodyShape.clear(); this.bodyVel.clear(); this.fond.fill(0);
+};
+
 Sim.reset = function () {
   this.mat.fill(0); this.temp.fill(20); this.cook.fill(0); this.life.fill(0);
   this.stirT.fill(0); this.fl.fill(0); this.fond.fill(0); this.body.fill(0); this.bodyVel.clear(); this.bodyShape.clear(); this.bodyPart.fill(0);
   this.panT = 20; this.notes = {}; this.particles = []; this.flags = {}; this.happened = new Set(); this.used = new Set();
-  this.fire = 0; this.fireBig = 0; this.fuel = []; this.disaster = false; this.soot = 0; this.shake = 0; this.smother = 0;
+  this.fire = 0; this.fireBig = 0; this.fuel = []; this.disaster = false; this.soot = 0; this.shake = 0; this.smother = 0; this.inverted = false;
   this.turb = 0; this.swirl = 0; this.surface = GH;
 };
 
@@ -823,7 +830,11 @@ function moveGas(x, y, i, m) {
     // are stacked or not, this is its one chance to re-condense instead of escaping as steam.
     if (m === STEAM && S.life[i] >= 80) {
       S.bubblePops++;
-      if (rnd() > 0.009) {    // nearly every bubble re-condenses; a few escape as steam (slow reduction)
+      // A deep pot: nearly every bubble re-condenses and a few escape (slow reduction). A thin film on the
+      // hot metal flashes off: most of its bubbles escape, so a pot really can boil dry.
+      let depth = 0;
+      for (let k = 1; k <= 2 && y + k < GH; k++) if (CLS[mat[i + k * GW]] === C_LIQUID) depth++; else break;
+      if (rnd() > (depth === 0 && y === GH - 1 && S.dial >= 7 ? 0.35 : 0.009)) {   // only the last film, on a hot pan, flashes off
         S.keepFlavor(i, () => S.setCell(i, BROTH, 99));
         // Bursting bubbles fling droplets up off the surface, and over the rim of a full pot.
         if (rnd() < S.turb * 0.4) {
@@ -902,9 +913,9 @@ Sim.heatPass = function () {
   // it holds its heat and cools off slowly.
   const target = 20 + this.dial * 25;
   this.panT += (target - this.panT) * (target > this.panT ? 0.012 : 0.004);
-  // Burner heats the pot bottom.
+  // Burner heats the pot bottom (not while the pot is upside down being emptied).
   const base = (GH - 1) * GW;
-  for (let x = 0; x < GW; x++) {
+  for (let x = 0; x < (this.inverted ? 0 : GW); x++) {
     const i = base + x, m = mat[i];
     // Wet food is mostly water and a char film is thin: both pass the pan's heat on about as well as water.
     let k = COND[m];
@@ -1237,7 +1248,9 @@ Sim.pour = function (ing, x, amount) {
 };
 
 // Ladle stir: drags everything in a disc along the stroke, and spins up a lasting whirlpool.
-Sim.stir = function (cx, cy, dx, dy, r) {
+// power: how hard the ladle is worked (just moving it ≈ 2/3, holding the button down = 1).
+Sim.stir = function (cx, cy, dx, dy, r, power = 1) {
+  dx *= power; dy *= power;
   const sp = Math.hypot(dx, dy);
   if (sp < 0.3) return;
   const ux = dx / sp, uy = dy / sp, push = Math.min(5, sp);
@@ -1255,7 +1268,7 @@ Sim.stir = function (cx, cy, dx, dy, r) {
         if (this.bodyKind[this.body[i]] === BK_SOFT && rnd() < 0.6) this.body[i] = 0;
         else { this.pushBodies.add(this.body[i]); continue; }
       }
-      if (m === EMPTY || CLS[m] === C_GAS || rnd() > 0.85) continue;
+      if (m === EMPTY || CLS[m] === C_GAS || rnd() > 0.85 * power) continue;
       // Burnt bits are welded to the pot: each pass scrapes a little loose (more with a hard stroke).
       // Food that's starting to catch sticks too, but comes away more easily.
       if (this.stuck(i) && rnd() > 0.1 * Math.min(2, sp / 2)) continue;

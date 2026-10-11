@@ -708,7 +708,7 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 
 **The ladle.**
 - It comes out when the cursor first enters the pot, then follows the cursor everywhere, held up in the air away from the pot.
-- Moving it through the pot stirs; no click is needed.
+- Moving it through the pot stirs at about 2/3 power; clicking and holding works it at full power, and while you hold the button the ladle stays out even over a menu.
 - Just outside the walls or bottom, it presses against them to scrape.
 - Clicking an ingredient or any control puts it away until the cursor enters the pot again.
 
@@ -765,13 +765,15 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 
 **Tools.**
 - There's no Pour tool: clicking a pantry item is pouring. Stir and Taste toggle (click again to put them down).
-- The tools are Stir, Taste, Lid, Empty, **Journal** (sandbox only) and **Quit** (with a sad face; back to level select, or the title in sandbox). Every button highlights on hover.
+- The tools are Stir, Taste, Lid, Empty, **Journal** (sandbox only) and **Quit** (a door; back to level select, or the title in sandbox). Every button highlights on hover.
 - The pantry's name bubble points right at the cursor.
 
 **The Journal** has moved to Settings on the title screen; J opens it while cooking.
 - It is a paged book, ten entries to a page, each with its full description (or a hint while undiscovered).
 - Discoveries are saved across sessions.
 - A technique you discover for the first time ever gets the full banner. After that, whenever it happens in a pot, a small toast slides in at the side of the kitchen.
+
+**Boiling dry:** at high heat (7+) the last single-cell film of water on the pot bottom flashes off, so a pot really can boil completely dry (half a pot at full heat in about 6 minutes).
 
 **Tasting** works on solid food too (a sear, a bake): with no liquid in the pot, the spoon tastes the food the way the judges would.
 
@@ -781,7 +783,10 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - The ladle comes to rest on top of it.
 - Pouring onto a closed pot bounces everything off the lid and across the kitchen (and sometimes onto the chef).
 
-**Emptying the pot** tips it over 45° to the left, pivoting on its bottom corner. The contents drain from the top and the rim side first and stream out onto the floor, then the pot rights itself, empty.
+**Emptying the pot.**
+- The chef throws his arms up (a table-flip) and the pot rolls over on its bottom-left edge, sliding right as it goes so it stays in frame, until it's about 140° over: most of the way, still slanted, like a real pour.
+- It holds there 4 seconds while the contents, turned over in the simulation so gravity pulls them toward the rim, really fall out onto the stovetop. Then it rolls back, empty.
+- The pot is drawn as one solid image while it moves.
 
 **Story levels have a time limit:** the par recipe's cooking time × 1.5 plus a minute, rounded up to 30 s (3:00 for flatbread to 10:30 for goulash).
 - A red LED countdown on the kitchen wall shows the time, and it blinks in the last 30 s. The order ticket lists the limit.
