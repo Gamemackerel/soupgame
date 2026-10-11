@@ -138,7 +138,7 @@ const STORY = {
       "Word of advice, though. Be careful out there. Don't go beating chefs you're not supposed to beat.",
       "Embarrass the wrong person, and that's a mistake you don't come back from.",
     ] },
-    { card: true, lines: ['TO BE CONTINUED', 'The next chapter is still cooking. (Developer note: tiers 2 and 3 are coming soon.)'] },
+    { card: true, lines: ['TO BE CONTINUED', 'The next chapter is still cooking.'] },
   ],
 };
 const SPEAKERS = { dom: { name: 'PAPA DOM', theme: [196, 50, 44] }, gordo: { name: 'GORDO HAMSIE', theme: [200, 50, 50] } };
