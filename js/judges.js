@@ -402,7 +402,7 @@ const Judging = {
 
   // Buttons on the 'done' screen.
   buttons() {
-    let list = [['keep', 'KEEP COOKING'], ['new', 'NEW POT'], ['menu', 'LEVEL SELECT']];
+    let list = [['keep', 'KEEP COOKING'], ['new', 'NEW POT'], ['menu', 'MENU']];
     if (this.level) {
       const next = typeof Game !== 'undefined' && this.levelResult && this.levelResult.passed && Game.nextLevel();
       list = [['retry', 'RETRY'], next ? ['next', 'NEXT DISH'] : null, ['menu', 'LEVEL SELECT']].filter(Boolean);

@@ -180,14 +180,25 @@ Art.toolIcon = function (type) {
 
 // ---------------- Kitchen background (pre-rendered once) ----------------
 
-Art.buildBackground = function () {
+// theme: 'kitchen' (the default kitchen) or 'pizza' (Papa Dom's pizza shop, for the first tier).
+Art.buildBackground = function (theme = 'kitchen') {
   const cv = makeCanvas(W, H), g = cv.getContext('2d');
+  const pizza = theme === 'pizza';
+  if (pizza) {
+    // Exposed brick wall.
+    rect(g, 0, 0, W, 150, [160, 78, 60]);
+    for (let y = 0; y < 150; y += 7) {
+      rect(g, 0, y, W, 1, [120, 58, 46]);
+      for (let x = ((y / 7) & 1) * 7; x < W; x += 14) { rect(g, x, y, 1, 7, [120, 58, 46]); rect(g, x + 1, y + 1, 12, 1, [176, 90, 70]); }
+    }
+  } else {
   // Back wall: warm tiles.
   rect(g, 0, 0, W, 150, [246, 222, 196]);
   for (let y = 0; y < 150; y += 12) for (let x = (y / 12 % 2) * 6; x < W; x += 12) {
     rect(g, x, y, 11, 11, [252, 232, 208]); rect(g, x, y, 11, 1, [255, 244, 228]);
   }
   for (let y = 0; y < 150; y += 12) rect(g, 0, y + 11, W, 1, [226, 196, 170]);
+  }
   // We're looking slightly up: a range hood looms overhead, seen from underneath.
   for (let y = 0; y < 13; y++) {
     const inset = 70 + y * 1.5;
@@ -195,6 +206,26 @@ Art.buildBackground = function () {
   }
   rect(g, 92, 12, 136, 2, [70, 72, 86]);
   rect(g, 110, 9, 22, 2, [255, 236, 170]); rect(g, 188, 9, 22, 2, [255, 236, 170]);   // hood lights
+  if (pizza) {
+    // Chalkboard menu, upper right.
+    rect(g, 194, 8, 58, 42, [110, 76, 50]); rect(g, 197, 11, 52, 36, [40, 48, 44]);
+    for (let k = 0; k < 5; k++) { rect(g, 201, 15 + k * 6, 22 + ((k * 7) % 14), 1, [210, 214, 206]); rect(g, 236, 15 + k * 6, 8, 1, [230, 200, 120]); }
+    ellipse(g, 240, 40, 6, 3, [230, 170, 80]); ellipse(g, 240, 40, 4, 2, [200, 70, 50]);   // a little chalk pizza
+    // Italian-flag bunting across the top.
+    for (let x = 64; x < 196; x += 12) {
+      const c = [[60, 160, 80], [246, 246, 240], [210, 50, 50]][((x - 64) / 12) % 3];
+      for (let k = 0; k < 6; k++) rect(g, x + k, 14 + k, 12 - k * 2, 1, c);
+    }
+    rect(g, 62, 13, 136, 1, [80, 60, 50]);
+    // Wood-fired pizza oven, its mouth glowing, lower left of the wall.
+    ellipse(g, 98, 104, 36, 30, [130, 70, 54], 'top'); ellipse(g, 98, 104, 34, 28, [180, 96, 70], 'top');
+    for (let y = 80; y < 104; y += 6) rect(g, 66, y, 64, 1, [150, 76, 58]);
+    ellipse(g, 98, 104, 15, 13, [40, 20, 16], 'top'); ellipse(g, 98, 104, 12, 10, [230, 120, 40], 'top'); ellipse(g, 98, 104, 7, 6, [255, 210, 110], 'top');
+    rect(g, 60, 104, 76, 6, [110, 60, 46]); rect(g, 60, 104, 76, 1, [150, 84, 64]);
+    // A pizza peel leaning on the wall.
+    rect(g, 140, 50, 2, 40, [150, 110, 70]); ellipse(g, 141, 94, 7, 6, [190, 150, 100]);
+    rect(g, 0, 140, W, 10, [120, 60, 46]);
+  } else {
   // Window with sky, upper right.
   rect(g, 196, 8, 54, 40, [120, 80, 60]); rect(g, 199, 11, 48, 34, [150, 210, 245]);
   ellipse(g, 214, 26, 8, 3, [255, 255, 255]); ellipse(g, 236, 18, 6, 2, [255, 255, 255]);
@@ -209,6 +240,7 @@ Art.buildBackground = function () {
   hang(150, 16, (x, y) => ellipse(g, x, y + 3, 4, 4, [200, 120, 70]));
   // Shadowy back counter line.
   rect(g, 0, 140, W, 10, [200, 170, 150]);
+  }
   // Counter/stovetop: from a low angle its top is a thin sliver, so mostly we see the back wall.
   rect(g, 0, 150, W, 50, [214, 186, 164]);
   for (let x = 0; x < W; x += 12) rect(g, x, 150, 1, 50, [200, 172, 150]);

@@ -8,7 +8,7 @@ The beta ships the first two tiers, 10 recipes in all:
 
 | Tier | Title | Judges |
 | --- | --- | --- |
-| 0 | Pizza shop employee | the dog, the cat, Joe (a random human) |
+| 0 | Pizza Shop | the dog, the cat, Joe (a random human) |
 | 1 | First Michelin star | Gordo Hamsie, Paul Bollywood, Sir Pounce (the cat) |
 
 Earning the first star doesn't unlock tiers 2 and 3 yet. They stay greyed out on the level select screen until they're built.

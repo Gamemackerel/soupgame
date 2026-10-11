@@ -5,7 +5,7 @@
 // taste it produces into js/level-targets.js, so targets always match the current chemistry.
 
 const LEVEL_TIERS = [
-  { tier: 0, title: 'Pizza Shop Employee', judges: ['biscuit', 'pounce', 'joe'] },
+  { tier: 0, title: 'Pizza Shop', judges: ['biscuit', 'pounce', 'joe'] },
   { tier: 1, title: 'First Michelin Star', judges: ['gordo', 'paul', 'pounce'] },
   { tier: 2, title: 'Tier 2', locked: true },
   { tier: 3, title: 'Tier 3', locked: true },

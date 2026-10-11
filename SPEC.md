@@ -717,3 +717,26 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - Clicking in the food takes a sip of the whole pot (flavor and the texture of what's in it). He lifts the spoon to his mouth.
 - If the pot is badly unmixed (some part of the broth more than 4× as strong as the pot's average, e.g. salt or soy just poured and not stirred), the card shows question marks and asks you to stir.
 - Over the menus he holds the spoon up at his lips, pondering. With the ladle, he stands at ease, hand on hip, ladle held upright.
+
+## 22. Title Menu and Story (implemented, `js/story.js`, `js/menu.js`)
+
+**Title menu:**
+- **Story** opens level select. The first time, Papa Dom's intro plays first.
+- **Sandbox** is free play.
+- **Settings** holds Reset Progress (click twice). It wipes scores, badges and which story scenes you've seen.
+
+Level select has a Back button to the title. In sandbox, the tools panel's Menu button and the results screen's Menu button return to the title. In a level they go to level select.
+
+**Story scenes** are character portraits under a dramatic vignette with typed-out dialogue (click to advance, Esc to skip), picture shots of about 2.5 s, and fades between. Each plays once.
+
+| Scene | When | Beats |
+|---|---|---|
+| `intro` | First time you open Story | **Papa Dom**: the shop is struggling, "we need to innovate". **The shop at night:** neon PAPA DOM'S PIZZA with a sputtering letter, a rat crossing the pavement. **Dom** promotes you from lowly employee to head chef: a huge soup pot from Craigslist, a pile of ingredients and his nonna's old recipe book. "Find something truly delicious that brings customers in the door." |
+| `pizzaDone` | First time every Pizza Shop dish is passed | **Dom**: "You did it!" **The shop by day** with a line out the door. **Dom**: "This place ain't a business. It's family." A **silhouette**: "Excuse me... could we talk for a second?" **Gordo Hamsie** has scouted you for his new show, *Souped Up*: amateur chefs competing for glory, and the winner earns a Michelin star. |
+| `showDone` | First time every First Michelin Star dish is passed | **Gordo**: "I didn't think you could do it!" Then a warning: don't beat any chefs you're not supposed to; embarrassing the wrong person would be a huge mistake. A **To Be Continued** card (developer note: tiers 2 and 3 are coming soon). |
+
+**Papa Dom** is a satirical Vin Diesel lookalike, all about family: bald, stubbled, built like a truck, in a ribbed tank top, red apron and gold chain.
+
+The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-flag bunting, a chalkboard menu, a glowing wood-fired oven and a pizza peel. The First Michelin Star tier and sandbox use the regular kitchen.
+
+**Dev hashes:** `#story=intro`, `#story=pizzaDone`, `#story=showDone`.

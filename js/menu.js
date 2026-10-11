@@ -11,7 +11,7 @@ const Progress = {
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch (e) { /* ignore */ } },
 
   best(id) { return this.data.best[id] || null; },
-  reset() { this.data = { best: {} }; this.save(); },
+  reset() { this.data = { best: {}, story: {} }; this.save(); },
   passed(id) { const b = this.best(id); return !!(b && b.passed); },
 
   // Keep the best score, and every badge or handshake ever earned on the dish.
@@ -38,19 +38,17 @@ const Progress = {
 
 // ---------- The pass board ----------
 const BOARD = { rowY: 28, rowH: 44, labelW: 66, ticketX: 74, ticketW: 44, ticketH: 38, gap: 4 };
-const SANDBOX_BTN = { x: 120, y: 218, w: 80, h: 16 };
-const RESET_BTN = { x: 284, y: 226, w: 32, h: 10 };   // dev: wipe saved progress (click twice)
+const BACK_BTN = { x: 120, y: 218, w: 80, h: 16 };
 
 const Menu = {
-  active: false, t: 0, hover: null, flash: null, confirmReset: 0,
+  active: false, t: 0, hover: null, flash: null,
 
   ticket(tier, n) {
     return { x: BOARD.ticketX + n * (BOARD.ticketW + BOARD.gap), y: BOARD.rowY + tier * BOARD.rowH + 5 + (n & 1), w: BOARD.ticketW, h: BOARD.ticketH };
   },
 
   pick(x, y) {
-    if (UI.hit(SANDBOX_BTN, x, y)) return { type: 'sandbox' };
-    if (UI.hit(RESET_BTN, x, y)) return { type: 'reset' };
+    if (UI.hit(BACK_BTN, x, y)) return { type: 'back' };
     for (const t of LEVEL_TIERS) {
       const levels = LEVELS.filter((l) => l.tier === t.tier);
       for (let n = 0; n < 5; n++) if (UI.hit(this.ticket(t.tier, n), x, y)) return { type: 'level', tier: t.tier, level: levels[n] || null };
@@ -61,16 +59,11 @@ const Menu = {
   click(x, y) {
     const h = this.pick(x, y);
     if (!h) return;
-    if (h.type === 'reset') {
-      if (this.confirmReset > 0) { Progress.reset(); this.confirmReset = 0; this.flash = { text: 'Progress reset', t: 0 }; }
-      else this.confirmReset = 180;
-      return;
-    }
-    if (h.type === 'sandbox') Game.startSandbox();
+    if (h.type === 'back') Game.toTitle();
     else if (h.level && Progress.unlocked(h.tier)) Game.startLevel(h.level);
   },
 
-  update(mx, my) { this.t++; if (this.confirmReset > 0) this.confirmReset--; this.hover = this.pick(mx, my); if (this.flash && ++this.flash.t > 240) this.flash = null; },
+  update(mx, my) { this.t++; this.hover = this.pick(mx, my); if (this.flash && ++this.flash.t > 240) this.flash = null; },
 
   draw(g) {
     // Stainless wall behind the kitchen pass, warm heat lamps along the top.
@@ -111,15 +104,7 @@ const Menu = {
         if (best && best.handshake) { rect(g, r.x + r.w - 10, y + 20, 4, 3, [176, 120, 84]); rect(g, r.x + r.w - 7, y + 21, 4, 3, [236, 196, 160]); }
       }
     }
-    // Dev reset.
-    const armed = this.confirmReset > 0;
-    rect(g, RESET_BTN.x, RESET_BTN.y, RESET_BTN.w, RESET_BTN.h, armed ? [150, 40, 40] : [70, 72, 84]);
-    rect(g, RESET_BTN.x + 1, RESET_BTN.y + 1, RESET_BTN.w - 2, RESET_BTN.h - 2, armed ? [220, 70, 60] : [96, 98, 110]);
-    // Sandbox button.
-    const hs = this.hover && this.hover.type === 'sandbox';
-    rect(g, SANDBOX_BTN.x, SANDBOX_BTN.y, SANDBOX_BTN.w, SANDBOX_BTN.h, [40, 24, 30]);
-    rect(g, SANDBOX_BTN.x + 1, SANDBOX_BTN.y + 1, SANDBOX_BTN.w - 2, SANDBOX_BTN.h - 2, hs ? [255, 226, 130] : [250, 210, 90]);
-    rect(g, SANDBOX_BTN.x + 1, SANDBOX_BTN.y + 1, SANDBOX_BTN.w - 2, 2, [255, 240, 170]);
+    button(g, BACK_BTN, this.hover && this.hover.type === 'back');
   },
 
   drawText(T) {
@@ -139,8 +124,7 @@ const Menu = {
         T.text(best ? best.score.toFixed(1) : 'NEW', r.x + r.w - 3, y + 1, { size: 4, color: best ? (best.passed ? '#2a7a3a' : '#a03a2a') : '#8a6a50', align: 'right' });
       });
     }
-    T.text('SANDBOX', 160, SANDBOX_BTN.y + 5, { size: 6, color: '#3a2020', align: 'center' });
-    T.text(this.confirmReset > 0 ? 'SURE?' : 'RESET', RESET_BTN.x + RESET_BTN.w / 2, RESET_BTN.y + 3, { size: 4, color: '#eef', align: 'center' });
+    T.text('BACK', 160, BACK_BTN.y + 5, { size: 6, color: '#3a2020', align: 'center' });
     // Hovered dish: its blurb along the bottom.
     const h = this.hover;
     if (h && h.type === 'level' && h.level && Progress.unlocked(h.tier)) T.wrap(h.level.title + ': ' + h.level.blurb, 8, 208, 104, { size: 4, color: '#c8cad8' });
@@ -158,3 +142,63 @@ function stamp(g, x, y, badge) {
     rect(g, x, y + 2, 1, 1, [60, 150, 70]); rect(g, x + 1, y + 3, 1, 1, [60, 150, 70]); rect(g, x + 2, y + 2, 1, 1, [60, 150, 70]); rect(g, x + 3, y + 1, 1, 1, [60, 150, 70]); rect(g, x + 4, y, 1, 1, [60, 150, 70]);
   }
 }
+
+function button(g, b, hov, danger) {
+  rect(g, b.x, b.y, b.w, b.h, [40, 24, 30]);
+  rect(g, b.x + 1, b.y + 1, b.w - 2, b.h - 2, danger ? (hov ? [236, 96, 80] : [214, 70, 60]) : hov ? [255, 226, 130] : [250, 210, 90]);
+  rect(g, b.x + 1, b.y + 1, b.w - 2, 2, danger ? [250, 140, 120] : [255, 240, 170]);
+}
+
+// ---------- Title menu (Story, Sandbox, Settings) and Settings ----------
+const TITLE_BTNS = [
+  { id: 'story', label: 'STORY', x: 110, y: 118, w: 100, h: 20 },
+  { id: 'sandbox', label: 'SANDBOX', x: 110, y: 144, w: 100, h: 20 },
+  { id: 'settings', label: 'SETTINGS', x: 110, y: 170, w: 100, h: 20 },
+];
+const SETTINGS_BTNS = [
+  { id: 'reset', label: 'RESET PROGRESS', x: 95, y: 110, w: 130, h: 20, danger: true },
+  { id: 'back', label: 'BACK', x: 110, y: 170, w: 100, h: 20 },
+];
+
+const Title = {
+  active: false, page: 'root', hover: null, confirmReset: 0, flash: null,
+  buttons() { return this.page === 'root' ? TITLE_BTNS : SETTINGS_BTNS; },
+  update(mx, my) {
+    this.hover = this.buttons().find((b) => UI.hit(b, mx, my)) || null;
+    if (this.confirmReset > 0) this.confirmReset--;
+    if (this.flash && ++this.flash.t > 150) this.flash = null;
+  },
+  click(x, y) {
+    const b = this.buttons().find((b) => UI.hit(b, x, y));
+    if (!b) return;
+    if (b.id === 'story') Game.startStory();
+    else if (b.id === 'sandbox') Game.startSandbox();
+    else if (b.id === 'settings') this.page = 'settings';
+    else if (b.id === 'back') this.page = 'root';
+    else if (b.id === 'reset') {
+      if (this.confirmReset > 0) { Progress.reset(); this.confirmReset = 0; this.flash = { text: 'Progress reset', t: 0 }; }
+      else this.confirmReset = 180;
+    }
+  },
+  draw(g) {
+    // The kitchen, dimmed, with the pot as a backdrop.
+    g.drawImage(BG.kitchen, 0, 0);
+    Art.drawPotBack(g); Art.drawPotFront(g, 0);
+    rect(g, 0, 0, W, H, 'rgba(20,12,18,0.62)');
+    for (const b of this.buttons()) button(g, b, this.hover === b, b.danger);
+  },
+  drawText(T) {
+    if (this.page === 'root') {
+      T.text('SOUP POT', 160, 40, { size: 26, color: '#ffe9c0', align: 'center', shadow: true });
+      T.text('a falling-sand cooking game', 160, 80, { size: 6, color: '#d8c0b0', align: 'center' });
+    } else {
+      T.text('SETTINGS', 160, 50, { size: 16, color: '#ffe9c0', align: 'center', shadow: true });
+      T.text('Wipes your scores, badges and story progress.', 160, 136, { size: 5, color: '#d8c0b0', align: 'center' });
+    }
+    for (const b of this.buttons()) {
+      const label = b.id === 'reset' && this.confirmReset > 0 ? 'CLICK AGAIN TO RESET' : b.label;
+      T.text(label, b.x + b.w / 2, b.y + 7, { size: 6, color: b.danger ? '#fff' : '#3a2020', align: 'center' });
+    }
+    if (this.flash) T.text(this.flash.text, 160, 200, { size: 7, color: '#ffd860', align: 'center', shadow: true });
+  },
+};

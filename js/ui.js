@@ -86,7 +86,7 @@ const UI = {
       else this.tool = id;
     }
     else if (h.type === 'serve') Game.serve();
-    else if (h.type === 'menu') Game.toMenu();
+    else if (h.type === 'menu') Game.level ? Game.toMenu() : Game.toTitle();
     else if (h.type === 'recipe') this.showRecipe();
     else if (h.type === 'dial') { this.dragDial = true; this.setDial(x, y); }
     return true;
@@ -199,11 +199,12 @@ const UI = {
   },
 
   drawText(T, mx, my) {
-    T.text('LEVELS', MENU_BTN.x + MENU_BTN.w / 2, MENU_BTN.y + 4, { size: 5, color: '#3a2014', align: 'center' });
+    T.text(Game.level ? 'LEVELS' : 'MENU', MENU_BTN.x + MENU_BTN.w / 2, MENU_BTN.y + 4, { size: 5, color: '#3a2014', align: 'center' });
     // In a level the dish's name takes the title spot; click it to read the recipe blurb again.
     T.text(Game.level ? Game.level.title.toUpperCase() : 'SOUP POT', 160, 1, { size: Game.level && Game.level.title.length > 14 ? 6 : 7, color: '#ffe9c0', align: 'center' });
-    T.text('PANTRY', 29, 4, { size: 6, color: '#7a3a2a', align: 'center' });
-    T.text('TOOLS', 291, 4, { size: 6, color: '#7a3a2a', align: 'center' });
+    const label = Game.level && Game.level.tier === 0 ? '#ffe9c0' : '#7a3a2a';   // light on the pizza shop's brick
+    T.text('PANTRY', 29, 4, { size: 6, color: label, align: 'center' });
+    T.text('TOOLS', 291, 4, { size: 6, color: label, align: 'center' });
     TOOLS.forEach((tl, n) => {
       const s = this.toolSlot(n);
       const label = tl.id === 'lid' ? (Sim.lid ? 'Lid on' : 'Lid off') : tl.id === 'clear' && this.confirmClear ? 'Sure?' : tl.label;

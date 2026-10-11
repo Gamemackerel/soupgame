@@ -5,7 +5,8 @@ const sctx = screen.getContext('2d');
 const off = makeCanvas(W, H), g = off.getContext('2d');
 const simCanvas = makeCanvas(GW, GH), simCtx = simCanvas.getContext('2d');
 const simImg = simCtx.createImageData(GW, GH);
-const background = Art.buildBackground();
+// The default kitchen, and Papa Dom's pizza shop for the first tier.
+const BG = { kitchen: Art.buildBackground('kitchen'), pizza: Art.buildBackground('pizza') };
 
 const input = { x: 160, y: 120, px: 160, py: 120, down: false, consumed: false };
 let paused = false;
@@ -42,6 +43,8 @@ screen.addEventListener('pointerdown', (e) => {
   const p = toInternal(e);
   input.x = input.px = p.x; input.y = input.py = p.y;
   screen.setPointerCapture(e.pointerId);
+  if (Story.active) { Story.click(); return; }
+  if (Title.active) { Title.click(p.x, p.y); return; }
   if (Menu.active) { Menu.click(p.x, p.y); return; }
   if (Judging.active) {
     if (Judging.phase === 'done') {
@@ -87,10 +90,12 @@ addEventListener('keydown', (e) => {
   else if (e.key === ' ') { paused = !paused; e.preventDefault(); }
   else if (e.key === 'l' || e.key === 'L') Sim.lid = !Sim.lid;
   else if (e.key === 'j' || e.key === 'J') UI.journal = !UI.journal;
-  else if (e.key === 'Escape') { UI.journal = false; UI.card = null; }
+  else if (e.key === 'Escape') { if (Story.active) Story.skip(); UI.journal = false; UI.card = null; }
 });
 
 function update() {
+  if (Story.active) { Story.update(); Chef.t++; return; }
+  if (Title.active) { Title.update(input.x, input.y); Chef.t++; return; }
   if (Menu.active) { Menu.update(input.x, input.y); Chef.t++; return; }
   if (Judging.active) { Judging.update(); Chef.ladle = Chef.spoon = null; Chef.update(160, false, false); return; }
   UI.hover = UI.pick(input.x, input.y);
@@ -174,18 +179,20 @@ function drawCursor() {
 }
 
 function draw() {
-  if (Menu.active) {
-    Menu.draw(g); drawCursor();
+  // Full-screen pages: a cutscene, the title menu, or level select.
+  const page = Story.active ? Story : Title.active ? Title : Menu.active ? Menu : null;
+  if (page) {
+    page.draw(g); if (page !== Story) drawCursor();
     sctx.imageSmoothingEnabled = false;
     sctx.drawImage(off, 0, 0, screen.width, screen.height);
-    Menu.drawText(T);
+    page.drawText(T);
     return;
   }
   if (Judging.active) {
     Judging.draw(g);
   } else {
     const t = Sim.frame;
-    g.drawImage(background, 0, 0);
+    g.drawImage(Game.level && Game.level.tier === 0 ? BG.pizza : BG.kitchen, 0, 0);
     // Soot from a kitchen fire stays on the wall until a fresh pot.
     if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
     Chef.draw(g, input.x, input.y);
@@ -253,11 +260,15 @@ const Game = {
   freshPot() { Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.journal = false; UI.card = null; Chef.select(SHELF[0]); paused = false; },
   startLevel(level) {
     this.level = level; this.panel = null;
-    this.freshPot(); Menu.active = false; Judging.active = false;
+    this.freshPot(); Menu.active = false; Title.active = false; Judging.active = false;
     UI.showRecipe();
   },
-  startSandbox() { this.level = null; this.freshPot(); Menu.active = false; Judging.active = false; Chef.say('Bonjour! Let\'s cook!', 120); },
-  toMenu() { Menu.active = true; Judging.active = false; },
+  startSandbox() { this.level = null; this.freshPot(); Menu.active = false; Title.active = false; Judging.active = false; Chef.say('Bonjour! Let\'s cook!', 120); },
+  toMenu() { Menu.active = true; Title.active = false; Judging.active = false; },
+  toTitle() { Title.active = true; Title.page = 'root'; Menu.active = false; Judging.active = false; },
+  // Story: the first time, Papa Dom's intro plays before level select.
+  startStory() { if (Story.seen('intro')) this.toMenu(); else { Title.active = false; Story.play('intro', () => this.toMenu()); } },
+  tierDone(t) { const ls = LEVELS.filter((l) => l.tier === t); return ls.length > 0 && ls.every((l) => Progress.passed(l.id)); },
   // The next dish to play after this one: the next in its tier, else the first of the next open tier.
   nextLevel() {
     if (!this.level) return null;
@@ -268,13 +279,18 @@ const Game = {
     Judging.start(this.judging());
     const L = Judging.levelResult;
     if (L && this.level) {
-      const tierOpenBefore = Progress.unlocked(this.level.tier + 1);
+      const tierOpenBefore = Progress.unlocked(this.level.tier + 1), doneBefore = this.tierDone(this.level.tier);
       Progress.record(this.level, L, Judging.handshake);
+      // Finishing a tier for the first time unlocks the next chapter of the story.
+      const scene = ['pizzaDone', 'showDone'][this.level.tier];
+      if (!doneBefore && this.tierDone(this.level.tier) && scene && !Story.seen(scene)) this.pendingStory = scene;
       if (!tierOpenBefore && Progress.unlocked(this.level.tier + 1)) Menu.flash = { text: LEVEL_TIERS[this.level.tier + 1].title + ' unlocked!', t: 0 };
     }
   },
   // A button on the judges' 'done' screen.
   after(id) {
+    if (this.pendingStory) { const s = this.pendingStory; this.pendingStory = null; Judging.active = false; Story.play(s, () => this.toMenu()); return; }
+    if (id === 'menu' && !this.level) return this.toTitle();   // from sandbox, back to the title menu
     if (id === 'keep') Judging.active = false;
     else if (id === 'new') { this.freshPot(); Judging.active = false; }
     else if (id === 'retry') this.startLevel(this.level);
@@ -286,7 +302,8 @@ const Game = {
 Sim.hitChef = (p) => Chef.hit(p);
 Progress.load();
 if (Game.level) UI.showRecipe();
-if (!DEV.view && !DEV.level && !DEV.panel) Menu.active = true;
+if (!DEV.view && !DEV.level && !DEV.panel && !DEV.story) Title.active = true;
+if (DEV.story && STORY[DEV.story]) Story.play(DEV.story, () => Game.toTitle());   // dev: #story=intro / pizzaDone / showDone
 
 if (DEV.view === 'bread') {
   // Dev: a kneaded, leavened loaf baking in the pot oven (lid on).
