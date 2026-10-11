@@ -55,7 +55,7 @@ Each file is a JSON array with one recipe per line, so diffs stay readable. Fiel
 | `taste` | Use the taste spoon in the middle of the soup |
 | `serve` | Send the bowl to the judges |
 
-Ingredient ids match `SHELF` in `js/materials.js`: `water oil milk wine vinegar soy salt sugar flour chili cumin soda onion garlic carrot celery tomato meat egg fish herbs`.
+Ingredient ids match `SHELF` in `js/materials.js`: `water oil cream wine vinegar soy salt sugar flour chili cumin soda onion garlic carrot celery tomato meat egg fish herbs`.
 
 Discovery ids match `DISCOVERIES`:
 `dissolve boil sweat caramelize burn fond deglaze bloom roux lumps mirepoix tomato eggdrop scramble curdle fizz flambe greasefire splatter thicken crack splat hardboil poached friedegg flake crispyskin herbloss`
@@ -88,7 +88,7 @@ The `sim_gaps` fields roll up into this feature backlog:
 1. ~~No batter or dough model.~~ Done: see `SPEC.md` §15. Bakes can carry an optional `"bake": {kind, rise, doneness}` expectation.
 2. **No dry-sugar caramel stage.** Sugar on a hot, dry pot only adds a little `caramel` note before burning. There's no melted-caramel material or color.
 3. **Stock clarity isn't tracked.** Rolling boil vs. gentle simmer and skimming don't affect cloudiness, and meat scum isn't simulated.
-4. **No starch release from vegetables, and no blending.** Cream soups rely only on roux or milk for body.
+4. **No starch release from vegetables, and no blending.** Cream soups rely only on roux or cream for body.
 5. **The `toasty` note comes from any beef leach**, even when boiled. It should only come from seared or Maillard browning.
 6. **No pH model beyond sour vs. soda.** The soda-in-tomato trick works through the sour axis, but there's no color shift or "soapy" flaw label.
 7. **Eggs** now have whole, cracked, poached, fried and hard-boiled states. There's still no runny yolk vs. set yolk distinction, and no peeling.

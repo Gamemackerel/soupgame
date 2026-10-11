@@ -299,7 +299,7 @@ function butJoin(a, b) {
 // When the dish served isn't the one ordered: each judge says so in their own way, then a word on the taste.
 function wrongDishLine(j, level, wrong, r) {
   const dish = level.short.toLowerCase();
-  const ing = wrong.missing.length ? ({ meat: 'beef', milk: 'cream' }[wrong.missing[0]] || wrong.missing[0]) : null;
+  const ing = wrong.missing.length ? ({ meat: 'beef' }[wrong.missing[0]] || wrong.missing[0]) : null;
   const lines = {
     joe: ing ? `Uh... I ordered the ${dish}? Where's the ${ing}?` : `Uh... I ordered the ${dish}? This is something else.`,
     biscuit: ing ? `Wait... where's the ${ing}?! This isn't ${dish}!` : `Sniff sniff... this isn't ${dish}!`,

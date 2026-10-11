@@ -79,7 +79,7 @@ function reactBroth(S, x, y, i) {
     const acid = over > 0 && rnd() < Math.min(1, over / 0.3);
     if (acid || (t >= 100 && S.dial >= 8 && rnd() < 0.15)) {
       S.discover('curdle'); S.emit('curdle', x, y);
-      // Only the milk's protein clumps into curds (about a sixth of it); the rest separates into thin whey
+      // Only the cream's protein clumps into curds (about a sixth of it); the rest separates into thin whey
       // that stays in the soup, its creaminess gone, so it can't split again.
       if (rnd() < CURD_SOLIDS) { S.setCell(i, CURD, t); return true; }
       fl[o + F_RICH] *= 0.5; fl[o + F_WHITE] = Math.min(fl[o + F_WHITE] * 0.2, 0.3);

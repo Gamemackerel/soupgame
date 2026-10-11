@@ -3,7 +3,7 @@
 
 {"id": "p02-seared-vs-plain-beef", "why": "Searing beef and deglazing the fond should make a deeper, more savory broth than simmering raw beef.", "a": "s44-seared-beef-broth", "b": "s43-beef-broth", "events": {"a": ["fond", "deglaze"]}, "claims": [{"metric": "raw.umami", "op": ">"}, {"metric": "raw.brown", "op": ">"}, {"metric": "score", "op": ">"}]},
 
-{"id": "p03-soda-trick-vs-curdle", "why": "Neutralising tomato acid and adding milk gently shouldn't curdle; dumping cold milk into boiling acid should.", "a": "s14-tomato-soda-trick", "b": "s13-creamy-tomato-risky", "events": {"b": ["curdle"]}, "claims": [{"metric": "flaw.curdled", "op": "<"}, {"metric": "score", "op": ">"}]},
+{"id": "p03-soda-trick-vs-curdle", "why": "Neutralising tomato acid and adding cream gently shouldn't curdle; dumping cold cream into boiling acid should.", "a": "s14-tomato-soda-trick", "b": "s13-creamy-tomato-risky", "events": {"b": ["curdle"]}, "claims": [{"metric": "flaw.curdled", "op": "<"}, {"metric": "score", "op": ">"}]},
 
 {"id": "p04-herbs-late-vs-boiled", "why": "Herbs added off the heat keep their aroma; herbs boiled for minutes lose it.", "a": "s36-garlic-herb", "b": "x08-boiled-herbs", "events": {"b": ["herbloss"]}, "claims": [{"metric": "raw.aroma", "op": ">"}, {"metric": "taste.aroma", "op": ">"}]},
 
@@ -55,7 +55,7 @@
 
 {"id": "p28-sauced-vs-plain-stir-fry", "why": "The soy-sugar glaze is what makes the stir-fry.", "a": "f07-beef-stir-fry", "b": {"from": "f07-beef-stir-fry", "name": "Same, no soy or sugar", "remove": ["pour soy 0.3s", "pour sugar 0.05s"]}, "claims": [{"metric": "taste.salty", "op": ">"}, {"metric": "score", "op": ">"}]},
 
-{"id": "p29-gentle-vs-boiled-dairy", "why": "Milk added at low heat after the acid is balanced stays smooth; cold milk into boiling tomato curdles.", "a": "s64-cream-tomato-herb", "b": "s13-creamy-tomato-risky", "claims": [{"metric": "flaw.curdled", "op": "<"}, {"metric": "score", "op": ">"}]},
+{"id": "p29-gentle-vs-boiled-dairy", "why": "Cream added at low heat after the acid is balanced stays smooth; cold cream into boiling tomato curdles.", "a": "s64-cream-tomato-herb", "b": "s13-creamy-tomato-risky", "claims": [{"metric": "flaw.curdled", "op": "<"}, {"metric": "score", "op": ">"}]},
 
 {"id": "p30-poached-vs-thrown-egg", "why": "A cracked egg poaches cleanly; one thrown in whole leaves shell in the soup (or survives whole).", "a": "s66-poached-egg-broth", "b": {"from": "s66-poached-egg-broth", "name": "Same, egg thrown in whole", "replace": {"crack egg 1": "throw egg 1"}}, "claims": [{"metric": "flaw.shell", "op": "<"}, {"metric": "score", "op": ">="}]},
 
@@ -71,7 +71,7 @@
 
 {"id": "p36-cold-slurry-thickens", "why": "Flour whisked into cold water disperses and thickens the liquid once it's hot.", "a": {"name": "Flour slurry, then simmered", "steps": ["pour water 10s", "pour flour 0.8s +stir", "stir 4s", "heat 6", "wait 40s", "stir 2s", "serve"]}, "b": {"name": "Plain water, simmered", "steps": ["pour water 10s", "heat 6", "wait 40s", "serve"]}, "claims": [{"metric": "raw.body", "op": ">"}, {"metric": "flaw.lumps", "op": "<=", "why": "stirred into cold water, it shouldn't lump"}]},
 
-{"id": "p37-milk-dose-richness", "why": "More milk, richer soup.", "a": {"from": "s27-cream-of-celery", "name": "Lots of milk", "replace": {"pour milk 3s +stir": "pour milk 5s +stir"}}, "b": {"from": "s27-cream-of-celery", "name": "A splash of milk", "replace": {"pour milk 3s +stir": "pour milk 1s +stir"}}, "claims": [{"metric": "raw.rich", "op": ">"}, {"metric": "taste.rich", "op": ">"}]},
+{"id": "p37-cream-dose-richness", "why": "More cream, richer soup.", "a": {"from": "s27-cream-of-celery", "name": "Lots of cream", "replace": {"pour cream 3s +stir": "pour cream 5s +stir"}}, "b": {"from": "s27-cream-of-celery", "name": "A splash of cream", "replace": {"pour cream 3s +stir": "pour cream 1s +stir"}}, "claims": [{"metric": "raw.rich", "op": ">"}, {"metric": "taste.rich", "op": ">"}]},
 
 {"id": "p38-oil-dose-soup", "why": "A slick of oil on a soup is greasy and judged worse than a little.", "a": "s06-garlic-broth", "b": {"from": "s06-garlic-broth", "name": "Same, 4x the oil", "replace": {"pour oil 1s": "pour oil 4s"}}, "claims": [{"metric": "flaw.greasy", "op": "<"}, {"metric": "taste.rich", "op": "<"}, {"metric": "score", "op": ">="}]},
 

@@ -96,13 +96,13 @@ A falling-sand cooking sandbox. The simulation lives inside a soup pot. Around i
 |---|---|---|
 | **Static** | Never moves | Pot walls, burnt crust stuck to the bottom |
 | **Powder** | Falls; if blocked, falls diagonally. Sinks through lighter liquids | Salt, sugar, flour, spices |
-| **Liquid** | Falls, then spreads sideways. Density-sorted against other liquids | Water, stock, oil, milk, wine |
+| **Liquid** | Falls, then spreads sideways. Density-sorted against other liquids | Water, stock, oil, cream, wine |
 | **Chunk** | Rigid clusters of 2x2 to 5x5 cells that move as one unit, sink or float by density, and tumble when stirred. When cooked past a threshold they **break apart** into loose cells | Onion, carrot, potato, meat, tomato |
 | **Gas** | Rises and drifts, then fades or leaves the pot | Steam, smoke, aroma wisps |
 | **Foam** | Floats on liquid, stacks, and can rise over the rim | Scum, boil-over foam, baking-soda fizz |
 | **Fire** | Rises, flickers, and spreads to flammable neighbours | Grease fire, flambé |
 
-**Density order (light to heavy):** gas < foam < oil/fat < alcohol < water/stock < milk < syrupy liquids < most chunks < powders. Floating chunks (mushrooms, bread, croutons) are lighter than water until they get waterlogged.
+**Density order (light to heavy):** gas < foam < oil/fat < alcohol < water/stock < cream < syrupy liquids < most chunks < powders. Floating chunks (mushrooms, bread, croutons) are lighter than water until they get waterlogged.
 
 **Update order:** bottom-up, alternating left-to-right and right-to-left on each frame so nothing drifts in one direction. Target 60 fps. Do a `temp` diffusion pass every frame and a flavor diffusion pass every 2–4 frames.
 
@@ -208,7 +208,7 @@ Each umami ingredient is tagged `glu` or `nuc` internally. Kombu plus bonito tas
 - Stock (unlocked by *making* it, see below)
 - Oil
 - Butter (a solid that melts into fat)
-- Milk
+- Cream
 - Cream
 - Wine
 - Vinegar
@@ -280,7 +280,7 @@ Reactions are local rules: **inputs + conditions → outputs + flavor and visual
 | **Dashi** ✨ | Kombu steeped at 60–90 °C, removed (skimmed), then bonito added | Massive umami synergy, `oceanic` aroma, clear | Golden-clear broth | Temperature control |
 | **Slimy kombu** | Kombu boiled at 100 °C | Slimy texture flaw + bitter | Stringy green strands | Never boil kombu |
 | **Miso killed** | Miso held at a boil | Loses aroma (the `funky` note fades) | Aroma wisps vanish | Add miso off the heat |
-| **Curdle** | Milk/cream + acid at high heat, or milk at a hard boil | Splits into curd particles and whey. Flaw | White specks in clear liquid | Temper dairy, add acid last |
+| **Curdle** | Cream/cream + acid at high heat, or cream at a hard boil | Splits into curd particles and whey. Flaw | White specks in clear liquid | Temper dairy, add acid last |
 | **Temper** ✨ | Dairy added at low heat and stirred in gradually | Smooth, creamy body, no curdle | Silky surface | Patience with cream |
 | **Egg drop** ✨ | Egg poured in a thin stream into simmering broth that is being stirred | Silky yellow ribbon cells | Gorgeous ribbon trails | Stream + swirl |
 | **Scrambled egg** | Egg dumped into a hard boil without stirring | Rubbery clumps | Blobs | Same inputs, different technique |
@@ -498,7 +498,7 @@ When you're done cooking, press **SERVE**. The chef ladles a bowl and carries it
 ## 15. Dough, Baking and Saturation (implemented, `js/dough.js`)
 
 - **Saturation.** A cell of water holds only so much salt (about 15) or sugar (about 25). Dissolving slows as nearby water concentrates, and past saturation the grains settle out as sediment ("Saturated" discovery).
-- **Flour doesn't dissolve, it hydrates.** A flour grain touching any liquid (water, milk, wine, soy, vinegar, raw egg, soured-milk curds) becomes a **dough** cell. The dough takes the liquid's dissolved flavors with it and uses up the liquid as it soaks it in. Dry flour pulls water from wetter dough, so adding flour stiffens it. Cold oil rubbed into flour makes a crumbly shortcrust.
+- **Flour doesn't dissolve, it hydrates.** A flour grain touching any liquid (water, cream, wine, soy, vinegar, raw egg, soured-cream curds) becomes a **dough** cell. The dough takes the liquid's dissolved flavors with it and uses up the liquid as it soaks it in. Dry flour pulls water from wetter dough, so adding flour stiffens it. Cold oil rubbed into flour makes a crumbly shortcrust.
 - **Dough composition** lives in each cell: `F_WATER`, `F_EGG`, `F_LEAVEN`, `F_GLUTEN`, `F_SODA`, plus salt, sugar, fat and so on. Neighboring dough evens out its make-up, much faster while stirred. Its texture comes from water per flour:
 
 | Water per flour | Texture | How it moves |
@@ -513,7 +513,7 @@ When you're done cooking, press **SERVE**. The chef ladles a bowl and carries it
 - **Kneading:** stirring dough builds gluten.
 - **Leavening:**
   - Baking powder releases gas with heat.
-  - Baking soda needs acid in the dough (vinegar, soured milk) to make gas. Heated without acid, it breaks down into a little lift and a soapy taste ("Soapy").
+  - Baking soda needs acid in the dough (vinegar, soured cream) to make gas. Heated without acid, it breaks down into a little lift and a soapy taste ("Soapy").
   - Gas pushes the dough up and outward. How much it holds depends on gluten and egg; thin batter lets it escape. The gas is conserved, not duplicated.
 - **Baking:**
   - Dough over 90°C sets into **BREAD**, and connected cells join into one solid piece.
@@ -754,7 +754,7 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 | Vegetables | onion, garlic, carrot; celery, tomato, potato; corn, beans, herbs |
 | Proteins and the rest | beef, chicken, whole fish; egg, pasta, extinguisher |
 
-- **Cream** is what the shelf calls the old milk (same behavior; its id stays `milk`, so recipes keep working).
+- **Cream** replaced the old cream (id `cream`; same behavior).
 - **Black pepper** is a spice: it blooms like the others and gives a gentler, more aromatic heat than chili.
 - **Yeast** needs warmth and time.
   - In a warm, moist dough (about 25–60 °C, best around 32–46 °C) it slowly fills the dough with gas, faster with a little sugar. The dough proofs (the **Proofing** discovery) and roughly doubles.

@@ -159,11 +159,10 @@ const NOTES = ['allium', 'toasty', 'caramel', 'herbal', 'earthy', 'spice', 'smok
 // ---- Ingredient shelf ----
 // kind: how it's poured. icon: which art routine draws it.
 // Rows of three: liquids, seasonings, spices, leaveners, vegetables, proteins and the rest.
-// (The cream keeps the id 'milk' so recipes and levels written for it still work.)
 const SHELF = [
   { id: 'water',   name: 'Water',       kind: 'liquid', mat: BROTH, rate: 12, icon: 'jug',    c: [110, 170, 230] },
   { id: 'oil',     name: 'Oil',         kind: 'liquid', mat: OIL,   rate: 4, icon: 'bottle', c: [236, 196, 70] },
-  { id: 'milk',    name: 'Cream',       kind: 'liquid', mat: BROTH, rate: 5, icon: 'carton', c: [246, 246, 250],
+  { id: 'cream',    name: 'Cream',       kind: 'liquid', mat: BROTH, rate: 5, icon: 'carton', c: [246, 246, 250],
     flavor: flavorVec({ rich: 1.4, white: 3, sweet: 0.3, body: 0.3 }) },
   { id: 'wine',    name: 'Wine',        kind: 'liquid', mat: BROTH, rate: 4, icon: 'bottle', c: [150, 30, 60],
     flavor: flavorVec({ alcohol: 3, sour: 1.2, sweet: 0.4, red: 2, aroma: 1.5 }) },
@@ -214,7 +213,7 @@ const DISCOVERIES = [
   { id: 'tomato',     name: 'Tomato Melt',    hint: 'Tomatoes in the heat…',           desc: 'Cooked tomato collapses into sweet, sour, savory sauce.' },
   { id: 'eggdrop',    name: 'Egg Ribbons',    hint: 'A thin stream into a swirl.',     desc: 'Egg drizzled into simmering, stirred broth makes silky ribbons.' },
   { id: 'scramble',   name: 'Scrambled',      hint: 'Same egg, different technique.',  desc: 'Dump egg into a still pot and it clumps.' },
-  { id: 'curdle',     name: 'Curdled',        hint: 'Dairy and acid don\'t like heat.', desc: 'Milk + acid + heat splits into curds. Add acid last, keep it gentle.' },
+  { id: 'curdle',     name: 'Curdled',        hint: 'Dairy and acid don\'t like heat.', desc: 'Cream + acid + heat splits into curds. Add acid last, keep it gentle.' },
   { id: 'fizz',       name: 'Volcano!',       hint: 'A white powder meets something sour.', desc: 'Baking soda + acid = foaming overflow.' },
   { id: 'flambe',     name: 'Flambé',         hint: 'Wine… and fire…',                 desc: 'Alcohol burns off in a sheet of flame, leaving mellow sweetness.' },
   { id: 'greasefire', name: 'Grease Fire',    hint: 'Oil has a limit.',                desc: 'Oil past its smoke point ignites. LID smothers it; water makes it WORSE.' },
@@ -240,6 +239,6 @@ const DISCOVERIES = [
   { id: 'crust',      name: 'Golden Crust',   hint: 'Dry heat on the outside.',         desc: 'Dough baking against hot, dry metal browns into a crust.' },
   { id: 'potoven',    name: 'Pot Oven',       hint: 'Trap the heat around it.',         desc: 'With the lid on, the air in the pot gets hot: dough bakes from all sides, like a Dutch oven.' },
   { id: 'dumpling',   name: 'Dumplings',      hint: 'Dough in boiling water.',          desc: 'Dough cooked in simmering liquid sets soft and pale: dumplings.' },
-  { id: 'soapy',      name: 'Soapy',          hint: 'Soda needs a partner.',            desc: 'Baking soda without any acid barely rises and tastes soapy. Add vinegar or sour milk.' },
+  { id: 'soapy',      name: 'Soapy',          hint: 'Soda needs a partner.',            desc: 'Baking soda without any acid barely rises and tastes soapy. Add vinegar or sour cream.' },
   { id: 'herbloss',   name: 'Wilted Herbs',   hint: 'When should herbs go in?',        desc: 'Fresh herb aroma cooks away fast. Add them at the end.' },
 ];

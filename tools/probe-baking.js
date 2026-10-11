@@ -54,7 +54,7 @@ function scenario(name, fn) {
 
 scenario('stiff dough (flour 2s, water .4s)', (G, k) => { k.pour('flour', 2); k.pour('water', 0.4); k.stir(4); k.run(3); });
 scenario('soft dough (flour 2s, water .8s)', (G, k) => { k.pour('flour', 2); k.pour('water', 0.8); k.stir(4); k.run(3); });
-scenario('batter (flour 1s, milk 1.5s, egg)', (G, k) => { k.pour('flour', 1); k.pour('milk', 1.5); G.Sim.dropCrackedEgg(76); k.stir(5); k.run(3); });
+scenario('batter (flour 1s, cream 1.5s, egg)', (G, k) => { k.pour('flour', 1); k.pour('cream', 1.5); G.Sim.dropCrackedEgg(76); k.stir(5); k.run(3); });
 scenario('too thin (flour .5s, water 8s)', (G, k) => { k.pour('flour', 0.5); k.pour('water', 8); k.stir(6); k.run(5);
   let body = 0, n = 0; for (let i = 0; i < G.N; i++) if (G.Sim.mat[i] === G.BROTH) { body += G.Sim.fl[i * G.NF + G.F_BODY]; n++; } console.log('    broth body avg', (body / n).toFixed(3)); });
 scenario('salt saturation (water 2s, salt 8s)', (G, k) => { k.pour('water', 2); k.pour('salt', 8); k.stir(6); k.run(10);
@@ -64,7 +64,7 @@ scenario('kneaded bread in pot oven', (G, k) => { k.pour('flour', 3); k.pour('wa
 scenario('unkneaded bread in pot oven', (G, k) => { k.pour('flour', 3); k.pour('water', 1); k.pour('salt', 0.1); k.pour('powder', 0.2); k.run(2);
   G.Sim.lid = true; G.Sim.dial = 6; k.run(70); G.Sim.lid = false; k.run(1); });
 scenario('flatbread, open pot, no leaven', (G, k) => { k.pour('oil', 0.2); k.pour('flour', 2); k.pour('water', 0.6); k.stir(4); G.Sim.dial = 6; k.run(50); });
-scenario('pancakes: batter on oiled pan', (G, k) => { k.pour('flour', 1); k.pour('milk', 1.2); G.Sim.dropCrackedEgg(76); k.pour('sugar', 0.2); k.pour('powder', 0.15); k.stir(5);
+scenario('pancakes: batter on oiled pan', (G, k) => { k.pour('flour', 1); k.pour('cream', 1.2); G.Sim.dropCrackedEgg(76); k.pour('sugar', 0.2); k.pour('powder', 0.15); k.stir(5);
   k.pour('oil', 0.2); G.Sim.dial = 6; k.run(45); });
 scenario('soda, no acid (soapy)', (G, k) => { k.pour('flour', 2); k.pour('water', 0.8); k.pour('soda', 0.2); k.stir(6); G.Sim.lid = true; G.Sim.dial = 6; k.run(60); console.log('    soapy flag', !!G.Sim.flags.soapy); });
 scenario('soda + vinegar', (G, k) => { k.pour('flour', 2); k.pour('water', 0.6); k.pour('vinegar', 0.3); k.pour('soda', 0.2); k.stir(6); G.Sim.lid = true; G.Sim.dial = 6; k.run(60); });

@@ -36,17 +36,17 @@ const LEVELS = [
   },
   {
     id: 'creamy-corn', short: 'Creamy Corn', icon: 'corn', tier: 0, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
-    blurb: 'Sweat onion, add corn and potato, and simmer until the potato falls apart and thickens the soup. Then stir in milk over low heat.',
+    blurb: 'Sweat onion, add corn and potato, and simmer until the potato falls apart and thickens the soup. Then stir in cream over low heat.',
     hint: 'Cream splits if the pot is boiling hard. Turn the flame down first.',
     essential: ['corn'],   // without these it isn't the dish at all
-    ingredients: ['oil', 'onion', 'potato', 'corn', 'water', 'salt', 'milk'],
+    ingredients: ['oil', 'onion', 'potato', 'corn', 'water', 'salt', 'cream'],
     techniques: ['sweat', 'thicken'],
     forbid: ['curdled', 'raw'],
     par: ['pour oil 1s', 'add onion 4', 'heat 5', 'wait 40s', 'add potato 6', 'add corn 8', 'pour water 8s', 'pour salt 1s',
-          'heat 6', 'wait 150s', 'stir 4s', 'heat 2', 'wait 20s', 'pour milk 3s +stir', 'wait 20s', 'serve'],
+          'heat 6', 'wait 150s', 'stir 4s', 'heat 2', 'wait 20s', 'pour cream 3s +stir', 'wait 20s', 'serve'],
     mistakes: [
       { name: 'rushed potato', replace: { 'wait 150s': 'wait 40s' } },
-      { name: 'no milk', remove: ['pour milk 3s +stir'] },
+      { name: 'no cream', remove: ['pour cream 3s +stir'] },
     ],
   },
   {
@@ -117,16 +117,16 @@ const LEVELS = [
     id: 'beef-chowder', short: 'Chowder', icon: 'potato', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
     blurb: 'Sear the beef, sweat the vegetables, make a roux in the fat, add potatoes, and finish with cream.',
     hint: 'Flour into hot fat, not into water.',
-    essential: ['meat', 'potato', 'milk'],   // without these it isn't the dish at all
-    ingredients: ['oil', 'meat', 'onion', 'carrot', 'celery', 'flour', 'water', 'potato', 'milk', 'salt'],
+    essential: ['meat', 'potato', 'cream'],   // without these it isn't the dish at all
+    ingredients: ['oil', 'meat', 'onion', 'carrot', 'celery', 'flour', 'water', 'potato', 'cream', 'salt'],
     techniques: ['fond', 'roux', 'thicken'],
     forbid: ['curdled', 'lumps', 'burnt'],
     par: ['pour oil 1.5s', 'add meat 5', 'heat 7', 'wait 40s', 'add onion 3', 'add carrot 3', 'add celery 3', 'heat 5', 'wait 40s',
           'pour flour 1.6s', 'stir 3s', 'wait 15s', 'pour water 6s +stir', 'add potato 5', 'heat 5', 'wait 120s', 'heat 3',
-          'pour milk 4s +stir', 'pour salt 1s', 'wait 30s', 'serve'],
+          'pour cream 4s +stir', 'pour salt 1s', 'wait 30s', 'serve'],
     mistakes: [
       { name: 'flour in water', remove: ['pour flour 1.6s', 'stir 3s'], insertAfter: { 'pour water 6s +stir': ['pour flour 1.6s'] } },
-      { name: 'milk at a boil', replace: { 'heat 3': 'heat 8' } },
+      { name: 'cream at a boil', replace: { 'heat 3': 'heat 8' } },
     ],
   },
   {
@@ -150,10 +150,10 @@ const LEVELS = [
     blurb: 'Whisk a sweet batter with eggs and baking powder and bake it under the lid until it rises.',
     hint: 'Baking powder makes it rise. A gentle flame keeps it from burning.',
     essential: ['flour', 'egg', 'sugar'],   // without these it isn't the dish at all
-    ingredients: ['flour', 'sugar', 'egg', 'milk', 'oil', 'powder'],
+    ingredients: ['flour', 'sugar', 'egg', 'cream', 'oil', 'powder'],
     techniques: ['batter', 'rise', 'baked', 'potoven'],
     forbid: ['burnt', 'shell'],
-    par: ['pour flour 1.5s', 'pour sugar 1.2s', 'crack egg 2', 'pour milk 0.6s', 'pour oil 0.3s', 'pour powder 0.1s', 'stir 6s',
+    par: ['pour flour 1.5s', 'pour sugar 1.2s', 'crack egg 2', 'pour cream 0.6s', 'pour oil 0.3s', 'pour powder 0.1s', 'stir 6s',
           'lid on', 'heat 5', 'wait 80s', 'lid off', 'serve'],
     mistakes: [
       { name: 'no baking powder', remove: ['pour powder 0.1s'] },

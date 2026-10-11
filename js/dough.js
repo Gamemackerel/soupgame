@@ -62,7 +62,7 @@ function reactFlourDough(S, x, y, i) {
     becomeDough(S, i); soakFrom(S, i, j, 1);
     return true;
   }
-  if (mj === CURD) {   // soured-milk curds work into dough like the milk they came from
+  if (mj === CURD) {   // soured-cream curds work into dough like the cream they came from
     becomeDough(S, i); S.fl[i * NF + F_WATER] += 0.5; S.fl[i * NF + F_RICH] += 0.4; S.setCell(j, EMPTY);
     return true;
   }
@@ -153,7 +153,7 @@ function reactDough(S, x, y, i) {
     return true;
   }
   if (w >= DOUGH_BATTER) S.discover('batter');
-  // Soda meeting acid inside the dough (vinegar, soured milk) fizzes into real lift.
+  // Soda meeting acid inside the dough (vinegar, soured cream) fizzes into real lift.
   // Without acid, heat only gets a little lift out of it and the rest stays soapy.
   const soda = S.fl[a + F_SODA];
   if (soda > 0.005) {
