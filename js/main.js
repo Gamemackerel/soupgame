@@ -41,6 +41,7 @@ function ladleAt(x, y) {
 }
 
 screen.addEventListener('pointerdown', (e) => {
+  Music.unlock();
   const p = toInternal(e);
   input.x = input.px = p.x; input.y = input.py = p.y;
   screen.setPointerCapture(e.pointerId);
@@ -88,6 +89,7 @@ screen.addEventListener('wheel', (e) => {
   Sim.dial = Math.max(0, Math.min(10, Sim.dial + (e.deltaY < 0 ? 0.5 : -0.5)));
 }, { passive: false });
 addEventListener('keydown', (e) => {
+  Music.unlock();
   if (e.key >= '0' && e.key <= '9') Sim.dial = e.key === '0' ? 0 : +e.key + (e.shiftKey ? 1 : 0);
   else if (e.key === ' ') { paused = !paused; e.preventDefault(); }
   else if (e.key === 'l' || e.key === 'L') Sim.lid = !Sim.lid;
@@ -496,6 +498,7 @@ function draw() {
 function loop() {
   update();
   draw();
+  Music.update(!Story.active && (Title.active || Menu.active));   // the menu theme, in the menus only
   requestAnimationFrame(loop);
 }
 

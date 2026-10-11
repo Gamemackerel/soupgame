@@ -807,3 +807,9 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - Each sprite is a sheet: one row per state, one column per frame, fixed cell size and anchor. The game draws `art/sprites/<path>.png` when it's listed in `art/sprites/index.json`, and the code drawing otherwise.
 - `tools/export-art.js` renders the code drawings to `art/templates/` (sheet, zoomed guide, JSON) and `art/index.html`. `tools/art-index.js` validates finished sheets and writes the index. The workflow is in `art/README.md`.
 - Motion the game adds (bob, hop, shake, sliding) is never in the art. A state whose frames all render the same is collapsed to one frame.
+
+## 25. Music (implemented, `js/audio.js`)
+
+- The menu theme plays in every menu (title, settings, level select) and fades out for cooking, judging and cutscenes. It restarts from the top each time you return.
+- It loops at exactly 21.573 s (8 bars at 89 BPM). `audio/menu-theme.flac` is exactly that one loop, cut from the composer's MP3 with its encoder padding removed, so looping the whole buffer is sample-exact in every browser.
+- Sound starts after the player's first click or key press, as browsers require.
