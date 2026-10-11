@@ -37,7 +37,8 @@ const JUDGE_ROSTER = {
       if (a.fish && a.fishCooked > 90 && a.fishCooked < 170) good.push('The fish is just cooked through. Bravo.');
       if (p.salty < 0.22) bad.push('Under-seasoned. A pinch more salt.');
       if (p.salty > 0.82) bad.push('Over-salted. Go lighter, or add water.');
-      if (!plate && p.body < 0.08) bad.push('Thin as dishwater. Reduce it, or thicken it.');
+      // A brothy soup full of good things is fine; it's a bowl of near-plain liquid that's dishwater.
+      if (!plate && p.body < 0.05 && a.chunkiness < 0.15) bad.push('Thin as dishwater. Reduce it, or thicken it.');
       const bal = Taste.score(p, { plate });
       if (!good.length && bal > 0.6) good.push(plate ? 'A balanced plate. Classic.' : 'A balanced bowl. Classic.');
       const s = 10 * (0.6 * bal + 0.25 * Math.max(0, Math.min(1, tech)) + 0.15) - a.flawSum * 12;
@@ -261,6 +262,30 @@ Object.assign(JUDGE_ROSTER, {
   },
 });
 
+// A judge who liked the dish (7+) still mentions what could be better, but gently.
+const SOFTER = {
+  'Thin as dishwater. Reduce it, or thicken it.': 'Perhaps a touch thin. A little reduction would help.',
+  'Under-seasoned. A pinch more salt.': 'Perhaps a pinch more salt.',
+  'Over-salted. Go lighter, or add water.': 'A little salty, perhaps.',
+  'Undercooked. It needed more time on the heat.': 'A little more time on the heat, perhaps.',
+  'It whispers! Brown something, add soy... make it SING!': 'It could be a bit more savory!',
+  'No acid, no life! A splash of vinegar, or tomato!': 'Maybe a splash of acid to brighten it?',
+  'Where is the heat? Give me a chili!': 'A little chili would make it pop!',
+  'Bitter, and not the good kind. Something scorched?': 'A touch bitter in places.',
+  "Oh dear, it's gone cold. Serve it hot, dear.": 'A little warmer next time, dear.',
+  'A bit thin for me. More vegetables, dear?': 'I do like a few more vegetables, dear.',
+  "Goodness, that's sour! A pinch of sugar softens it.": 'A tad sour for me, dear.',
+  'All that salt! My blood pressure, dear!': 'A touch salty for me, dear.',
+  'Oh my! Go easy on the chili for this old tongue.': 'A bit spicy for me, dear.',
+  'Kinda bland. Got any salt back there?': 'Could maybe use a little salt.',
+  'Kinda watery. Could use more stuff in it.': 'Could be a bit heartier.',
+  "Whoa, salty. I'm gonna need a soda.": 'Little salty, maybe.',
+  "It's pleasant. But where's the depth? Where's the spice?": 'A little spice would give it depth.',
+  'Bland! SEASON it, you donkey!': 'Season it a touch more.',
+  "Dishwater. D*** dishwater. REDUCE IT!": 'Could be thicker. Reduce it a bit.',
+};
+const soften = (line, score) => (line && score >= 7 && SOFTER[line]) || line;
+
 // "Lovely crust." + "Under-seasoned." → "Lovely crust. But under-seasoned." (shouting stays shouting).
 function butJoin(a, b) {
   if (!a || !b) return a || b;
@@ -329,7 +354,7 @@ const Judging = {
       const score = Math.max(0, Math.min(10, Math.round(lj ? lj.score : r.score)));
       if (L && L.wrong) return { score, taste: r.score, line: wrongDishLine(j, this.level, L.wrong, r) };
       // Lead with praise or criticism depending on how it went, and join the two with a "but".
-      const lines = score >= 6 ? [butJoin(pick(r.good.length ? r.good : ['Not bad.']), r.bad[0])]
+      const lines = score >= 6 ? [butJoin(pick(r.good.length ? r.good : ['Not bad.']), soften(r.bad[0], score))]
                                : [butJoin(pick(r.bad.length ? r.bad : ['Something is missing.']), r.good[0])];
       if (n === stickler) lines.push(L.missing.length ? `Where's the ${(DISCOVERIES.find((d) => d.id === L.missing[0]) || { name: L.missing[0] }).name.toLowerCase()}? It's in the recipe.`
                                    : L.slipped.length ? `And the ${(DISCOVERIES.find((d) => d.id === L.slipped[0]) || { name: L.slipped[0] }).name.toLowerCase()}... careful.`
