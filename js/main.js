@@ -236,12 +236,46 @@ function drawPot(t, glow, g = window.g) {
 // ---------- Spills: physics for food that has left the pot ----------
 // Anything poured out falls under gravity, lands on the stovetop and piles up (solids stack; liquids spread
 // into a thin puddle, then stop, and slowly evaporate). It only vanishes when it leaves the screen.
+// When the pot slams back down on the burner, the whole pile blasts across the kitchen and splats on the
+// wall (and the chef), leaving the stovetop clean. The splatter stays on the wall until a fresh pot.
 const SPILL_FLOOR = GY + GH + 9;   // the stovetop's surface, just in front of the pot's base
 const Spill = {
-  moving: [], img: null, cv: null, ctx: null,
+  moving: [], flying: [], img: null, cv: null, ctx: null, wall: null, wallCv: null, wallCtx: null, wallDirty: false,
   solid: new Uint8Array(W * H), liquid: new Uint8Array(W * H),
-  init() { this.cv = makeCanvas(W, H); this.ctx = this.cv.getContext('2d'); this.img = this.ctx.createImageData(W, H); },
-  clear() { this.moving.length = 0; this.solid.fill(0); this.liquid.fill(0); if (this.img) this.img.data.fill(0); },
+  init() {
+    this.cv = makeCanvas(W, H); this.ctx = this.cv.getContext('2d'); this.img = this.ctx.createImageData(W, H);
+    this.wallCv = makeCanvas(W, H); this.wallCtx = this.wallCv.getContext('2d'); this.wall = this.wallCtx.createImageData(W, H);
+  },
+  clear() {
+    this.moving.length = 0; this.flying.length = 0; this.solid.fill(0); this.liquid.fill(0);
+    if (this.img) { this.img.data.fill(0); this.wall.data.fill(0); this.wallDirty = true; }
+  },
+  // Blast everything on the stovetop (and anything still falling) up and out from where the pot lands.
+  // Returns how many bits flew.
+  explode(cx = 160, cy = SPILL_FLOOR) {
+    if (!this.img) return 0;
+    const d = this.img.data, bits = [];
+    for (let i = 0; i < W * H; i++) if (this.solid[i] || this.liquid[i]) { bits.push({ x: i % W, y: (i / W) | 0, c: [d[i * 4], d[i * 4 + 1], d[i * 4 + 2]], liquid: !!this.liquid[i] }); this.take(i); }
+    for (const p of this.moving) bits.push({ x: p.x, y: p.y, c: p.c, liquid: p.liquid });
+    this.moving.length = 0;
+    for (const b of bits) {
+      const dx = b.x - cx, side = dx === 0 ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(dx);
+      const speed = 2.5 + Math.random() * 5;
+      this.flying.push({ x: b.x, y: Math.min(b.y, cy - 1), vx: side * speed * (0.4 + Math.random()) + (Math.random() - 0.5) * 2, vy: -(3 + Math.random() * 6),
+        c: b.c, liquid: b.liquid, life: 10 + ((Math.random() * 50) | 0) });
+    }
+    return bits.length;
+  },
+  splat(x, y, c, liquid) {
+    const w = this.wall.data, put = (px, py) => {
+      if (px < 0 || px >= W || py < 0 || py >= SPILL_FLOOR - 2) return;
+      const i = (py * W + px) * 4; w[i] = c[0]; w[i + 1] = c[1]; w[i + 2] = c[2]; w[i + 3] = liquid ? 200 : 255;
+    };
+    put(x, y);
+    if (liquid) { for (let k = 1, n = (Math.random() * 4) | 0; k <= n; k++) put(x, y + k); }   // wet: a drip runs down
+    else { put(x + 1, y); if (Math.random() < 0.6) { put(x, y + 1); put(x + 1, y + 1); } }    // a chunk: a little blob
+    this.wallDirty = true;
+  },
   add(x, y, vx, vy, c, liquid) { if (this.moving.length < 12000) this.moving.push({ x, y, vx, vy, c, liquid }); },
   free(x, y) { return x >= 0 && x < W && y >= 0 && y < SPILL_FLOOR && !this.solid[y * W + x] && !this.liquid[y * W + x]; },
   // (A cell moved past the screen's edge just leaves.)
@@ -253,6 +287,14 @@ const Spill = {
   take(i) { this.solid[i] = this.liquid[i] = 0; this.img.data[i * 4 + 3] = 0; },
   update() {
     if (!this.img) this.init();
+    // The blast: bits fly until they hit the wall (splat where they are) or the chef, or leave the screen.
+    for (let k = this.flying.length - 1; k >= 0; k--) {
+      const p = this.flying[k];
+      p.vy += 0.2; p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x >= W || p.y >= H) { this.flying.splice(k, 1); continue; }
+      if (p.y < GY - 6 && Chef.hit(p)) { this.flying.splice(k, 1); continue; }
+      if (--p.life <= 0) { this.splat(Math.round(p.x), Math.round(p.y), p.c, p.liquid); this.flying.splice(k, 1); }
+    }
     // Flying bits: gravity, until they hit the stovetop or something that's already landed.
     const m = this.moving;
     for (let k = m.length - 1; k >= 0; k--) {
@@ -299,6 +341,13 @@ const Spill = {
     this.ctx.putImageData(this.img, 0, 0);
     g.drawImage(this.cv, 0, 0);
     for (const p of this.moving) { g.fillStyle = rgb(p.c); g.fillRect(p.x | 0, p.y | 0, 1, 1); }
+    for (const p of this.flying) { g.fillStyle = rgb(p.c); g.fillRect(p.x | 0, p.y | 0, 1, 1); }
+  },
+  // The splatter on the back wall, drawn behind the chef.
+  drawWall(g) {
+    if (!this.wall) return;
+    if (this.wallDirty) { this.wallCtx.putImageData(this.wall, 0, 0); this.wallDirty = false; }
+    g.drawImage(this.wallCv, 0, 0);
   },
 };
 
@@ -372,7 +421,13 @@ const Tip = {
     this.t++;
     Chef.mood = 'angry'; Chef.moodT = 20;   // (╯°□°)╯ ︵ ┻━┻
     for (let k = 0; k < 5; k++) this.pourStep();   // liquid finds its level fast
-    if (this.t >= TIP_ROLL * 2 + TIP_HOLD) { this.active = false; Sim.reset(); Chef.mood = 'idle'; Chef.say('Fresh start!', 60); }
+    if (this.t >= TIP_ROLL * 2 + TIP_HOLD) {
+      this.active = false; Sim.reset();
+      // It slams back down on the burner: whatever's piled on the stove goes everywhere.
+      const n = Spill.explode();
+      if (n > 20) { Sim.shake = Math.min(40, 10 + n / 40); Chef.react({ t: 'fizz' }); }
+      else { Chef.mood = 'idle'; Chef.say('Fresh start!', 60); }
+    }
   },
   // The pot (with its contents, which are already in the pot's frame) drawn upright into its own image, then
   // rotated as one solid piece.
@@ -401,6 +456,7 @@ function draw() {
     g.drawImage(Sprites.canvas('backgrounds/' + (!Game.level ? 'kitchen' : Game.level.tier === 0 ? 'pizza-shop' : 'studio-kitchen'), 'default', 0), 0, 0);
     // Soot from a kitchen fire stays on the wall until a fresh pot.
     if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
+    Spill.drawWall(g);   // and so does food blasted off the stove
     if (Game.level) drawTimer(g);   // on the back wall, behind the chef
     Chef.draw(g, input.x, input.y);
     Art.drawFlames(g, Sim.dial, t, false);

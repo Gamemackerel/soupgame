@@ -792,7 +792,7 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - **Spills** keep their physics outside the pot (a falling-sand layer in screen space).
   - What pours out flies out of the rim, lands on the stovetop and piles up: solids tumble down the sides of the pile, and liquid runs into a thin puddle and off the edge of the stove.
   - Puddles slowly evaporate.
-  - Anything that leaves the screen is gone, and the rest stays until a fresh pot.
+  - When the pot slams back down on the burner, everything piled on the stove blasts up and out across the kitchen. Bits splat on the back wall (chunks as blobs, liquid as drips) or on the chef, and the stovetop is left clean. The wall splatter stays until a fresh pot.
 - The pot is drawn as one solid image while it moves.
 
 **Story levels have a time limit:** the par recipe's cooking time × 1.5 plus a minute, rounded up to 30 s (3:00 for flatbread to 10:30 for goulash).
