@@ -571,7 +571,7 @@ The result also keeps these notes for tools (`build-levels.js` prints them):
 
 - **Corn:** sweet kernels that stay intact.
 - **Potato:** softens slowly, then collapses into the soup and thickens it.
-- **White beans:** savory, hold their shape.
+- **Beans:** savory, hold their shape (a mix of pinto and kidney, for minestrone and chili alike).
 - **Small pasta:** al dente after about 40 s of simmering, and mushy (a flaw) if left far longer.
 
 Starchy pieces count as "raw" until well softened. Deeply caramelized onions now leave fond on the pot bottom, as meat does.

@@ -60,7 +60,9 @@ defMat(CELERY,  { name: 'celery', cls: C_CHUNK, dens: 1.04, cond: 0.1, col: [150
                   leach: flavorVec({ aroma: 0.02, salty: 0.01 }), note: 'herbal' });
 defMat(TOMATO,  { name: 'tomato', cls: C_CHUNK, dens: 1.03, cond: 0.12, col: [228, 50, 44], col2: [180, 40, 30], burnAt: 190 });
 defMat(MEAT,    { brownRate: 0.15, name: 'meat',   cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [206, 84, 96], col2: [120, 66, 38], burnAt: 240,
-                  leach: flavorVec({ umami: 0.04, rich: 0.012, brown: 0.04, aroma: 0.01 }), note: 'toasty' });
+                  // raw red → simmered grey-tan (cooked in water, ~110) → seared brown → charred
+                  stops: [[0, [206, 84, 96]], [60, [180, 120, 108]], [110, [158, 122, 100]], [170, [128, 76, 44]], [220, [92, 52, 30]], [255, [40, 28, 22]]],
+                  leach: flavorVec({ umami: 0.04, rich: 0.012, brown: 0.07, gold: 0.045, aroma: 0.01 }), note: 'toasty' });   // beef stock goes golden brown
 defMat(HERB,    { name: 'herbs',  cls: C_CHUNK, dens: 0.9, cond: 0.1, col: [70, 170, 70], col2: [90, 100, 50], burnAt: 170,
                   leach: flavorVec({ aroma: 0.25 }), note: 'herbal' });
 defMat(STEAM,   { name: 'steam',  cls: C_GAS,  dens: 0,   cond: 0.05, col: [230, 240, 250] });
@@ -80,7 +82,7 @@ defMat(YOLK_COOKED,  { name: 'cooked yolk', cls: C_CHUNK, dens: 1.03, cond: 0.12
 defMat(SHELL,   { name: 'eggshell', cls: C_CHUNK, dens: 1.3, cond: 0.08, col: [238, 222, 192] });
 defMat(FISH,    { brownRate: 0.15, name: 'fish', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [150, 172, 196], burnAt: 220,
                   stops: [[0, [150, 172, 196]], [110, [236, 230, 220]], [190, [196, 136, 70]], [255, [40, 28, 22]]],
-                  leach: flavorVec({ umami: 0.07, rich: 0.05, aroma: 0.03 }), note: 'oceanic' });
+                  leach: flavorVec({ umami: 0.07, rich: 0.05, aroma: 0.03, white: 0.09, gold: 0.04 }), note: 'oceanic' });   // fish stock: pale gold, a little cloudy
 defMat(FISHFIN, { brownRate: 0.15, name: 'fish fin', cls: C_CHUNK, dens: 1.05, cond: 0.12, col: [104, 126, 160], burnAt: 200,
                   stops: [[0, [104, 126, 160]], [110, [176, 172, 168]], [190, [150, 96, 46]], [255, [30, 22, 18]]] });
 // What's left when a broth boils dry: its dissolved flavor and color, concentrated. Liquid dissolves it back.
@@ -100,7 +102,7 @@ defMat(CORN,    { name: 'corn', cls: C_CHUNK, dens: 1.08, cond: 0.1, col: [252, 
                   soften: 0.12, starch: true, leach: flavorVec({ sweet: 0.02, body: 0.02, gold: 0.03, aroma: 0.004 }), note: 'earthy' });
 defMat(POTATO,  { name: 'potato', cls: C_CHUNK, dens: 1.1, cond: 0.09, col: [238, 222, 172], col2: [196, 146, 78], burnAt: 220, brownRate: 0.15,
                   soften: 0.055, starch: true, collapse: true, leach: flavorVec({ body: 0.035, umami: 0.004 }), note: 'earthy' });
-defMat(BEANS,   { name: 'white beans', cls: C_CHUNK, dens: 1.12, cond: 0.1, col: [240, 232, 212], col2: [190, 150, 100], burnAt: 220, brownRate: 0.15,
+defMat(BEANS,   { name: 'beans', cls: C_CHUNK, dens: 1.12, cond: 0.1, col: [206, 160, 118], col2: [150, 96, 62], burnAt: 220, brownRate: 0.15,
                   soften: 0.04, starch: true, leach: flavorVec({ body: 0.02, umami: 0.012, rich: 0.006 }) });
 defMat(PASTA,   { name: 'pasta', cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [236, 206, 128], col2: [200, 150, 80], burnAt: 220, brownRate: 0.2,
                   soften: 0.07, starch: true, leach: flavorVec({ body: 0.04 }),
@@ -176,7 +178,7 @@ const SHELF = [
   { id: 'extinguisher', name: 'Fire Extinguisher', kind: 'spray', mat: EXTPOWDER, rate: 7, icon: 'extinguisher', c: [220, 40, 40] },
   { id: 'corn',    name: 'Corn',        kind: 'chunk',  mat: CORN,  rate: 1, icon: 'corn',   c: [252, 212, 64],  piece: [1, 1], count: 14 },
   { id: 'potato',  name: 'Potato',      kind: 'chunk',  mat: POTATO, rate: 1, icon: 'potato', c: [200, 160, 100] },
-  { id: 'beans',   name: 'White Beans', kind: 'chunk',  mat: BEANS, rate: 1, icon: 'beans',  c: [240, 232, 212], piece: [2, 2], count: 5 },
+  { id: 'beans',   name: 'Beans',       kind: 'chunk',  mat: BEANS, rate: 1, icon: 'beans',  c: [206, 160, 118], piece: [2, 2], count: 5 },
   { id: 'pasta',   name: 'Small Pasta', kind: 'chunk',  mat: PASTA, rate: 1, icon: 'pasta',  c: [236, 206, 128], piece: [2, 1], count: 6 },
   { id: 'herbs',   name: 'Fresh Herbs', kind: 'chunk',  mat: HERB,  rate: 1, icon: 'herb',   c: [70, 170, 70] },
 ];
