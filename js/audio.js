@@ -17,7 +17,7 @@ const SETTINGS_KEY = 'soupgame.settings.v1';
 
 const Music = {
   ctx: null, theme: null, tracks: [], play: null, sting: null, nextSting: null, lastSting: -1, opener: false,
-  volume: 0.7,
+  volume: 0.3,   // until the player sets it in Settings
 
   // Decode up front (an offline context needs no permission), so it's ready the moment sound is allowed.
   load() {
