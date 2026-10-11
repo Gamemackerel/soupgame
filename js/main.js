@@ -516,7 +516,7 @@ const Game = {
   judging() { return { level: this.level, panel: this.panel && this.panel.length === 3 ? this.panel : null }; },
 
   tipPot() { Tip.start(); },
-  freshPot() { Tip.active = false; Spill.clear(); Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; Chef.select(SHELF[0]); paused = false; },
+  freshPot() { Tip.active = false; Spill.clear(); Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; UI.confirm = null; Chef.select(SHELF[0]); paused = false; },
   timeLeft() { return this.level ? Levels.timeLimit(this.level) - (Sim.frame - this.levelStart) / 60 : Infinity; },
   startLevel(level) {
     this.level = level; this.panel = null; this.timedOut = false;

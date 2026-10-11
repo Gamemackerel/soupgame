@@ -197,7 +197,6 @@ const Title = {
   drawText(T) {
     if (this.page === 'root') {
       T.text('SOUP POT', 160, 40, { size: 26, color: '#ffe9c0', align: 'center', shadow: true });
-      T.text('a falling-sand cooking game', 160, 80, { size: 6, color: '#d8c0b0', align: 'center' });
     } else {
       T.text('SETTINGS', 160, 50, { size: 16, color: '#ffe9c0', align: 'center', shadow: true });
       T.text('Every technique you have discovered.', 160, 108, { size: 5, color: '#d8c0b0', align: 'center' });

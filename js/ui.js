@@ -11,6 +11,12 @@ const T = {
     c.fillStyle = o.color || '#fff';
     c.fillText(str, x * s, y * s);
   },
+  // Width of a line of text, in game pixels.
+  measure(str, size = 7) {
+    if (!this.ctx) return str.length * size;
+    this.ctx.font = `${size * this.s}px Silkscreen, monospace`;
+    return Math.ceil(this.ctx.measureText(str).width / this.s);
+  },
   wrap(str, x, y, w, o = {}) {
     const c = this.ctx, s = this.s, size = (o.size || 7);
     c.font = `${size * s}px Silkscreen, monospace`;
@@ -63,7 +69,7 @@ const SERVE = { x: 266, y: 168, w: 50, h: 22 };
 const TITLE_BOX = { x: 96, y: 0, w: 128, h: 12 };
 
 const UI = {
-  tool: 'pour', hover: null, card: null, journal: false, banners: [], toasts: [], confirmClear: 0,
+  tool: 'pour', hover: null, card: null, journal: false, banners: [], toasts: [], confirm: null,   // a tool waiting on a second click ('Sure?'): { id, t }
   dragDial: false,
 
   shelfSlot(n) { return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
@@ -89,11 +95,11 @@ const UI = {
     else if (h.type === 'tool') {
       const id = tools()[h.n].id;
       if (id === 'lid') Sim.lid = !Sim.lid;
-      else if (id === 'quit') Game.level ? Game.toMenu() : Game.toTitle();
       else if (id === 'journal') Journal.open();
-      else if (id === 'clear') {
-        if (this.confirmClear > 0) { this.confirmClear = 0; Game.tipPot(); }
-        else { this.confirmClear = 120; }
+      else if (id === 'clear' || id === 'quit') {
+        // Emptying the pot and quitting both ask "Sure?" first: a second click within two seconds does it.
+        if (this.confirm && this.confirm.id === id) { this.confirm = null; if (id === 'clear') Game.tipPot(); else Game.level ? Game.toMenu() : Game.toTitle(); }
+        else this.confirm = { id, t: 120 };
       }
       else this.tool = this.tool === id ? 'pour' : id;   // click again to put it down
     }
@@ -110,7 +116,15 @@ const UI = {
     Sim.dial = Math.round(((a + 135) / 270) * 10 * 2) / 2;
   },
 
-  showTaste(res) { this.card = { res, t: 0 }; },
+  // A taste that found nothing (spoon not in the food, an empty pot) is just a quick toast, not the card.
+  showTaste(res) { if (res.empty) { this.card = null; this.toast(res.line); } else this.card = { res, t: 0 }; },
+  // The order ticket and the taste card sit centered over the pot, clear of the chef.
+  cardBox() {
+    const w = this.card.recipe ? 120 : 136;
+    const tex = this.card.res ? this.card.res.tex || [] : [];
+    const h = this.card.recipe ? 80 : tex.length > 3 ? 104 : tex.length ? 96 : 86;
+    return { x: 160 - w / 2, y: Math.round((POT_TOP + POT_BOT) / 2 - h / 2), w, h };
+  },
   // The level's order ticket: just the dish and its description (players work out the method).
   showRecipe() { if (Game.level) this.card = { recipe: Game.level, t: 0 }; },
 
@@ -119,7 +133,7 @@ const UI = {
 
   update() {
     if (this.card) { this.card.t++; if (this.card.t > (this.card.recipe ? 900 : 420)) this.card = null; }
-    if (this.confirmClear > 0) this.confirmClear--;
+    if (this.confirm && --this.confirm.t <= 0) this.confirm = null;
     if (this.banners.length) { const b = this.banners[0]; if (++b.t > 150) this.banners.shift(); }
     for (const t of this.toasts) t.t++;
     this.toasts = this.toasts.filter((t) => t.t < 130);
@@ -139,7 +153,7 @@ const UI = {
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);
     tools().forEach((tl, n) => {
       const s = this.toolSlot(n);
-      const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (tl.id === 'clear' && this.confirmClear > 0);
+      const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (this.confirm && this.confirm.id === tl.id);
       const hov = this.hover && this.hover.type === 'tool' && this.hover.n === n;
       rect(g, s.x, s.y, s.w, s.h, [96, 60, 40]);
       rect(g, s.x + 1, s.y + 1, s.w - 2, s.h - 2, on ? (hov ? [255, 226, 140] : [255, 214, 110]) : hov ? [236, 204, 160] : [214, 176, 130]);
@@ -171,10 +185,12 @@ const UI = {
     }
     // Toasts slide in at the side of the kitchen, same look, much smaller.
     this.toasts.forEach((t, k) => {
-      const x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * 70), y = 20 + k * 13;
-      rect(g, x, y, 66, 11, [40, 24, 30]); rect(g, x + 1, y + 1, 64, 9, [255, 222, 110]);
+      const w = this.toastW(t), x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * (w + 4)), y = 20 + k * 13;
+      rect(g, x, y, w, 11, [40, 24, 30]); rect(g, x + 1, y + 1, w - 2, 9, [255, 222, 110]);
     });
   },
+
+  toastW(t) { return t.w || (t.w = Math.max(66, T.measure(t.text, 5) + 8)); },
 
   drawThermo(g) {
     const x = 270, y = 196, temps = Taste.gather(0, 0, 0);
@@ -186,17 +202,15 @@ const UI = {
   },
 
   drawCard(g) {
+    const { x, y, h } = this.cardBox();
     if (this.card.recipe) {
       // Order ticket: paper with a clip and a perforated stub.
-      const x = 100, y = 18;
       rect(g, x + 2, y + 2, 120, 80, [30, 20, 26]); rect(g, x, y, 120, 80, [250, 246, 234]);
       for (let k = 3; k < 117; k += 3) rect(g, x + k, y + 12, 1, 1, [190, 180, 160]);
       rect(g, x + 56, y - 3, 9, 6, [170, 174, 188]); rect(g, x + 57, y - 2, 7, 1, [230, 234, 242]);
       return;
     }
-    const x = 92, y = 16, tex = this.card.res.tex || [], h = tex.length > 3 ? 104 : tex.length ? 96 : 86;
     rect(g, x, y, 136, h, [40, 24, 30]); rect(g, x + 1, y + 1, 134, h - 2, [255, 250, 238]);
-    if (this.card.res.empty) return;
     if (this.card.res.unmixed) {
       // Can't tell: question-mark bars.
       TASTE_AXES.forEach((k, n) => { const by = y + 16 + n * 7; rect(g, x + 44, by + 1, 60, 4, [230, 222, 210]); });
@@ -221,7 +235,7 @@ const UI = {
     T.text('TOOLS', 291, 4, { size: 6, color: label, align: 'center' });
     tools().forEach((tl, n) => {
       const s = this.toolSlot(n);
-      const label = tl.id === 'clear' && this.confirmClear ? 'Sure?' : tl.label;
+      const label = this.confirm && this.confirm.id === tl.id ? 'Sure?' : tl.label;
       T.text(label, s.x + 20, s.y + 7, { size: 5, color: '#3a2418' });
     });
     T.text('SERVE', SERVE.x + SERVE.w / 2, SERVE.y + 7, { size: 7, color: '#fff', align: 'center', shadow: true });
@@ -239,8 +253,8 @@ const UI = {
     }
     if (this.card) this.drawCardText(T);
     this.toasts.forEach((t, k) => {
-      const x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * 70), y = 20 + k * 13;
-      T.text(t.text, x + 33, y + 3, { size: 5, color: '#3a1a10', align: 'center' });
+      const w = this.toastW(t), x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * (w + 4)), y = 20 + k * 13;
+      T.text(t.text, x + w / 2, y + 3, { size: 5, color: '#3a1a10', align: 'center' });
     });
     if (this.banners.length) {
       const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (150 - b.t) / 12), y = -30 + slide * 34;
@@ -250,8 +264,9 @@ const UI = {
   },
 
   drawCardText(T) {
+    const { x, y } = this.cardBox();
     if (this.card.recipe) {
-      const x = 100, y = 18, L = this.card.recipe;
+      const L = this.card.recipe;
       T.text('ORDER', x + 4, y + 4, { size: 5, color: '#8a6a50' });
       T.text(LEVEL_TIERS[L.tier].title.toUpperCase(), x + 116, y + 4, { size: 4, color: '#8a6a50', align: 'right' });
       T.wrap(L.title.toUpperCase(), x + 4, y + 16, 112, { size: 7, color: '#2a1820' });
@@ -261,8 +276,7 @@ const UI = {
       T.text('click to close', x + 116, y + 72, { size: 4, color: '#a08870', align: 'right' });
       return;
     }
-    const x = 92, y = 16, r = this.card.res;
-    if (r.empty) { T.text(r.line, x + 68, y + 38, { size: 6, color: '#3a2418', align: 'center' }); return; }
+    const r = this.card.res;
     if (r.unmixed) {
       T.text('TASTE', x + 4, y + 4, { size: 7, color: '#3a2418' });
       if (r.temp) T.text(Math.round(r.temp) + '°C', x + 130, y + 4, { size: 6, color: '#8a5a40', align: 'right' });
