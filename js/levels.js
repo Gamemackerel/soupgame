@@ -114,7 +114,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'beef-chowder', short: 'Chowder', icon: 'potato', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
+    id: 'beef-chowder', short: 'Beef Chowder', icon: 'meat', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
     blurb: 'Sear the beef, sweat the vegetables, make a roux in the fat, add potatoes, and finish with cream.',
     hint: 'Flour into hot fat, not into water.',
     essential: ['meat', 'potato', 'cream'],   // without these it isn't the dish at all
