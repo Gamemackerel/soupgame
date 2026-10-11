@@ -229,24 +229,28 @@ function drawPot(t, glow, g = window.g) {
   if (Sim.lid) Art.drawLid(g, t, Chef.spoon && overPotArea(input.x, input.y) ? 7 : 0, Sim.dial >= 7 && Sim.turb > 0.3);
 }
 
-// Emptying the pot: it rolls over on its bottom edge (sliding right as it goes, so it stays in frame) until it's
-// fully upside down, holds there while real gravity dumps everything out of the rim onto the stovetop, then
-// rolls back. While it's inverted the contents are flipped in the sim, so "down" is toward the rim.
-const TIP_ROLL = 55, TIP_HOLD = 240, TIP_MAX = Math.PI * 0.78;   // ~140°: most of the way over, still slanted
+// Emptying the pot: the chef flips it (table-flip style) and it rolls over on its bottom-left edge, sliding
+// right as it goes so it stays in frame, to ~140° (still slanted, like a real pour). It holds there 4 s, then
+// rolls back. Throughout, the contents feel real gravity: "down" is worked out in the pot's own tilted frame
+// every frame, so the soup sloshes to the low wall as it starts to tip, then pours out over the rim.
+const TIP_ROLL = 55, TIP_HOLD = 240, TIP_MAX = Math.PI * 0.78;
+const DIRS8 = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
 const Tip = {
   active: false, t: 0,
   start() {
     if (this.active) return;
-    this.active = true; this.t = 0; Sim.lid = false;
+    this.active = true; this.t = 0; Sim.lid = false; Sim.inverted = true;   // (no burner heating while it's off the stove)
+    // Pieces come apart as it tumbles; steam and flames don't pour.
+    for (let i = 0; i < N; i++) { Sim.body[i] = 0; const m = Sim.mat[i]; if (CLS[m] === C_GAS || m === FIRE) Sim.setCell(i, EMPTY); }
+    Sim.bodyVel.clear(); Sim.bodyShape.clear(); Sim.fond.fill(0);
     Chef.react({ t: 'overflow' });
   },
-  phase() { return this.t < TIP_ROLL ? 'roll' : this.t < TIP_ROLL + TIP_HOLD ? 'dump' : 'back'; },
+  phase() { return this.t < TIP_ROLL ? 'roll' : this.t < TIP_ROLL + TIP_HOLD ? 'hold' : 'back'; },
   // How far over it is: 0 upright → 1 fully tipped.
   turn() {
     const u = this.t < TIP_ROLL ? this.t / TIP_ROLL : this.t < TIP_ROLL + TIP_HOLD ? 1 : Math.max(0, 1 - (this.t - TIP_ROLL - TIP_HOLD) / TIP_ROLL);
     return (1 - Math.cos(u * Math.PI)) / 2;
   },
-  // Roll about the bottom-left corner while sliding right (and up), so it stays in frame as it goes over.
   slide() { const u = this.turn(); return [(POT_R - POT_L) * u, (POT_TOP - POT_BOT) * 0.85 * u]; },
   transform(g) {
     const [sx, sy] = this.slide();
@@ -257,36 +261,50 @@ const Tip = {
     const a = -TIP_MAX * this.turn(), [sx, sy] = this.slide(), dx = x - POT_L, dy = y - POT_BOT;
     return [POT_L + dx * Math.cos(a) - dy * Math.sin(a) + sx, POT_BOT + dx * Math.sin(a) + dy * Math.cos(a) + sy];
   },
+  // One step of falling-sand physics with gravity in the pot's frame. Each cell tries to move along gravity
+  // (snapped to the nearest of 8 directions, with the neighbouring directions as fallbacks); liquids also
+  // spread sideways across the new "floor". A cell that moves out past the rim leaves the pot.
+  pourStep() {
+    const b = TIP_MAX * this.turn(), gx = -Math.sin(b), gy = Math.cos(b);
+    const dir = (Math.round(Math.atan2(gy, gx) / (Math.PI / 4)) + 8) % 8;
+    const cells = [];
+    for (let i = 0; i < N; i++) if (Sim.mat[i] !== EMPTY) cells.push(i);
+    // Lowest first (furthest along gravity), so a column falls together instead of in one-cell steps.
+    cells.sort((p, q) => (gx * (q % GW) + gy * ((q / GW) | 0)) - (gx * (p % GW) + gy * ((p / GW) | 0)));
+    const exits = [];
+    for (const i of cells) {
+      const m = Sim.mat[i]; if (m === EMPTY) continue;
+      const x = i % GW, y = (i / GW) | 0, liquid = CLS[m] === C_LIQUID;
+      const side = Math.random() < 0.5 ? 1 : -1;
+      const tries = [dir, (dir + side + 8) % 8, (dir - side + 8) % 8];
+      if (liquid) tries.push((dir + 2 * side + 8) % 8, (dir - 2 * side + 8) % 8);
+      for (const d of tries) {
+        const nx = x + DIRS8[d][0], ny = y + DIRS8[d][1];
+        if (ny < 0 && nx >= 0 && nx < GW) { exits.push(i); break; }          // over the rim and out
+        if (nx < 0 || nx >= GW || ny < 0 || ny >= GH) continue;                // the pot's walls and floor
+        const j = ny * GW + nx;
+        if (Sim.mat[j] === EMPTY) { Sim.swap(i, j); break; }
+      }
+    }
+    for (const i of exits) {
+      const [px, py] = this.map(GX + (i % GW), GY - 1);
+      if (Math.random() < 0.7) Sim.particle({ x: px, y: py, vx: gx * 1.5 + (Math.random() - 0.5) * 0.6, vy: Math.max(0.3, gy * 1.5),
+                                              life: 400, max: 400, c: Sim.cellRGB(i), kind: 'debris' });
+      Sim.setCell(i, EMPTY);
+    }
+  },
   update() {
     if (!this.active) return;
     this.t++;
     Chef.mood = 'shock'; Chef.moodT = 20;
-    if (this.t === TIP_ROLL) { Sim.flipRows(); Sim.inverted = true; }
-    if (this.phase() === 'dump') {
-      Sim.step(); Sim.events.length = 0;
-      // Whatever reaches the rim (the flipped grid's bottom row) falls out onto the stovetop.
-      for (let x = 0; x < GW; x++) {
-        const i = (GH - 1) * GW + x, m = Sim.mat[i];
-        if (m === EMPTY || CLS[m] === C_GAS || m === FIRE || Math.random() > 0.6) continue;
-        if (Math.random() < 0.5) {
-          const [px, py] = this.map(GX + x, GY);
-          Sim.particle({ x: px, y: py, vx: -0.6 + (Math.random() - 0.5), vy: 0.5 + Math.random(), life: 400, max: 400, c: Sim.cellRGB(i), kind: 'debris' });
-        }
-        Sim.setCell(i, EMPTY);
-      }
-    }
-    if (this.t === TIP_ROLL + TIP_HOLD) Sim.reset();   // whatever's still clinging comes out with a last shake
-    if (this.t >= TIP_ROLL * 2 + TIP_HOLD) { this.active = false; Chef.mood = 'idle'; Chef.say('Fresh start!', 60); }
+    for (let k = 0; k < 5; k++) this.pourStep();   // liquid finds its level fast
+    if (this.t >= TIP_ROLL * 2 + TIP_HOLD) { this.active = false; Sim.reset(); Chef.mood = 'idle'; Chef.say('Fresh start!', 60); }
   },
-  // Draw the pot upright into its own image (contents flipped while inverted), then rotate it as one piece.
+  // The pot (with its contents, which are already in the pot's frame) drawn upright into its own image, then
+  // rotated as one solid piece.
   draw(g, t, glow) {
     potCtx.clearRect(0, 0, W, H);
-    if (this.phase() === 'dump') {
-      Art.drawPotBack(potCtx);
-      Sim.render(simImg.data); simCtx.putImageData(simImg, 0, 0);
-      potCtx.save(); potCtx.translate(GX, GY + GH); potCtx.scale(1, -1); potCtx.drawImage(simCanvas, 0, 0); potCtx.restore();
-      Art.drawPotFront(potCtx, 0);
-    } else drawPot(t, glow, potCtx);
+    drawPot(t, glow, potCtx);
     g.save(); g.imageSmoothingEnabled = false; this.transform(g); g.drawImage(potCanvas, 0, 0); g.restore();
   },
 };

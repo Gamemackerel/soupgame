@@ -36,13 +36,6 @@ Sim.newBody = function (kind = BK_FIRM) {
   return this.nextBody;
 };
 
-// Turn the pot's contents upside down (for emptying it): row y swaps with row GH-1-y, so gravity now pulls
-// everything toward the rim. Pieces lose their remembered shapes and momentum.
-Sim.flipRows = function () {
-  for (let y = 0; y < GH >> 1; y++) for (let x = 0; x < GW; x++) this.swap(y * GW + x, (GH - 1 - y) * GW + x);
-  this.bodyShape.clear(); this.bodyVel.clear(); this.fond.fill(0);
-};
-
 Sim.reset = function () {
   this.mat.fill(0); this.temp.fill(20); this.cook.fill(0); this.life.fill(0);
   this.stirT.fill(0); this.fl.fill(0); this.fond.fill(0); this.body.fill(0); this.bodyVel.clear(); this.bodyShape.clear(); this.bodyPart.fill(0);

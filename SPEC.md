@@ -785,7 +785,10 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 
 **Emptying the pot.**
 - The chef throws his arms up (a table-flip) and the pot rolls over on its bottom-left edge, sliding right as it goes so it stays in frame, until it's about 140° over: most of the way, still slanted, like a real pour.
-- It holds there 4 seconds while the contents, turned over in the simulation so gravity pulls them toward the rim, really fall out onto the stovetop. Then it rolls back, empty.
+- Real gravity acts the whole way through: each frame, "down" is worked out in the pot's tilted frame.
+  - The contents slosh to the low side as it starts to tip, liquids level out and grains pile and slide.
+  - Past horizontal they pour over the rim onto the stovetop.
+- It holds about 4 seconds, then rolls back, empty.
 - The pot is drawn as one solid image while it moves.
 
 **Story levels have a time limit:** the par recipe's cooking time × 1.5 plus a minute, rounded up to 30 s (3:00 for flatbread to 10:30 for goulash).
