@@ -713,7 +713,7 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - Clicking an ingredient or any control puts it away until the cursor enters the pot again.
 
 **Tasting.**
-- With Taste, the chef holds a little spoon that follows the cursor in the kitchen; his arm stretches down into the pot to reach it.
+- With Taste, the chef holds a little spoon that stays inside the pot anywhere in the kitchen, following the cursor; his arm stretches down into the pot to reach it. Clicking tastes where the spoon is. Over the menus he rests it.
 - Clicking in the food takes a sip of the whole pot (flavor and the texture of what's in it). He lifts the spoon to his mouth.
 - If the pot is badly unmixed (some part of the broth more than 4× as strong as the pot's average, e.g. salt or soy just poured and not stirred), the card shows question marks and asks you to stir.
 - Over the menus he holds the spoon up at his lips, pondering. With the ladle, he stands at ease, hand on hip, ladle held upright.
