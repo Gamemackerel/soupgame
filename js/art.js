@@ -155,6 +155,12 @@ const ICON_DRAW = {
   },
   potato(g) { ellipse(g, 8, 9, 6, 5, [190, 146, 90]); ellipse(g, 7, 8, 4, 3, [214, 172, 112]); rect(g, 5, 8, 1, 1, [140, 100, 60]); rect(g, 10, 10, 1, 1, [140, 100, 60]); rect(g, 8, 6, 1, 1, [140, 100, 60]); },
   beans(g) { ball(g, 5, 10, 3, [206, 160, 118], false); ball(g, 10, 10, 3, [170, 70, 60], false); ball(g, 8, 6, 3, [220, 184, 140], false); },   // pinto, kidney, pinto
+  paprika(g) {   // a Hungarian paprika tin: gold lid, red tin, cream label with a little red pepper
+    rect(g, 3, 2, 10, 2, [214, 170, 60]); rect(g, 3, 2, 10, 1, [246, 214, 110]);
+    rect(g, 3, 4, 10, 11, [196, 36, 30]); rect(g, 3, 4, 2, 11, [230, 80, 64]); rect(g, 11, 4, 2, 11, [150, 24, 22]);
+    rect(g, 4, 7, 8, 6, [246, 232, 200]); rect(g, 6, 9, 4, 2, [210, 40, 30]); rect(g, 9, 8, 1, 1, [70, 140, 60]);
+    rect(g, 3, 14, 10, 1, [214, 170, 60]);
+  },
   pasta(g) {
     for (const [x, y] of [[3, 5], [9, 4], [5, 10], [10, 10]]) { rect(g, x, y, 4, 3, [236, 206, 128]); rect(g, x + 1, y + 1, 2, 1, [200, 160, 90]); rect(g, x, y, 4, 1, [250, 230, 170]); }
   },

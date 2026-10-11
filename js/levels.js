@@ -130,7 +130,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'goulash', short: 'Goulash', icon: 'meat', tier: 1, title: 'Goulash', teaches: 'browning and blooming spice',
+    id: 'goulash', short: 'Goulash', icon: 'paprika', tier: 1, title: 'Goulash', teaches: 'browning and blooming spice',
     blurb: 'Slow-cook the onions, brown the beef, bloom the spices in the fat, then simmer with tomato.',
     hint: 'Spices wake up in hot fat, not in water.',
     essential: ['meat', 'chili'],   // without these it isn't the dish at all
