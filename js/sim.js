@@ -886,7 +886,7 @@ Sim.heatPass = function () {
   // The pot is a lump of metal: the flame heats it fairly quickly, but with the burner off
   // it holds its heat and cools off slowly.
   const target = 20 + this.dial * 25;
-  this.panT += (target - this.panT) * (target > this.panT ? 0.012 : 0.006);
+  this.panT += (target - this.panT) * (target > this.panT ? 0.012 : 0.004);
   // Burner heats the pot bottom.
   const base = (GH - 1) * GW;
   for (let x = 0; x < GW; x++) {

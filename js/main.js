@@ -25,14 +25,13 @@ function toInternal(e) {
 }
 const inGrid = (x, y) => x >= GX && x < GX + GW && y >= GY && y < GY + GH;
 const overPotArea = (x, y) => x >= GX - 12 && x < GX + GW + 12 && y >= 24 && y < GY + GH;
-// The ladle comes out when the cursor first enters the pot, then follows it everywhere (held up in the air
-// away from the pot). Just outside the walls or bottom it presses against them, so you can scrape.
-// Clicking an ingredient or a control puts it away until the cursor enters the pot again.
+// With the ladle, the chef reaches wherever the cursor is in the kitchen (held up in the air away from
+// the pot). Just outside the walls or bottom it presses against them, so you can scrape. Over the side
+// panels or the controls along the bottom he stops and just holds it.
 const LADLE_MARGIN = 25;
-let ladleIn = false, prevLadle = null;
+const inKitchen = (x, y) => x >= 58 && x < 262 && y >= 12 && y < 214;
+let prevLadle = null;
 function ladleAt(x, y) {
-  if (inGrid(x, y)) ladleIn = true;
-  if (!ladleIn) return null;
   // Beside or below the pot (within the margin): pressed against the wall or bottom, scraping.
   const beside = x >= GX - LADLE_MARGIN && x < GX + GW + LADLE_MARGIN && y >= GY && y < GY + GH + LADLE_MARGIN;
   if (beside) return { x: Math.max(GX + 1, Math.min(GX + GW - 2, x)), y: Math.max(GY, Math.min(GY + GH - 2, y)) };
@@ -53,7 +52,6 @@ screen.addEventListener('pointerdown', (e) => {
   }
   input.down = true;
   input.consumed = UI.click(p.x, p.y);
-  if (input.consumed) ladleIn = false;   // reaching for a control puts the ladle down
   // Whole eggs and fish are one click each: crack on the rim, drop, or throw.
   const held = Chef.held;
   if (!input.consumed && UI.tool === 'pour' && held && held.kind === 'whole' && overPotArea(p.x, p.y) && !Sim.lid) {
@@ -99,7 +97,10 @@ function update() {
   const active = input.down && !input.consumed && !UI.dragDial && !UI.journal;
   const pouring = active && UI.tool === 'pour' && overPotArea(input.x, input.y) && !!Chef.held && Chef.held.kind !== 'whole' && !Sim.lid;
   // With the ladle over the pot, the chef holds it in the soup at the cursor.
-  Chef.ladle = UI.tool === 'ladle' && !Sim.lid && !UI.journal ? ladleAt(input.x, input.y) : (ladleIn = false, null);
+  // Over a menu (or with the lid on) the chef stands at ease: hand on hip, holding whatever he has.
+  Chef.onMenu = !inKitchen(input.x, input.y) || UI.journal;
+  Chef.ladle = UI.tool === 'ladle' && !Sim.lid && !Chef.onMenu ? ladleAt(input.x, input.y) : null;
+  Chef.idleLadle = UI.tool === 'ladle' && !Chef.ladle;
   Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid) || !!Chef.ladle, pouring);
 
   if (!paused) {

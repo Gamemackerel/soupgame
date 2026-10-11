@@ -202,12 +202,20 @@ const Chef = {
       else if (k === 'spray') { ang = 2.2; ix += Math.round(Math.sin(this.pourPhase * 0.5) * 2); }
       else { ang = 1.2 + Math.sin(this.pourPhase * 0.4) * 0.3; }
     }
-    // Left hand rests on the rim; right hand holds the item.
-    arm(g, shL.x, shL.y, cx - 26, POT_TOP - 1);
-    ball(g, cx - 26, POT_TOP - 2, 3, SKIN);
+    // Left hand rests on the rim (on his hip while he stands at ease with the ladle); right hand holds the item.
+    if (this.idleLadle) {
+      const ex = cx - 30, ey = 97, hx = cx - 19, hy = POT_TOP - 4;
+      arm(g, shL.x, shL.y, ex, ey); arm(g, ex, ey, hx, hy);
+      ball(g, hx, hy, 3, SKIN);
+    } else {
+      arm(g, shL.x, shL.y, cx - 26, POT_TOP - 1);
+      ball(g, cx - 26, POT_TOP - 2, 3, SKIN);
+    }
     if (this.throwT > 6) { showItem = null; iy += 10; }     // just threw it
     if (this.ladle) {
       this.drawLadle(g, sh);
+    } else if (this.idleLadle) {
+      this.drawIdleLadle(g, sh, cx, by);
     } else if (showItem) {
       const iconName = showItem.id === 'egg' && this.cracked ? 'eggcracked' : showItem.icon;
       const icon = Art.icon(iconName, showItem.c);
@@ -242,6 +250,19 @@ const Chef = {
     rect(g, lx - 4, ly + 1, 3, 1, [240, 244, 250]);
     ball(g, hx, hy, 3, SKIN);
     rect(g, hx - 2, hy - 1, 1, 3, rgb(SKIN, 0.8));
+  },
+
+  // At ease with the ladle: held upright at his side, bowl up.
+  drawIdleLadle(g, sh, cx, by) {
+    const hx = cx + 24, hy = 98 + by;
+    arm(g, sh.x, sh.y, hx, hy);
+    for (let k = 0; k <= 34; k++) {
+      const x = Math.round(hx + 1 + k * 0.12), y = hy + 6 - k;
+      rect(g, x - 1, y, 3, 1, [96, 100, 118]); rect(g, x, y, 1, 1, [226, 230, 240]);
+    }
+    const bx = hx + 5, bY = hy - 30;
+    ellipse(g, bx, bY, 6, 4, [70, 74, 90]); ellipse(g, bx, bY, 5, 3, [190, 196, 212]); ellipse(g, bx, bY + 1, 4, 1, [120, 126, 144]);
+    ball(g, hx, hy, 3, SKIN);
   },
 
   drawStream(g, ix, iy) {
