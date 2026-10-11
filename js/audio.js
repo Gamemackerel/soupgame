@@ -1,8 +1,8 @@
 // Music.
 //   Menus: the menu theme loops in every menu (title, settings, journal from settings, level select) and fades out
 //   when cooking, judging or a cutscene starts. It starts over from the top each time you come back.
-//   Kitchen: one of a few short tracks plays as soon as you start cooking, then now and then at random after
-//   that, just to add a little life. Most of the time it's quiet.
+//   Kitchen: track 5 plays as soon as you start cooking, then now and then a random one of the short tracks,
+//   just to add a little life. Most of the time it's quiet.
 // The music volume (a slider in Settings) is saved per browser.
 //
 // audio/menu-theme.flac is exactly one loop: 21.573 s (8 bars at 89 BPM), 951,369 samples at 44.1 kHz. It was
@@ -12,10 +12,11 @@
 const MUSIC_FADE = 0.6;   // seconds to fade out
 const KITCHEN_TRACKS = ['audio/kitchen-2.mp3', 'audio/kitchen-3.mp3', 'audio/kitchen-4.mp3', 'audio/kitchen-5.mp3'];
 const KITCHEN_GAP = [45, 110];   // seconds of quiet between kitchen tracks
+const KITCHEN_OPENER = 3;        // track 5 always plays first when you start cooking
 const SETTINGS_KEY = 'soupgame.settings.v1';
 
 const Music = {
-  ctx: null, theme: null, tracks: [], play: null, sting: null, nextSting: null, lastSting: -1,
+  ctx: null, theme: null, tracks: [], play: null, sting: null, nextSting: null, lastSting: -1, opener: false,
   volume: 0.7,
 
   // Decode up front (an offline context needs no permission), so it's ready the moment sound is allowed.
@@ -58,18 +59,24 @@ const Music = {
     // The menu theme.
     if (where === 'menu' && !this.play && this.theme) this.play = this.start(this.theme, true);
     else if (where !== 'menu' && this.play) { this.fade(this.play); this.play = null; }
-    // Kitchen tracks: one right away (as the menu theme finishes fading), then quiet for a while between tracks.
+    // Kitchen tracks: the opener right away (as the menu theme finishes fading), then quiet for a while between
+    // random tracks.
     if (where !== 'kitchen') {
       if (this.sting) { this.fade(this.sting); this.sting = null; }
       this.nextSting = null;
       return;
     }
     if (this.sting && now >= this.sting.ends) { this.sting = null; this.nextSting = now + rand(KITCHEN_GAP); }
-    if (this.nextSting === null) this.nextSting = now + MUSIC_FADE;
+    if (this.nextSting === null) { this.nextSting = now + MUSIC_FADE; this.opener = true; }
     if (!this.sting && now >= this.nextSting) {
-      const ready = this.tracks.map((b, n) => (b ? n : -1)).filter((n) => n >= 0 && n !== this.lastSting);
-      if (!ready.length) return;
-      this.lastSting = ready[(Math.random() * ready.length) | 0];   // never the same one twice in a row
+      if (this.opener) {
+        if (!this.tracks[KITCHEN_OPENER]) return;   // (still loading)
+        this.opener = false; this.lastSting = KITCHEN_OPENER;
+      } else {
+        const ready = this.tracks.map((b, n) => (b ? n : -1)).filter((n) => n >= 0 && n !== this.lastSting);
+        if (!ready.length) return;
+        this.lastSting = ready[(Math.random() * ready.length) | 0];   // never the same one twice in a row
+      }
       this.sting = this.start(this.tracks[this.lastSting], false);
     }
   },
