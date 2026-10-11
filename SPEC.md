@@ -805,5 +805,5 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 
 - Art for an artist to redraw comes in three groups. **Characters**: chef body, head and 10 faces; six judges, each with a body and a table-front sheet per pose; Papa Dom; the rat; the customer queue. **Ingredients**: 30 pantry icons plus the cracked egg, and 10 finished-dish icons. **Backgrounds**: three kitchens, the judging stage and its table, the shop by night and by day, the level select wall. The pot, lid, arms, flames, food, UI and tool icons stay code-drawn.
 - Each sprite is a sheet: one row per state, one column per frame, fixed cell size and anchor. The game draws `art/sprites/<path>.png` when it's listed in `art/sprites/index.json`, and the code drawing otherwise.
-- `tools/export-art.js` renders the code drawings to `art/templates/` (sheet, zoomed guide, JSON) and `art/catalog.html`. `tools/art-index.js` validates finished sheets and writes the index. The workflow is in `art/README.md`.
+- `tools/export-art.js` renders the code drawings to `art/templates/` (sheet, zoomed guide, JSON) and `art/index.html`. `tools/art-index.js` validates finished sheets and writes the index. The workflow is in `art/README.md`.
 - Motion the game adds (bob, hop, shake, sliding) is never in the art. A state whose frames all render the same is collapsed to one frame.

@@ -2,7 +2,7 @@
 //   <path>.png        the sheet at native size: one row per state, one column per frame. Paint over this.
 //   <path>.guide.png  the same, zoomed, with state names, frame numbers, the anchor (red cross) and guide lines.
 //   <path>.json       cell size, anchor, and each row's state, frame count and speed.
-// plus art/templates/catalog.json and art/catalog.html, a page showing every guide by group.
+// plus art/templates/catalog.json and art/index.html, a page showing every guide by group.
 //
 // Needs Playwright (npm i -D playwright, then npx playwright install chromium), or a system Chrome.
 // Usage: node tools/export-art.js
@@ -45,13 +45,13 @@ const server = http.createServer((req, res) => {
   }
   const metas = all.map((a) => a.meta);
   fs.writeFileSync(path.join(OUT, 'catalog.json'), JSON.stringify(metas, null, 2) + '\n');
-  fs.writeFileSync(path.join(ROOT, 'art', 'catalog.html'), catalog(metas));
+  fs.writeFileSync(path.join(ROOT, 'art', 'index.html'), catalog(metas));
 
   const cells = (m) => m.states.reduce((n, s) => n + s.frames, 0);
   const groups = {};
   for (const m of metas) (groups[m.group] = groups[m.group] || []).push(m);
   for (const [g, ms] of Object.entries(groups)) console.log(`${g.padEnd(12)} ${String(ms.length).padStart(3)} sprites  ${String(ms.reduce((n, m) => n + cells(m), 0)).padStart(4)} cells`);
-  console.log(`Wrote ${metas.length} templates to art/templates/ and art/catalog.html.`);
+  console.log(`Wrote ${metas.length} templates to art/templates/ and art/index.html.`);
 })();
 
 // A browsable page of every template: what each sprite is, its states, and its zoomed guide.
@@ -88,7 +88,7 @@ function catalog(metas) {
   a { color: var(--accent); }
 </style></head><body><main>
 <h1>Soup Pot: art templates</h1>
-<p>Everything to redraw, with every state and frame. Paint over each <code>art/templates/…png</code> at its exact size, keep the grid, and save it to the same path under <code>art/sprites/</code>. See <code>art/README.md</code>.</p>
+<p>Everything to redraw, with every state and frame. Paint over each sprite's <b>template</b> at its exact pixel size, keeping the grid of rows (states) and columns (frames). The full instructions are in the <a href="https://github.com/Gamemackerel/soupgame/blob/main/art/README.md">art README</a>.</p>
 <nav>${order.map((g) => `<a href="#${g}">${g}</a>`).join('')}</nav>
 ${sections}
 </main></body></html>

@@ -10,7 +10,7 @@ Everything an artist redraws is in three groups:
 
 Everything else (the pot and lid, the chef's arms, flames, steam, food in the pot, buttons, tool icons, text) is drawn by code and isn't part of this.
 
-**Open `art/catalog.html`** to see every sprite: what it's for, its states and frames, and a zoomed guide.
+**Open `art/index.html`** (online: https://gamemackerel.github.io/soupgame/art/) to see every sprite: what it's for, its states and frames, and a zoomed guide.
 
 ## The files
 
@@ -45,5 +45,5 @@ Animations are grouped as rows: a judge's `happy` row holds all the frames of th
 ## For developers
 
 - Sprites are defined in `js/sprites.js`: cell size, anchor, states and the code drawing that is the fallback and the template.
-- Changed a drawing, or added a sprite or state? Re-run `node tools/export-art.js`, which needs Playwright. It rewrites `art/templates/` and `art/catalog.html`.
+- Changed a drawing, or added a sprite or state? Re-run `node tools/export-art.js`, which needs Playwright. It rewrites `art/templates/` and `art/index.html`.
 - A state whose frames all come out identical is collapsed to one frame, so nobody draws the same frame four times.
