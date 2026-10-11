@@ -1,0 +1,29 @@
+{
+  "name": "extras/rat",
+  "path": "characters/extras/rat",
+  "group": "characters",
+  "cell": [
+    28,
+    12
+  ],
+  "anchor": [
+    17,
+    6
+  ],
+  "sheet": [
+    112,
+    12
+  ],
+  "states": [
+    {
+      "name": "walk",
+      "row": 0,
+      "frames": 4,
+      "fps": 15,
+      "loop": true,
+      "note": null
+    }
+  ],
+  "notes": "Scurries across the pavement outside the shop at night, left to right.",
+  "guides": []
+}

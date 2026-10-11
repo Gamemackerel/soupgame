@@ -1,0 +1,34 @@
+{
+  "name": "backgrounds/stage-table",
+  "path": "backgrounds/stage-table",
+  "group": "backgrounds",
+  "cell": [
+    320,
+    240
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    320,
+    240
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    }
+  ],
+  "notes": "The judging table and the floor, drawn over the judges. Keep everything above the table top transparent. The bowl sits at y = 140, score cards above x+30.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ]
+}

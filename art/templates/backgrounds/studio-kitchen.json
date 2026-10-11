@@ -1,0 +1,38 @@
+{
+  "name": "backgrounds/studio-kitchen",
+  "path": "backgrounds/studio-kitchen",
+  "group": "backgrounds",
+  "cell": [
+    320,
+    240
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    320,
+    240
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    }
+  ],
+  "notes": "Souped Up's studio kitchen (First Michelin Star levels), with the faded EVERY SECOND COUNTS sign.",
+  "guides": [
+    {
+      "y": 106,
+      "label": "pot rim"
+    },
+    {
+      "y": 206,
+      "label": "pot bottom"
+    }
+  ]
+}

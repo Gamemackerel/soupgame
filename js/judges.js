@@ -413,25 +413,10 @@ const Judging = {
   },
 
   draw(g) {
-    // Studio backdrop.
-    rect(g, 0, 0, W, H, [44, 30, 46]);
-    for (let x = 0; x < W; x += 16) rect(g, x, 0, 8, 120, [52, 36, 54]);
-    for (let k = 0; k < 3; k++) {
-      // Spotlights.
-      g.fillStyle = 'rgba(255,240,200,0.07)';
-      g.beginPath(); g.moveTo(JUDGES[k].x - 6, 0); g.lineTo(JUDGES[k].x + 6, 0);
-      g.lineTo(JUDGES[k].x + 40, 150); g.lineTo(JUDGES[k].x - 40, 150); g.fill();
-    }
-    // Judges.
+    // Studio backdrop, the judges, then the table in front of them, then their paws and hands on it.
+    g.drawImage(Sprites.canvas('backgrounds/stage', 'default', 0), 0, 0);
     JUDGES.forEach((j, n) => drawJudge(g, j, n, this));
-    // Table in perspective.
-    for (let y = 118; y < 160; y++) {
-      const t = (y - 118) / 42, inset = 24 * (1 - t);
-      rect(g, inset, y, W - inset * 2, 1, mix([250, 246, 240], [226, 218, 210], t));
-    }
-    rect(g, 0, 160, W, 30, [190, 40, 50]); rect(g, 0, 160, W, 2, [230, 80, 80]);
-    for (let x = 4; x < W; x += 12) rect(g, x, 162, 2, 28, [170, 30, 44]);
-    rect(g, 0, 190, W, 50, [36, 24, 36]);
+    g.drawImage(Sprites.canvas('backgrounds/stage-table', 'default', 0), 0, 0);
     JUDGES.forEach((j, n) => drawPaws(g, j, n, this));
 
     // Bowl: carried in, then slides in front of each judge.
@@ -741,13 +726,22 @@ function drawGoat(g, j, J, s) {
   if (mood === 'upset') { const py = hy - 20 - ((ft >> 2) % 5); ellipse(g, hx + 20, py, 3, 2, [220, 224, 236]); ellipse(g, hx + 24, py - 2, 2, 1, [220, 224, 236]); }
 }
 
+// The pose a judge's sprite shows for a state (a row of their sprite sheet).
+function judgePose(j, s) {
+  if (s.handshake) return 'handshake';
+  if (s.tasting) return 'tasting';
+  if (j.id === 'gordo' && s.mood === 'upset' && s.active) return 'rant';
+  return s.mood;
+}
 function drawJudge(g, j, n, J) {
-  JUDGE_ART[j.id].body(g, j, J, judgeState(J, n));
+  const s = judgeState(J, n);
+  Sprites.draw(g, 'judges/' + j.id, judgePose(j, s), s.ft, j.x, 0, { j, J, s });
 }
 
 // Front layer resting on the table: paws, hands, teacup.
 function drawPaws(g, j, n, J) {
-  JUDGE_ART[j.id].front(g, j, J, judgeState(J, n));
+  const s = judgeState(J, n), pose = judgePose(j, s);
+  Sprites.draw(g, 'judges/' + j.id + '-front', pose, pose === 'handshake' ? (J.typed || 0) + J.t : s.ft, j.x, 0, { j, J, s });
 }
 
 function paw(g, px, py, c, big) {

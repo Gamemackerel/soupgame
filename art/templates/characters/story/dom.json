@@ -1,0 +1,69 @@
+{
+  "name": "story/dom",
+  "path": "characters/story/dom",
+  "group": "characters",
+  "cell": [
+    120,
+    130
+  ],
+  "anchor": [
+    60,
+    0
+  ],
+  "sheet": [
+    480,
+    780
+  ],
+  "states": [
+    {
+      "name": "sad",
+      "row": 0,
+      "frames": 4,
+      "fps": 2,
+      "loop": true,
+      "note": null
+    },
+    {
+      "name": "stern",
+      "row": 1,
+      "frames": 4,
+      "fps": 2,
+      "loop": true,
+      "note": null
+    },
+    {
+      "name": "happy",
+      "row": 2,
+      "frames": 4,
+      "fps": 2,
+      "loop": true,
+      "note": null
+    },
+    {
+      "name": "sad-talk",
+      "row": 3,
+      "frames": 4,
+      "fps": 7.5,
+      "loop": true,
+      "note": "mouth flapping while his line types out"
+    },
+    {
+      "name": "stern-talk",
+      "row": 4,
+      "frames": 4,
+      "fps": 7.5,
+      "loop": true,
+      "note": "mouth flapping while his line types out"
+    },
+    {
+      "name": "happy-talk",
+      "row": 5,
+      "frames": 4,
+      "fps": 7.5,
+      "loop": true,
+      "note": "mouth flapping while his line types out"
+    }
+  ],
+  "notes": "Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Each mood has an idle row and a talking row.",
+  "guides": []
+}

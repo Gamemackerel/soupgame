@@ -1,0 +1,29 @@
+{
+  "name": "backgrounds/stage",
+  "path": "backgrounds/stage",
+  "group": "backgrounds",
+  "cell": [
+    320,
+    240
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    320,
+    240
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    }
+  ],
+  "notes": "The judging stage behind the judges, with a spotlight on each of the three seats (x = 76, 160, 244). The table is a separate layer.",
+  "guides": []
+}

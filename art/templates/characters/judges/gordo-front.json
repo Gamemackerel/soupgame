@@ -1,0 +1,74 @@
+{
+  "name": "judges/gordo-front",
+  "path": "characters/judges/gordo-front",
+  "group": "characters",
+  "cell": [
+    96,
+    48
+  ],
+  "anchor": [
+    48,
+    -96
+  ],
+  "sheet": [
+    96,
+    288
+  ],
+  "states": [
+    {
+      "name": "neutral",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "waiting"
+    },
+    {
+      "name": "tasting",
+      "row": 1,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "spoon in mouth"
+    },
+    {
+      "name": "happy",
+      "row": 2,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "scored 7+"
+    },
+    {
+      "name": "meh",
+      "row": 3,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "scored 5-6"
+    },
+    {
+      "name": "upset",
+      "row": 4,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "scored under 5"
+    },
+    {
+      "name": "rant",
+      "row": 5,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "upset and speaking: shaking with rage, jabbing a finger"
+    }
+  ],
+  "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ]
+}

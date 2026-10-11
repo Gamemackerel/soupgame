@@ -42,7 +42,7 @@ function drawDom(g, x, J, s) {
 // ---------- Pictures ----------
 // The shop front, by night (struggling: one letter of the neon sign flickering, a rat on the pavement)
 // or by day (a line out the door).
-function drawShop(g, t, night) {
+function drawShopScene(g, night) {
   const sky = night ? [24, 26, 52] : [150, 205, 240];
   rect(g, 0, 0, W, H, sky);
   if (night) for (let k = 0; k < 40; k++) rect(g, (k * 73) % W, (k * 37) % 70, 1, 1, [200, 200, 230]);
@@ -71,26 +71,37 @@ function drawShop(g, t, night) {
   rect(g, 0, 214, W, 26, night ? [30, 30, 36] : [80, 80, 90]);
   for (let x = 10; x < W; x += 40) rect(g, x, 226, 20, 2, night ? [120, 120, 90] : [230, 220, 140]);
   if (night) {
-    // Street lamp pool of light, and a rat scurrying past.
+    // Street lamp and its pool of light.
     g.fillStyle = 'rgba(255,220,140,0.10)'; g.beginPath(); g.moveTo(286, 40); g.lineTo(270, 214); g.lineTo(320, 214); g.lineTo(304, 40); g.fill();
     rect(g, 294, 40, 3, 174, [50, 50, 60]); rect(g, 288, 36, 15, 5, [60, 60, 70]); rect(g, 290, 41, 11, 2, [255, 230, 160]);
-    const rx = Math.round(-20 + t * 1.6), ry = 206 + ((t >> 2) & 1);
-    if (rx < W + 20) {
-      ellipse(g, rx, ry, 6, 3, [110, 106, 110]); ball(g, rx + 6, ry - 1, 3, [120, 116, 120], false);
-      rect(g, rx + 8, ry - 4, 2, 2, [190, 150, 160]); rect(g, rx + 8, ry - 1, 1, 1, INK);
-      for (let k = 0; k < 10; k++) rect(g, rx - 6 - k, ry + Math.round(Math.sin(k * 0.6 + t * 0.4) * 1.5), 1, 1, [190, 150, 160]);
-      for (const lx of [-3, 3]) rect(g, rx + lx + ((t >> 2) & 1 ? 1 : -1), ry + 3, 1, 2, [90, 86, 90]);
-    }
+  }
+}
+function drawShop(g, t, night) {
+  g.drawImage(Sprites.canvas(night ? 'backgrounds/shop-night' : 'backgrounds/shop-day', 'default', 0), 0, 0);
+  if (night) {
+    // A rat scurrying past.
+    const rx = Math.round(-20 + t * 1.6);
+    if (rx < W + 20) Sprites.draw(g, 'extras/rat', 'walk', t, rx, 206);
   } else {
     // A line of customers out the door and along the pavement.
-    const coats = [[60, 90, 160], [200, 80, 60], [80, 140, 90], [220, 180, 60], [150, 90, 160], [60, 60, 70], [230, 130, 160], [90, 160, 190], [180, 120, 70], [120, 120, 200]];
-    for (let k = 0; k < 10; k++) {
-      const px = 186 - k * 17, bob = Math.round(Math.sin(t * 0.15 + k) * 0.6), skins = [[236, 196, 160], [190, 140, 100], [150, 100, 70], [246, 210, 180]];
-      const c = coats[k], sk = skins[k % 4];
-      rect(g, px - 4, 182 + bob, 8, 14, c); rect(g, px - 3, 196, 2, 4, [50, 50, 60]); rect(g, px + 1, 196, 2, 4, [50, 50, 60]);
-      ball(g, px, 177 + bob, 4, sk, false); rect(g, px - 4, 173 + bob, 8, 2, k % 3 === 0 ? [80, 50, 30] : k % 3 === 1 ? [230, 200, 90] : [40, 30, 30]);
-    }
+    for (let k = 0; k < 10; k++) Sprites.draw(g, 'extras/customer', 'c' + k, t, 186 - k * 17, Math.round(Math.sin(t * 0.15 + k) * 0.6));
   }
+}
+// The rat, nose at (x + 9, y).
+function drawRat(g, x, y, t) {
+  const rx = x, ry = y + ((t >> 2) & 1);
+  ellipse(g, rx, ry, 6, 3, [110, 106, 110]); ball(g, rx + 6, ry - 1, 3, [120, 116, 120], false);
+  rect(g, rx + 8, ry - 4, 2, 2, [190, 150, 160]); rect(g, rx + 8, ry - 1, 1, 1, INK);
+  for (let k = 0; k < 10; k++) rect(g, rx - 6 - k, ry + Math.round(Math.sin(k * 0.6 + t * 0.4) * 1.5), 1, 1, [190, 150, 160]);
+  for (const lx of [-3, 3]) rect(g, rx + lx + ((t >> 2) & 1 ? 1 : -1), ry + 3, 1, 2, [90, 86, 90]);
+}
+// Customer k of the line, standing on the pavement at x = px.
+const CUSTOMER_COATS = [[60, 90, 160], [200, 80, 60], [80, 140, 90], [220, 180, 60], [150, 90, 160], [60, 60, 70], [230, 130, 160], [90, 160, 190], [180, 120, 70], [120, 120, 200]];
+function drawCustomer(g, k, px) {
+  const skins = [[236, 196, 160], [190, 140, 100], [150, 100, 70], [246, 210, 180]];
+  const c = CUSTOMER_COATS[k], sk = skins[k % 4];
+  rect(g, px - 4, 182, 8, 14, c); rect(g, px - 3, 196, 2, 4, [50, 50, 60]); rect(g, px + 1, 196, 2, 4, [50, 50, 60]);
+  ball(g, px, 177, 4, sk, false); rect(g, px - 4, 173, 8, 2, k % 3 === 0 ? [80, 50, 30] : k % 3 === 1 ? [230, 200, 90] : [40, 30, 30]);
 }
 
 // ---------- Scenes ----------
@@ -189,8 +200,11 @@ const Story = {
     sg.clearRect(0, 0, 120, 130);
     const talking = this.phase === 'show' && this.typed < (s.lines ? s.lines[this.n].length : 0);
     const st = { mood: s.mood, ft: Chef.t, active: talking, tasting: false, talking };
-    if (s.who === 'dom') drawDom(sg, 60, { t: Chef.t }, st);
-    else drawGordo(sg, Object.assign(Object.create(JUDGE_ROSTER.gordo), { x: 60 }), { t: Chef.t }, { ...st, mood: talking && s.mood === 'neutral' ? 'meh' : s.mood });
+    if (s.who === 'dom') Sprites.draw(sg, 'story/dom', talking ? s.mood + '-talk' : s.mood, Chef.t, 60, 0, { J: { t: Chef.t }, s: st });
+    else {
+      const gs = { ...st, mood: talking && s.mood === 'neutral' ? 'meh' : s.mood }, j = JUDGE_ROSTER.gordo;
+      Sprites.draw(sg, 'judges/gordo', judgePose(j, gs), Chef.t, 60, 0, { j, J: { t: Chef.t }, s: gs });
+    }
     if (s.silhouette) { sg.globalCompositeOperation = 'source-in'; sg.fillStyle = '#0b0a10'; sg.fillRect(0, 0, 120, 130); sg.globalCompositeOperation = 'source-over'; }
     g.drawImage(this.sprite, 160 - 120, 196 - 260 + 30, 240, 260);
   },

@@ -8,8 +8,6 @@ window.g = g;
 const potCanvas = makeCanvas(W, H), potCtx = potCanvas.getContext('2d');
 const simCanvas = makeCanvas(GW, GH), simCtx = simCanvas.getContext('2d');
 const simImg = simCtx.createImageData(GW, GH);
-// The default kitchen, and Papa Dom's pizza shop for the first tier.
-const BG = { kitchen: Art.buildBackground('kitchen'), pizza: Art.buildBackground('pizza'), show: Art.buildBackground('show') };
 
 const input = { x: 160, y: 120, px: 160, py: 120, down: false, consumed: false };
 let paused = false;
@@ -399,7 +397,8 @@ function draw() {
     Judging.draw(g);
   } else {
     const t = Sim.frame;
-    g.drawImage(!Game.level ? BG.kitchen : Game.level.tier === 0 ? BG.pizza : BG.show, 0, 0);
+    // The default kitchen, Papa Dom's pizza shop for the first tier, Souped Up's studio after that.
+    g.drawImage(Sprites.canvas('backgrounds/' + (!Game.level ? 'kitchen' : Game.level.tier === 0 ? 'pizza-shop' : 'studio-kitchen'), 'default', 0), 0, 0);
     // Soot from a kitchen fire stays on the wall until a fresh pot.
     if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
     if (Game.level) drawTimer(g);   // on the back wall, behind the chef

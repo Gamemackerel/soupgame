@@ -1,0 +1,37 @@
+{
+  "name": "ingredients/egg",
+  "path": "ingredients/egg",
+  "group": "ingredients",
+  "cell": [
+    16,
+    16
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    16,
+    32
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    },
+    {
+      "name": "cracked",
+      "row": 1,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    }
+  ],
+  "notes": "Egg: on the shelf, and in the chef's hand. Cracked: after tapping it on the rim.",
+  "guides": []
+}

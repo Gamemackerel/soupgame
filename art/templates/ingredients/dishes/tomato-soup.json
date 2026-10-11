@@ -1,0 +1,29 @@
+{
+  "name": "dishes/tomato-soup",
+  "path": "ingredients/dishes/tomato-soup",
+  "group": "ingredients",
+  "cell": [
+    24,
+    16
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    24,
+    16
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    }
+  ],
+  "notes": "Tomato Soup, finished: its ticket on the level select board.",
+  "guides": []
+}

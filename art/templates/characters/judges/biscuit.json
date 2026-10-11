@@ -1,0 +1,66 @@
+{
+  "name": "judges/biscuit",
+  "path": "characters/judges/biscuit",
+  "group": "characters",
+  "cell": [
+    96,
+    128
+  ],
+  "anchor": [
+    48,
+    0
+  ],
+  "sheet": [
+    384,
+    640
+  ],
+  "states": [
+    {
+      "name": "neutral",
+      "row": 0,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "note": "waiting"
+    },
+    {
+      "name": "tasting",
+      "row": 1,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "note": "spoon in mouth"
+    },
+    {
+      "name": "happy",
+      "row": 2,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "note": "scored 7+"
+    },
+    {
+      "name": "meh",
+      "row": 3,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "note": "scored 5-6"
+    },
+    {
+      "name": "upset",
+      "row": 4,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "note": "scored under 5"
+    }
+  ],
+  "notes": "Biscuit: an excitable pup. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ]
+}

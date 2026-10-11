@@ -72,11 +72,7 @@ const Menu = {
   update(mx, my) { this.t++; this.hover = this.pick(mx, my); if (this.flash && ++this.flash.t > 240) this.flash = null; },
 
   draw(g) {
-    // Stainless wall behind the kitchen pass, warm heat lamps along the top.
-    rect(g, 0, 0, W, H, [52, 54, 64]);
-    for (let y = 0; y < H; y += 12) rect(g, 0, y, W, 1, [58, 60, 70]);
-    for (let x = 30; x < W; x += 64) { ellipse(g, x, 3, 10, 3, [90, 70, 60]); g.fillStyle = 'rgba(255,170,80,0.08)'; g.beginPath(); g.moveTo(x - 8, 4); g.lineTo(x + 8, 4); g.lineTo(x + 30, 30); g.lineTo(x - 30, 30); g.fill(); }
-    rect(g, 0, 22, W, 2, [96, 100, 114]);
+    g.drawImage(Sprites.canvas('backgrounds/level-select', 'default', 0), 0, 0);
 
     for (const t of LEVEL_TIERS) {
       const open = Progress.unlocked(t.tier), y0 = BOARD.rowY + t.tier * BOARD.rowH;
@@ -193,7 +189,7 @@ const Title = {
   },
   draw(g) {
     // The kitchen, dimmed, with the pot as a backdrop.
-    g.drawImage(BG.kitchen, 0, 0);
+    g.drawImage(Sprites.canvas('backgrounds/kitchen', 'default', 0), 0, 0);
     Art.drawPotBack(g); Art.drawPotFront(g, 0);
     rect(g, 0, 0, W, H, 'rgba(20,12,18,0.62)');
     for (const b of this.buttons()) button(g, b, this.hover === b, b.danger);

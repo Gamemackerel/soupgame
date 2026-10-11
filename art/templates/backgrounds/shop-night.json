@@ -1,0 +1,29 @@
+{
+  "name": "backgrounds/shop-night",
+  "path": "backgrounds/shop-night",
+  "group": "backgrounds",
+  "cell": [
+    320,
+    240
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    320,
+    240
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    }
+  ],
+  "notes": "Papa Dom's shop front at night, struggling. The neon sign's letters are drawn on the dark sign board by code (one flickers). The rat runs along y = 206.",
+  "guides": []
+}

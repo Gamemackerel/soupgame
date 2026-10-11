@@ -117,27 +117,11 @@ const Chef = {
     if (this.recoilT) bob -= 3;
     const cx = Math.round(this.x + this.swayX + (this.shakeT ? ((t >> 1) & 1 ? 1 : -1) : 0)), by = bob + CHEF_LIFT;
 
-    // Torso (white coat) peeking above the pot.
-    ellipse(g, cx, 92 + by, 22, 14, rgb(COAT, 0.45));
-    ellipse(g, cx, 92 + by, 21, 13, COAT);
-    rect(g, cx - 21, 92 + by, 42, 26, COAT);
-    rect(g, cx + 8, 84 + by, 13, 34, rgb(COAT, 0.9));
-    rect(g, cx - 1, 84 + by, 2, 34, [226, 228, 236]);
-    for (let k = 0; k < 3; k++) { rect(g, cx - 5, 90 + k * 7 + by, 2, 2, [200, 60, 60]); rect(g, cx + 4, 90 + k * 7 + by, 2, 2, [200, 60, 60]); }
-    // Neckerchief.
-    ellipse(g, cx, 78 + by, 8, 3, [220, 60, 60]);
-    rect(g, cx + 3, 79 + by, 4, 5, [200, 50, 50]);
-
-    // Head.
+    // Torso, head (with toque) and face are separate sprites, so the face can change without redrawing him.
+    Sprites.draw(g, 'chef/body', 'idle', t, cx, by);
     const hy = 62 + by + (this.sipT ? 2 : 0);
-    ball(g, cx, hy, 13, SKIN);
-    // Ears.
-    ball(g, cx - 13, hy + 1, 3, SKIN, false); ball(g, cx + 13, hy + 1, 3, SKIN, false);
-    // Toque.
-    rect(g, cx - 11, hy - 16, 22, 7, HAT); rect(g, cx - 11, hy - 10, 22, 1, [210, 214, 226]);
-    ball(g, cx - 8, hy - 21, 7, HAT); ball(g, cx + 8, hy - 21, 7, HAT); ball(g, cx, hy - 26, 8, HAT);
-    // Face.
-    this.drawFace(g, cx, hy);
+    Sprites.draw(g, 'chef/head', 'idle', t, cx, hy);
+    Sprites.draw(g, 'chef/face', this.faceState(), t, cx, hy);
 
     // Splats on his coat and face; soot from fire darkens him.
     for (const s of this.stains) rect(g, cx + s.dx - (s.r >> 1), by + s.dy - (s.r >> 1), s.r, s.r, s.c);
@@ -155,8 +139,33 @@ const Chef = {
     }
   },
 
-  drawFace(g, cx, hy) {
-    const m = this.mood, blink = this.blinkT < 6;
+  faceState() { return this.mood === 'idle' && this.blinkT < 6 ? 'blink' : this.mood; },
+
+  // Torso (white coat) peeking above the pot, at native origin cx = 0, by = 0.
+  drawBody(g) {
+    const cx = 0, by = 0;
+    ellipse(g, cx, 92 + by, 22, 14, rgb(COAT, 0.45));
+    ellipse(g, cx, 92 + by, 21, 13, COAT);
+    rect(g, cx - 21, 92 + by, 42, 26, COAT);
+    rect(g, cx + 8, 84 + by, 13, 34, rgb(COAT, 0.9));
+    rect(g, cx - 1, 84 + by, 2, 34, [226, 228, 236]);
+    for (let k = 0; k < 3; k++) { rect(g, cx - 5, 90 + k * 7 + by, 2, 2, [200, 60, 60]); rect(g, cx + 4, 90 + k * 7 + by, 2, 2, [200, 60, 60]); }
+    // Neckerchief.
+    ellipse(g, cx, 78 + by, 8, 3, [220, 60, 60]);
+    rect(g, cx + 3, 79 + by, 4, 5, [200, 50, 50]);
+  },
+  // Head, ears and toque, centered on the head (cx = 0, hy = 0).
+  drawHead(g) {
+    const cx = 0, hy = 0;
+    ball(g, cx, hy, 13, SKIN);
+    ball(g, cx - 13, hy + 1, 3, SKIN, false); ball(g, cx + 13, hy + 1, 3, SKIN, false);
+    rect(g, cx - 11, hy - 16, 22, 7, HAT); rect(g, cx - 11, hy - 10, 22, 1, [210, 214, 226]);
+    ball(g, cx - 8, hy - 21, 7, HAT); ball(g, cx + 8, hy - 21, 7, HAT); ball(g, cx, hy - 26, 8, HAT);
+  },
+
+  // m: the mood ('blink' is idle with the eyes shut).
+  drawFace(g, cx, hy, m) {
+    const blink = m === 'blink';
     if (m === 'angry') {
       // Furious: flushed, brows slammed down toward the nose, narrowed eyes, gritted teeth.
       ellipse(g, cx, hy + 2, 11, 7, 'rgba(230,70,60,0.28)');
@@ -245,8 +254,7 @@ const Chef = {
     } else if (this.spoon || this.idleSpoon) {
       this.drawSpoon(g, sh, cx, by);
     } else if (showItem) {
-      const iconName = showItem.id === 'egg' && this.cracked ? 'eggcracked' : showItem.icon;
-      const icon = Art.icon(iconName, showItem.c);
+      const icon = Art.ingIcon(showItem, showItem.id === 'egg' && this.cracked);
       // Arm first, then the item in front of it, then the hand wrapped around the item's edge.
       arm(g, sh.x, sh.y, ix + 4, iy + 5);
       g.save(); g.translate(Math.round(ix), Math.round(iy)); g.rotate(ang); g.drawImage(icon, -8, -8); g.restore();

@@ -1,0 +1,29 @@
+{
+  "name": "ingredients/corn",
+  "path": "ingredients/corn",
+  "group": "ingredients",
+  "cell": [
+    16,
+    16
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    16,
+    16
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": null
+    }
+  ],
+  "notes": "Corn: on the shelf, and in the chef's hand.",
+  "guides": []
+}

@@ -164,17 +164,6 @@ const ICON_DRAW = {
   },
 };
 
-Art.icons = {};
-Art.icon = function (type, c) {
-  const key = type + c.join(',');
-  if (!this.icons[key]) {
-    const cv = makeCanvas(16, 16);
-    ICON_DRAW[type](cv.getContext('2d'), c);
-    outlineCanvas(cv);
-    this.icons[key] = cv;
-  }
-  return this.icons[key];
-};
 
 // ---------------- Dish icons (24x16): each level's finished dish, for its ticket ----------------
 
@@ -252,17 +241,9 @@ const DISH_DRAW = {
     rect(g, 19, 11, 3, 1, [220, 40, 30]); rect(g, 21, 10, 1, 1, [80, 150, 60]);   // a chili pepper alongside
   },
 };
-Art.dishes = {};
-Art.dishIcon = function (id) {
-  if (!DISH_DRAW[id]) return null;
-  if (!this.dishes[id]) {
-    const cv = makeCanvas(24, 16);
-    DISH_DRAW[id](cv.getContext('2d'));
-    outlineCanvas(cv);
-    this.dishes[id] = cv;
-  }
-  return this.dishes[id];
-};
+// Ingredient and dish icons come through Sprites, so finished art replaces these drawings (js/sprites.js).
+Art.ingIcon = function (ing, cracked) { return Sprites.canvas('ingredients/' + ing.id, cracked ? 'cracked' : 'default', 0); };
+Art.dishIcon = function (id) { return Sprites.defs['dishes/' + id] ? Sprites.canvas('dishes/' + id, 'default', 0) : null; };
 
 // ---------------- Tool icons (16x16) ----------------
 

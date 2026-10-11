@@ -133,7 +133,7 @@ const UI = {
       rect(g, s.x + 1, s.y + 1, s.w - 1, s.h - 1, sel ? [255, 214, 110] : hov ? [196, 140, 92] : [176, 120, 76]);
       rect(g, s.x + 1, s.y + s.h - 2, s.w - 1, 2, [120, 76, 48]);
       const bobY = sel ? Math.round(Math.sin(Chef.t * 0.15)) : 0;
-      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 1, s.y + 2 + bobY);
+      g.drawImage(Art.ingIcon(ing), s.x + 1, s.y + 2 + bobY);
     });
     // Tool panel.
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);

@@ -1,0 +1,66 @@
+{
+  "name": "judges/joe-front",
+  "path": "characters/judges/joe-front",
+  "group": "characters",
+  "cell": [
+    96,
+    48
+  ],
+  "anchor": [
+    48,
+    -96
+  ],
+  "sheet": [
+    384,
+    240
+  ],
+  "states": [
+    {
+      "name": "neutral",
+      "row": 0,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "note": "waiting"
+    },
+    {
+      "name": "tasting",
+      "row": 1,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "spoon in mouth"
+    },
+    {
+      "name": "happy",
+      "row": 2,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "scored 7+"
+    },
+    {
+      "name": "meh",
+      "row": 3,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "scored 5-6"
+    },
+    {
+      "name": "upset",
+      "row": 4,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "note": "scored under 5"
+    }
+  ],
+  "notes": "Joe: the pizza-shop regular. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ]
+}
