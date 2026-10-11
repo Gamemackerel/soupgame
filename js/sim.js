@@ -756,6 +756,12 @@ Sim.softBody = function (b, cells, swimming, sw, cx, cy) {
       }
       continue;
     }
+    // Gravity beats surface tension: a bit of egg with open air right under it drops (a yolk left perched
+    // above a white that has run out flat, or set egg overhanging an edge), instead of hovering in mid-air.
+    {
+      const below = i + GW;
+      if (below < N && !body[below] && isOpen(mat[below]) && rnd() < 0.6) { this.swap(i, below); cells[k] = below; continue; }
+    }
     // Strong swirl or a fresh stir pulls loose strands off the edges.
     if (swimming && own <= 2 && rnd() < sw * 0.05 + (this.stirT[i] ? 0.04 : 0)) { body[i] = 0; continue; }
     const isYolk = mat[i] === YOLK || mat[i] === YOLK_COOKED, set = mat[i] === WHITE_COOKED || mat[i] === YOLK_COOKED;

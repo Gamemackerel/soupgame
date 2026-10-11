@@ -113,7 +113,10 @@ function update() {
   // Holding the button down keeps working the ladle even if the cursor strays over a menu.
   const ladleHeld = input.down && !input.consumed && UI.tool === 'ladle';
   Chef.ladle = UI.tool === 'ladle' && (!Chef.onMenu || ladleHeld) && !Tip.active
-    ? (Sim.lid ? { x: Math.max(GX + 4, Math.min(GX + GW - 4, input.x)), y: Math.min(input.y, POT_TOP - 7), air: true } : ladleAt(input.x, input.y)) : null;
+    ? (Sim.lid ? { x: Math.max(GX + 4, Math.min(GX + GW - 4, input.x)), y: Math.min(input.y, POT_TOP - 7), air: true }
+      // Held down, it stays in the pot: pinned inside the walls wherever the cursor goes, still stirring and scraping.
+      : ladleHeld ? { x: Math.max(GX + 1, Math.min(GX + GW - 2, input.x)), y: Math.max(GY, Math.min(GY + GH - 2, input.y)) }
+      : ladleAt(input.x, input.y)) : null;
   Chef.idleLadle = UI.tool === 'ladle' && !Chef.ladle;
   // The tasting spoon works the same way: in the kitchen he reaches it wherever you point.
   Chef.spoon = UI.tool === 'taste' && !Chef.onMenu && !Tip.active ? { x: input.x, y: input.y } : null;
@@ -367,7 +370,7 @@ const Tip = {
   update() {
     if (!this.active) return;
     this.t++;
-    Chef.mood = 'shock'; Chef.moodT = 20;
+    Chef.mood = 'angry'; Chef.moodT = 20;   // (╯°□°)╯ ︵ ┻━┻
     for (let k = 0; k < 5; k++) this.pourStep();   // liquid finds its level fast
     if (this.t >= TIP_ROLL * 2 + TIP_HOLD) { this.active = false; Sim.reset(); Chef.mood = 'idle'; Chef.say('Fresh start!', 60); }
   },

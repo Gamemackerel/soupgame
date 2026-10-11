@@ -157,6 +157,22 @@ const Chef = {
 
   drawFace(g, cx, hy) {
     const m = this.mood, blink = this.blinkT < 6;
+    if (m === 'angry') {
+      // Furious: flushed, brows slammed down toward the nose, narrowed eyes, gritted teeth.
+      ellipse(g, cx, hy + 2, 11, 7, 'rgba(230,70,60,0.28)');
+      for (const sd of [-1, 1]) {
+        const ex = cx + sd * 5;
+        rect(g, ex - 1, hy - 1, 2, 2, [40, 30, 30]); rect(g, ex - 1, hy - 1, 1, 1, [255, 255, 255]);   // beady glare
+        for (let k = 0; k < 5; k++) rect(g, cx + sd * (8 - k), hy - 6 + Math.round(k * 0.6), 1, 2, [60, 36, 24]);   // thick V brows
+      }
+      const my = hy + 8;
+      // A downturned snarl with clenched teeth.
+      rect(g, cx - 4, my, 8, 3, [120, 30, 40]); rect(g, cx - 3, my + 1, 6, 1, [250, 250, 250]);
+      rect(g, cx - 5, my + 2, 1, 2, [120, 30, 40]); rect(g, cx + 4, my + 2, 1, 2, [120, 30, 40]);
+      ellipse(g, cx - 4, hy + 5, 4, 1, [110, 70, 40]); ellipse(g, cx + 4, hy + 5, 4, 1, [110, 70, 40]);   // mustache bristling
+      rect(g, cx - 10, hy + 2, 2, 2, [110, 70, 40]); rect(g, cx + 9, hy + 2, 2, 2, [110, 70, 40]);
+      return;
+    }
     const eye = (ex) => {
       if (m === 'happy' || m === 'love') { rect(g, ex - 1, hy - 1, 3, 1, [40, 30, 30]); rect(g, ex - 2, hy, 1, 1, [40, 30, 30]); rect(g, ex + 2, hy, 1, 1, [40, 30, 30]); }
       else if (m === 'gross') { rect(g, ex - 1, hy, 3, 1, [40, 30, 30]); }
