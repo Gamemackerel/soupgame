@@ -231,9 +231,12 @@ function drawPot(t, glow, g = window.g) {
     if (Sim.fond[x] > 0.05) rect(g, GX + x, GY + GH - 1, 1, 1, mix([150, 90, 50], [70, 40, 20], Sim.fond[x]));
   }
   Art.drawPotFront(g, glow);
-  // The lid rattles on a hard boil, and lifts a little while you taste under it.
-  if (Sim.lid) Art.drawLid(g, t, Chef.spoon && !Chef.spoon.air ? 7 : 0, Sim.dial >= 7 && Sim.turb > 0.3);
+  // The lid rattles on a hard boil. (Lifted for tasting, it's drawn later, over the chef's spoon arm.)
+  if (Sim.lid && !lidLifted()) Art.drawLid(g, t, 0, Sim.dial >= 7 && Sim.turb > 0.3);
 }
+// Tasting with the lid on: the chef holds the lid up by its handle and reaches the spoon in under it.
+function lidLifted() { return Sim.lid && !Tip.active && !!Chef.spoon && !Chef.spoon.air; }
+const LID_LIFT = 7;
 
 // ---------- Spills: physics for food that has left the pot ----------
 // Anything poured out falls under gravity, lands on the stovetop and piles up (solids stack; liquids spread
@@ -467,7 +470,9 @@ function draw() {
     if (!Tip.active) drawPot(t, glow);
     Art.drawFlames(g, Sim.dial, t, true);
     Chef.flipping = Tip.active ? Math.min(1, Tip.turn() * 2.5) : 0;
+    Chef.liftingLid = lidLifted();
     Chef.drawArms(g, input.x);
+    if (Chef.liftingLid) { Art.drawLid(g, t, LID_LIFT); Chef.drawLidHand(g, Art.lidKnob(t, LID_LIFT)); }
     if (!Tip.active) { drawParticles(); Spill.draw(g); }
     // The whole kitchen glows orange while something is on fire.
     if (Sim.fire > 0) { g.fillStyle = `rgba(255,120,40,${Sim.fire * (Sim.disaster ? 0.16 : 0.08) * (0.8 + Math.random() * 0.4)})`; g.fillRect(0, 0, W, H); }

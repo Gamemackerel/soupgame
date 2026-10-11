@@ -427,9 +427,15 @@ Art.drawPotFront = function (g, heatGlow) {
 };
 
 // lift: how far it's raised (tasting under it); rattle: a hard boil underneath makes it jump.
-Art.drawLid = function (g, t, lift = 0, rattle = false) {
+// Where the lid sits: lifted (tasting under it) it rises and shifts a little to the right.
+Art.lidPos = function (t, lift = 0, rattle = false) {
   const jig = rattle ? Math.round(Math.sin(t * 0.9) * 1.2 + (Math.sin(t * 2.3) > 0.7 ? -1 : 0)) : 0;
-  const cy = POT_TOP - 2 - lift + jig, cx = 160 + (lift ? 6 : 0);
+  return { cx: 160 + (lift ? 6 : 0), cy: POT_TOP - 2 - lift + jig };
+};
+// The top of the lid's handle, where a hand grips it.
+Art.lidKnob = function (t, lift = 0, rattle = false) { const p = Art.lidPos(t, lift, rattle); return { x: p.cx, y: p.cy - 9 }; };
+Art.drawLid = function (g, t, lift = 0, rattle = false) {
+  const { cx, cy } = Art.lidPos(t, lift, rattle);
   if (lift) { g.fillStyle = 'rgba(240,240,250,0.35)'; for (let k = 0; k < 4; k++) g.fillRect(150 + k * 8, cy + 4 + ((t + k * 5) % 6) * -1, 2, 3); }   // steam escaping
   ellipse(g, cx, cy, 84, 5, rgb(STEEL, 0.55));
   ellipse(g, cx, cy - 1, 82, 4, rgb(STEEL, 0.95));

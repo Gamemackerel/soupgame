@@ -238,7 +238,9 @@ const Chef = {
       return;
     }
     // Left hand rests on the rim (on his hip while he stands at ease with the ladle); right hand holds the item.
-    if (this.idleLadle) {
+    if (this.liftingLid) {
+      // (His left hand is on the lid's handle: drawn over the lid, by drawLidHand.)
+    } else if (this.idleLadle) {
       const ex = cx - 30, ey = 97, hx = cx - 19, hy = POT_TOP - 4;
       arm(g, shL.x, shL.y, ex, ey); arm(g, ex, ey, hx, hy);
       ball(g, hx, hy, 3, SKIN);
@@ -290,6 +292,14 @@ const Chef = {
 
   // The tasting spoon: reached into the pot wherever you point (his arm stretches right down in), lifted
   // to his mouth for a sip, or held thoughtfully up by his chin while you're off in the menus.
+  // Holding the lid up by its handle while he tastes under it: his left arm, drawn over the lid.
+  drawLidHand(g, knob) {
+    const cx = Math.round(this.x + this.swayX), by = Math.round(Math.sin(this.t * 0.07) + this.swayBob) + CHEF_LIFT;
+    arm(g, cx - 18, 88 + by, knob.x - 3, knob.y + 1);
+    ball(g, knob.x - 2, knob.y + 1, 3, SKIN);
+    rect(g, knob.x - 1, knob.y - 1, 3, 1, rgb(SKIN, 0.8));   // fingers curled over the top of the handle
+  },
+
   drawSpoon(g, sh, cx, by) {
     const steel = [196, 202, 216], dark = [70, 74, 90];
     let sx, sy, hx, hy, ang;   // spoon bowl, hand, handle direction
