@@ -653,7 +653,7 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 
 **The board:** the game opens on level select, styled as a kitchen pass.
 - Each tier is a steel ticket rail of 5 order tickets: the dish's key ingredient, its name, the best score ("NEW" if unplayed) and stamps.
-  - A green check means passed. One gold star is Good Soup, two are Perfect. A small handshake mark is Paul's handshake.
+  - A green check means passed. Good Soup is a red rubber stamp across the ticket, Perfect a gold one. A small handshake mark is Paul's handshake.
 - Locked rows show face-down, padlocked tickets.
 - Hovering a dish shows its description. **Sandbox** sits under the rails.
 

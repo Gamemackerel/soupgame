@@ -106,7 +106,7 @@ const Menu = {
         const ing = SHELF.find((s) => s.id === lv.icon);
         if (ing) g.drawImage(Art.icon(ing.icon, ing.c), r.x + 2, y + 8);
         // Badges: a green check for passed, a gold star for Good Soup, two for Perfect, a little handshake.
-        if (best && best.passed) stamp(g, r.x + r.w - 9, y + 9, best.badge);
+        if (best && best.passed && !best.badge) stamp(g, r.x + r.w - 9, y + 9, null);   // a plain pass: a check
         if (best && best.handshake) { rect(g, r.x + r.w - 10, y + 20, 4, 3, [176, 120, 84]); rect(g, r.x + r.w - 7, y + 21, 4, 3, [236, 196, 160]); }
       }
     }
@@ -128,6 +128,9 @@ const Menu = {
         const hov = this.hover && this.hover.type === 'level' && this.hover.level === lv, y = r.y - (hov ? 2 : 0);
         T.wrap(lv.short.toUpperCase(), r.x + 3, y + 26, r.w - 4, { size: 4, color: '#2a1820' });
         T.text(best ? best.score.toFixed(1) : 'NEW', r.x + r.w - 3, y + 1, { size: 4, color: best ? (best.passed ? '#2a7a3a' : '#a03a2a') : '#8a6a50', align: 'right' });
+        // Earned a badge: stamped right across the ticket.
+        if (best && best.badge === 'good') T.stamp('GOOD SOUP', r.x + r.w / 2, y + 20, { size: 5, color: 'rgba(196,36,36,0.82)' });
+        if (best && best.badge === 'perfect') T.stamp('PERFECT', r.x + r.w / 2, y + 20, { size: 6, color: 'rgba(212,150,20,0.9)' });
       });
     }
     T.text('BACK', 160, BACK_BTN.y + 5, { size: 6, color: '#3a2020', align: 'center' });
