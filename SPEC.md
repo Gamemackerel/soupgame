@@ -740,3 +740,51 @@ Level select has a Back button to the title. In sandbox, the tools panel's Menu 
 The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-flag bunting, a chalkboard menu, a glowing wood-fired oven and a pizza peel. The First Michelin Star tier and sandbox use the regular kitchen.
 
 **Dev hashes:** `#story=intro`, `#story=pizzaDone`, `#story=showDone`.
+
+## 23. Pantry, Tools and Kitchen Polish (implemented)
+
+**The pantry** comes in rows of three:
+
+| Rows | Items |
+|---|---|
+| Liquids | water, oil, cream; wine, vinegar, soy |
+| Seasonings | salt, sugar, flour |
+| Spices | chili, cumin, black pepper |
+| Leaveners | baking soda, baking powder, yeast |
+| Vegetables | onion, garlic, carrot; celery, tomato, potato; corn, beans, herbs |
+| Proteins and the rest | beef, chicken, whole fish; egg, pasta, extinguisher |
+
+- **Cream** is what the shelf calls the old milk (same behavior; its id stays `milk`, so recipes keep working).
+- **Black pepper** is a spice: it blooms like the others and gives a gentler, more aromatic heat than chili.
+- **Yeast** needs warmth and time.
+  - In a warm, moist dough (about 25–60 °C, best around 32–46 °C) it slowly fills the dough with gas, faster with a little sugar. The dough proofs (the **Proofing** discovery) and roughly doubles.
+  - Past 60 °C it dies, so a yeast dough put straight into a hot pot barely rises.
+  - A dough can only hold so much gas, so a proofed loaf gets a normal oven spring.
+  - Loose in liquid it just tastes faintly yeasty.
+- **Chicken** goes from raw pink to poached white (cooked in water) to golden roasted, makes a golden stock, and sears. It has to be cooked through: undercooked chicken is a clear raw flaw.
+
+**Tools.**
+- There's no Pour tool: clicking a pantry item is pouring. Stir and Taste toggle (click again to put them down).
+- The tools are Stir, Taste, Lid, Empty and **Quit** (with a sad face; back to level select, or the title in sandbox). Every button highlights on hover.
+- The pantry's name bubble points right at the cursor.
+
+**The Journal** has moved to Settings on the title screen; J opens it while cooking.
+- It is a paged book, ten entries to a page, each with its full description (or a hint while undiscovered).
+- Discoveries are saved across sessions.
+- A technique you discover for the first time ever gets the full banner. After that, whenever it happens in a pot, a small toast slides in at the side of the kitchen.
+
+**Tasting** works on solid food too (a sear, a bake): with no liquid in the pot, the spoon tastes the food the way the judges would.
+
+**The lid.**
+- It rattles only on a hard boil (heat 7 or more and really bubbling).
+- Tasting with the lid on lifts it a little, steam escaping.
+- The ladle comes to rest on top of it.
+- Pouring onto a closed pot bounces everything off the lid and across the kitchen (and sometimes onto the chef).
+
+**Emptying the pot** tips it over 45°, pivoting on its bottom corner. The contents drain from the top and the rim side first and stream out onto the floor, then the pot rights itself, empty.
+
+**Story levels have a time limit:** the par recipe's cooking time × 1.5 plus a minute, rounded up to 30 s (3:00 for flatbread to 10:30 for goulash).
+- A red LED countdown on the kitchen wall shows the time, and it blinks in the last 30 s. The order ticket lists the limit.
+- When time runs out, the dish goes to the judges as it is.
+
+**The First Michelin Star kitchen** is Souped Up's studio: the regular kitchen with a red "EVERY SECOND COUNTS" poster, painted in a tiny pixel font.

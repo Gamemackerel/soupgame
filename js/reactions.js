@@ -14,7 +14,7 @@ const LEACH_K = 2; // how strongly chunks flavor the soup
 // Share of split dairy that turns into solid curd (the rest becomes whey).
 const CURD_SOLIDS = 0.16;
 // Foods whose browning counts as a sear (aromatics caramelize, fish crisps, bread gets a crust).
-const SEARABLE = new Set([MEAT, POTATO, CORN, BEANS, PASTA]);
+const SEARABLE = new Set([MEAT, CHICKEN, POTATO, CORN, BEANS, PASTA]);
 const BROWN_MAX = 230;
 // Moist vegetables are held near 110°C until they dry (brown) past `dryFrom`; `pass` lets some pan heat through.
 const MOIST_K = { dryFrom: 100, slope: 1.5, pass: 0.6 };
@@ -29,7 +29,8 @@ Sim.react = function (x, y, i, m) {
     case EGG: case YOLK: return reactEgg(this, x, y, i, m);
     case SALT: case SUGAR: return reactSeasoning(this, x, y, i, m);
     case EXTPOWDER: return reactExtinguisher(this, x, y, i);
-    case CHILI: case CUMIN: return reactSpice(this, x, y, i, m);
+    case CHILI: case CUMIN: case PEPPER: return reactSpice(this, x, y, i, m);
+    case YEAST: return reactYeast(this, x, y, i);
     case FLOUR: return reactFlourDough(this, x, y, i);
     case DOUGH: return reactDough(this, x, y, i);
     case ROUX: return reactRoux(this, x, y, i);
@@ -39,7 +40,7 @@ Sim.react = function (x, y, i, m) {
     case TOMATO: return reactChunk(this, x, y, i, m) || reactTomato(this, x, y, i);
     case ONION: case GARLIC: case CARROT: case CELERY: case MEAT: case HERB:
     case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED: case BREAD:
-    case CORN: case POTATO: case BEANS: case PASTA:
+    case CORN: case POTATO: case BEANS: case PASTA: case CHICKEN:
       return reactChunk(this, x, y, i, m);
   }
   return false;
@@ -325,6 +326,13 @@ function neutralize(S, x, y, i) {
       S.discover('fizz'); S.emit('fizz', x, y, 60);
     }
   }
+}
+
+// Yeast loose in liquid just dissolves (tasting faintly yeasty); in dough it's absorbed and leavens (dough.js).
+function reactYeast(S, x, y, i) {
+  const j = S.findNb(x, y, isBroth);
+  if (j >= 0 && rnd() < 0.02) { S.addFlavor(j, MAT[YEAST].solu); S.setCell(i, EMPTY); return true; }
+  return false;
 }
 
 // Dried-down soup: liquid dissolves it back (rehydrating the broth's color and flavor);

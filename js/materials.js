@@ -10,10 +10,10 @@ const F_SALTY = 0, F_SWEET = 1, F_SOUR = 2, F_BITTER = 3, F_UMAMI = 4, F_RICH = 
       F_HEAT = 6, F_AROMA = 7, F_BODY = 8, F_RED = 9, F_BROWN = 10, F_WHITE = 11,
       F_ALCOHOL = 12, F_GOLD = 13,
       // Dough composition (only meaningful in dough/bread cells): water, egg, leavening, gluten, unreacted soda.
-      F_WATER = 14, F_EGG = 15, F_LEAVEN = 16, F_GLUTEN = 17, F_SODA = 18;
-const NF = 19;
+      F_WATER = 14, F_EGG = 15, F_LEAVEN = 16, F_GLUTEN = 17, F_SODA = 18, F_YEAST = 19;
+const NF = 20;
 const FLAVOR_KEYS = ['salty','sweet','sour','bitter','umami','rich','heat','aroma',
-                     'body','red','brown','white','alcohol','gold','water','egg','leaven','gluten','soda'];
+                     'body','red','brown','white','alcohol','gold','water','egg','leaven','gluten','soda','yeast'];
 
 function flavorVec(obj) {
   const v = new Float32Array(NF);
@@ -31,7 +31,7 @@ const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CH
       LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26,
       YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33,
       EXTPOWDER = 34, DOUGH = 35, BREAD = 36, BAKEPOWDER = 37,
-      CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41, RESIDUE = 42;
+      CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41, RESIDUE = 42, PEPPER = 43, YEAST = 44, CHICKEN = 45;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -49,6 +49,10 @@ defMat(CHILI,   { name: 'chili',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [2
                   solu: flavorVec({ heat: 18, aroma: 4, red: 3 }) });
 defMat(CUMIN,   { name: 'cumin',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [170, 116, 52], col2: [70, 44, 24], burnAt: 200,
                   solu: flavorVec({ aroma: 16, bitter: 0.6, brown: 2 }) });
+defMat(PEPPER,  { name: 'black pepper', cls: C_POWDER, dens: 1.4, cond: 0.08, col: [44, 40, 40], col2: [20, 18, 18], burnAt: 210,
+                  solu: flavorVec({ heat: 6, aroma: 8, bitter: 0.3 }) });   // a gentler, more aromatic heat than chili
+defMat(YEAST,   { name: 'yeast', cls: C_POWDER, dens: 1.2, cond: 0.08, col: [214, 190, 140],
+                  solu: flavorVec({ umami: 0.6, bitter: 0.2, aroma: 0.4 }) });   // in liquid it just tastes yeasty
 defMat(SODA,    { name: 'baking soda', cls: C_POWDER, dens: 1.5, cond: 0.08, col: [226, 236, 244] });
 defMat(ONION,   { brownRate: 0.2, name: 'onion',  cls: C_CHUNK, dens: 1.06, cond: 0.1, col: [244, 236, 214], col2: [150, 82, 30], burnAt: 175,
                   leach: flavorVec({ sweet: 0.012, aroma: 0.05 }), note: 'allium' });
@@ -63,6 +67,10 @@ defMat(MEAT,    { brownRate: 0.15, name: 'meat',   cls: C_CHUNK, dens: 1.15, con
                   // raw red → simmered grey-tan (cooked in water, ~110) → seared brown → charred
                   stops: [[0, [206, 84, 96]], [60, [180, 120, 108]], [110, [158, 122, 100]], [170, [128, 76, 44]], [220, [92, 52, 30]], [255, [40, 28, 22]]],
                   leach: flavorVec({ umami: 0.04, rich: 0.012, brown: 0.07, gold: 0.045, aroma: 0.01 }), note: 'toasty' });   // beef stock goes golden brown
+defMat(CHICKEN, { brownRate: 0.18, name: 'chicken', cls: C_CHUNK, dens: 1.1, cond: 0.11, col: [244, 196, 186], burnAt: 235,
+                  // raw pink → poached white (cooked in water) → golden roasted → charred
+                  stops: [[0, [244, 196, 186]], [60, [240, 218, 206]], [110, [242, 232, 216]], [170, [214, 150, 80]], [220, [150, 90, 44]], [255, [40, 28, 22]]],
+                  leach: flavorVec({ umami: 0.035, rich: 0.02, gold: 0.06, aroma: 0.012 }), note: 'toasty' });   // chicken stock: golden
 defMat(HERB,    { name: 'herbs',  cls: C_CHUNK, dens: 0.9, cond: 0.1, col: [70, 170, 70], col2: [90, 100, 50], burnAt: 170,
                   leach: flavorVec({ aroma: 0.25 }), note: 'herbal' });
 defMat(STEAM,   { name: 'steam',  cls: C_GAS,  dens: 0,   cond: 0.05, col: [230, 240, 250] });
@@ -120,6 +128,7 @@ EAT[CARROT] = flavorVec({ sweet: 0.3, aroma: 0.1 });
 EAT[CELERY] = flavorVec({ aroma: 0.25, salty: 0.05 });
 EAT[TOMATO] = flavorVec({ sour: 0.45, umami: 0.4, sweet: 0.2 });
 EAT[MEAT] = flavorVec({ umami: 0.6, rich: 0.35, aroma: 0.15 });
+EAT[CHICKEN] = flavorVec({ umami: 0.45, rich: 0.25, aroma: 0.12, salty: 0.03 });
 EAT[FISH] = flavorVec({ umami: 0.6, rich: 0.35, aroma: 0.15 });
 EAT[FISHFIN] = flavorVec({ umami: 0.3, rich: 0.15 });
 EAT[HERB] = flavorVec({ aroma: 2.0 });   // fresh herbs are intensely aromatic per bite
@@ -142,17 +151,19 @@ EAT[BEANS] = flavorVec({ body: 0.25, umami: 0.1, rich: 0.06 });
 EAT[PASTA] = flavorVec({ body: 0.35, sweet: 0.02 });
 EAT[SODA] = flavorVec({ bitter: 2 });
 EAT[EXTPOWDER] = flavorVec({ bitter: 3 });
-for (const m of [SALT, SUGAR, CHILI, CUMIN]) EAT[m] = MAT[m].solu;   // a grain is just as salty dissolved or not
+for (const m of [SALT, SUGAR, CHILI, CUMIN, PEPPER]) EAT[m] = MAT[m].solu;   // a grain is just as salty dissolved or not
 
 // Global aroma notes the pot can develop.
 const NOTES = ['allium', 'toasty', 'caramel', 'herbal', 'earthy', 'spice', 'smoky', 'burnt', 'fermented', 'oceanic'];
 
 // ---- Ingredient shelf ----
 // kind: how it's poured. icon: which art routine draws it.
+// Rows of three: liquids, seasonings, spices, leaveners, vegetables, proteins and the rest.
+// (The cream keeps the id 'milk' so recipes and levels written for it still work.)
 const SHELF = [
   { id: 'water',   name: 'Water',       kind: 'liquid', mat: BROTH, rate: 12, icon: 'jug',    c: [110, 170, 230] },
   { id: 'oil',     name: 'Oil',         kind: 'liquid', mat: OIL,   rate: 4, icon: 'bottle', c: [236, 196, 70] },
-  { id: 'milk',    name: 'Milk',        kind: 'liquid', mat: BROTH, rate: 5, icon: 'carton', c: [246, 246, 250],
+  { id: 'milk',    name: 'Cream',       kind: 'liquid', mat: BROTH, rate: 5, icon: 'carton', c: [246, 246, 250],
     flavor: flavorVec({ rich: 1.4, white: 3, sweet: 0.3, body: 0.3 }) },
   { id: 'wine',    name: 'Wine',        kind: 'liquid', mat: BROTH, rate: 4, icon: 'bottle', c: [150, 30, 60],
     flavor: flavorVec({ alcohol: 3, sour: 1.2, sweet: 0.4, red: 2, aroma: 1.5 }) },
@@ -165,22 +176,25 @@ const SHELF = [
   { id: 'flour',   name: 'Flour',       kind: 'powder', mat: FLOUR, rate: 3, icon: 'bag',    c: [236, 226, 204] },
   { id: 'chili',   name: 'Chili Flakes',kind: 'powder', mat: CHILI, rate: 2, icon: 'jar',    c: [208, 44, 30] },
   { id: 'cumin',   name: 'Cumin',       kind: 'powder', mat: CUMIN, rate: 2, icon: 'jar',    c: [170, 116, 52] },
+  { id: 'pepper',  name: 'Black Pepper',kind: 'powder', mat: PEPPER, rate: 2, icon: 'grinder', c: [60, 54, 52] },
   { id: 'soda',    name: 'Baking Soda', kind: 'powder', mat: SODA,  rate: 3, icon: 'box',    c: [240, 120, 60] },
   { id: 'powder',  name: 'Baking Powder', kind: 'powder', mat: BAKEPOWDER, rate: 3, icon: 'box', c: [90, 140, 220] },
+  { id: 'yeast',   name: 'Yeast',       kind: 'powder', mat: YEAST, rate: 2, icon: 'packet', c: [214, 190, 140] },
   { id: 'onion',   name: 'Onion',       kind: 'chunk',  mat: ONION, rate: 1, icon: 'onion',  c: [210, 160, 90] },
   { id: 'garlic',  name: 'Garlic',      kind: 'chunk',  mat: GARLIC,rate: 1, icon: 'garlic', c: [250, 246, 230] },
   { id: 'carrot',  name: 'Carrot',      kind: 'chunk',  mat: CARROT,rate: 1, icon: 'carrot', c: [244, 128, 32] },
   { id: 'celery',  name: 'Celery',      kind: 'chunk',  mat: CELERY,rate: 1, icon: 'celery', c: [150, 210, 90] },
   { id: 'tomato',  name: 'Tomato',      kind: 'chunk',  mat: TOMATO,rate: 1, icon: 'tomato', c: [228, 50, 44] },
-  { id: 'meat',    name: 'Beef',        kind: 'chunk',  mat: MEAT,  rate: 1, icon: 'meat',   c: [206, 84, 96] },
-  { id: 'egg',     name: 'Egg',         kind: 'whole',  mat: EGG,   rate: 1, icon: 'egg',    c: [250, 246, 236] },
-  { id: 'fish',    name: 'Whole Fish',  kind: 'whole',  mat: FISH,  rate: 1, icon: 'fish',   c: [150, 172, 196] },
-  { id: 'extinguisher', name: 'Fire Extinguisher', kind: 'spray', mat: EXTPOWDER, rate: 7, icon: 'extinguisher', c: [220, 40, 40] },
-  { id: 'corn',    name: 'Corn',        kind: 'chunk',  mat: CORN,  rate: 1, icon: 'corn',   c: [252, 212, 64],  piece: [1, 1], count: 14 },
   { id: 'potato',  name: 'Potato',      kind: 'chunk',  mat: POTATO, rate: 1, icon: 'potato', c: [200, 160, 100] },
+  { id: 'corn',    name: 'Corn',        kind: 'chunk',  mat: CORN,  rate: 1, icon: 'corn',   c: [252, 212, 64],  piece: [1, 1], count: 14 },
   { id: 'beans',   name: 'Beans',       kind: 'chunk',  mat: BEANS, rate: 1, icon: 'beans',  c: [206, 160, 118], piece: [2, 2], count: 5 },
-  { id: 'pasta',   name: 'Small Pasta', kind: 'chunk',  mat: PASTA, rate: 1, icon: 'pasta',  c: [236, 206, 128], piece: [2, 1], count: 6 },
   { id: 'herbs',   name: 'Fresh Herbs', kind: 'chunk',  mat: HERB,  rate: 1, icon: 'herb',   c: [70, 170, 70] },
+  { id: 'meat',    name: 'Beef',        kind: 'chunk',  mat: MEAT,  rate: 1, icon: 'meat',   c: [206, 84, 96] },
+  { id: 'chicken', name: 'Chicken',     kind: 'chunk',  mat: CHICKEN, rate: 1, icon: 'drumstick', c: [244, 196, 186] },
+  { id: 'fish',    name: 'Whole Fish',  kind: 'whole',  mat: FISH,  rate: 1, icon: 'fish',   c: [150, 172, 196] },
+  { id: 'egg',     name: 'Egg',         kind: 'whole',  mat: EGG,   rate: 1, icon: 'egg',    c: [250, 246, 236] },
+  { id: 'pasta',   name: 'Small Pasta', kind: 'chunk',  mat: PASTA, rate: 1, icon: 'pasta',  c: [236, 206, 128], piece: [2, 1], count: 6 },
+  { id: 'extinguisher', name: 'Fire Extinguisher', kind: 'spray', mat: EXTPOWDER, rate: 7, icon: 'extinguisher', c: [220, 40, 40] },
 ];
 
 // ---- Discoveries (journal) ----
@@ -221,6 +235,7 @@ const DISCOVERIES = [
   { id: 'batter',     name: 'Batter',         hint: 'Dough, but much wetter.',          desc: 'With lots of liquid, dough becomes a pourable batter: pancakes, crêpes, cake.' },
   { id: 'knead',      name: 'Kneading',       hint: 'Work the dough.',                  desc: 'Stirring dough builds gluten: stretchy structure that traps gas and makes bread chewy.' },
   { id: 'rise',       name: 'It Rises!',      hint: 'Something in the dough makes gas.', desc: 'Baking powder (or soda + acid) releases gas in the heat. Strong dough holds it and puffs up.' },
+  { id: 'proof',      name: 'Proofing',       hint: 'Yeast likes it warm, not hot.',     desc: 'Yeast in a warm dough slowly fills it with gas. Too hot and the yeast dies.' },
   { id: 'baked',      name: 'Fresh Bake',     hint: 'Heat sets dough.',                 desc: 'Hot dough sets into a baked good. Underbaked middles stay gummy.' },
   { id: 'crust',      name: 'Golden Crust',   hint: 'Dry heat on the outside.',         desc: 'Dough baking against hot, dry metal browns into a crust.' },
   { id: 'potoven',    name: 'Pot Oven',       hint: 'Trap the heat around it.',         desc: 'With the lid on, the air in the pot gets hot: dough bakes from all sides, like a Dutch oven.' },

@@ -129,6 +129,7 @@ const DONENESS = [
   [POTATO, 'potato', [[30, 'raw'], [60, 'crunchy'], [140, 'tender'], [256, 'falling apart']]],
   [CARROT, 'carrot', [[30, 'raw'], [70, 'crisp'], [150, 'tender'], [256, 'browned']]],
   [MEAT, 'beef', [[30, 'raw'], [70, 'pink'], [150, 'cooked'], [215, 'seared'], [256, 'charred']]],
+  [CHICKEN, 'chicken', [[60, 'raw'], [150, 'cooked'], [215, 'golden'], [256, 'charred']]],
   [FISH, 'fish', [[60, 'raw'], [90, 'translucent'], [170, 'flaky'], [256, 'dry']]],
   [ONION, 'onion', [[30, 'raw'], [80, 'crunchy'], [130, 'soft'], [200, 'caramelized'], [256, 'dark']]],
 ];
@@ -164,7 +165,13 @@ Taste.sip = function (gx, gy) {
   if (Taste.unevenness() > UNMIXED) return { unmixed: true, line: 'Not mixed enough to taste. Stir it!', temp: Taste.gather(0, 0, 0).temp };
   const tex = Taste.doneness(GW >> 1, GH >> 1, GW);
   const g = Taste.gather(0, 0, 0);
-  if (g.broth + g.oil < 5) return tex.length ? { empty: true, tex, line: 'No broth here, just ' + tex.join(', ') + '.' } : { empty: true, line: 'Nothing to taste here!' };
+  if (g.broth + g.oil < 5) {
+    // No liquid (a sear, a bake, a pan of vegetables): taste the food itself, the way the judges would.
+    const a = Taste.analyzeBowl();
+    if (a.empty) return { empty: true, line: 'Nothing to taste here!' };
+    const plate = a.type === 'plate' || a.type === 'baked';
+    return { p: a.p, score: Taste.score(a.p, { plate }), line: Taste.feedback(a.p, plate), notes: Taste.topNotes(), temp: a.temp, tex };
+  }
   const p = Taste.perceive(g);
   if (g.broth === 0) return { p, score: 0.2, line: 'Just... oil.', notes: Taste.topNotes(), temp: g.temp, tex };
   return { p, score: Taste.score(p), line: Taste.feedback(p), notes: Taste.topNotes(), temp: g.temp, tex };
@@ -182,7 +189,7 @@ Taste.eatFlavor = function (i, out) {
   if (!base) return 0;
   // Dough and bread are mostly flour: their seasoning is what's mixed into them, not diluted further.
   const grain = CLS[m] === C_POWDER, w = grain || m === DOUGH || m === BREAD ? 1 : SOLID_WEIGHT;
-  const c = S.cook[i], meaty = m === MEAT || m === FISH || m === FISHFIN;
+  const c = S.cook[i], meaty = m === MEAT || m === CHICKEN || m === FISH || m === FISHFIN;
   const spent = CLS[m] === C_CHUNK && MAT[m].leach ? 0.4 + 0.6 * S.life[i] / 255 : 1;
   for (let k = 0; k < NF; k++) out[k] += (grain ? base[k] : base[k] * spent * w) + S.fl[i * NF + k];
   out[F_BITTER] += S.fl[i * NF + F_SODA] * 0.5;   // unreacted soda tastes soapy
@@ -284,23 +291,23 @@ Taste.analyzeBowl = function () {
   const plate = type === 'plate' || type === 'baked';
   const bake = doughy ? Taste.bakeReport(counts) : null;
 
-  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, HERB, TOMATO, FISH, CORN, POTATO, BEANS, PASTA];
+  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, CHICKEN, HERB, TOMATO, FISH, CORN, POTATO, BEANS, PASTA];
   let chunks = 0, raw = 0, rawStarch = false;
   for (const m of chunkMats) {
     chunks += counts[m] || 0;
     // Starchy pieces need longer: pasta and potato are 'raw' (chalky, hard) until well softened, and a
     // crunchy bit of pasta stands out even when it's a small part of the pot.
     const starchy = MAT[m].starch && m !== CORN;
-    if (counts[m] && avgCook(m) < (starchy ? 60 : 30) && m !== HERB) {
+    if (counts[m] && avgCook(m) < (starchy || m === CHICKEN ? 60 : 30) && m !== HERB) {   // chicken must be cooked through
       raw += counts[m] * (starchy ? 4 : 1);
-      if (starchy && counts[m] >= 10) rawStarch = true;   // a crunchy bit of pasta or potato stands out whatever else is in the bowl
+      if ((starchy || m === CHICKEN) && counts[m] >= 10) rawStarch = true;   // a crunchy bit of pasta or potato stands out whatever else is in the bowl
     }
   }
   const burntFrac = (counts[BURNT] || 0) / Math.max(1, total);
   const p = Taste.perceive({ raw: bite, broth: nonOil, oil: g.oil, oilHeat: oilHeat / Math.max(1, edible) }, burntFrac, plate);
   if (plate) p.body = 0;
   // Undissolved powder is gritty in a soup; on a plate, salt and spice are just seasoning.
-  const seasoning = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[CHILI] || 0) + (counts[CUMIN] || 0);
+  const seasoning = (counts[SALT] || 0) + (counts[SUGAR] || 0) + (counts[CHILI] || 0) + (counts[CUMIN] || 0) + (counts[PEPPER] || 0);
   const flourGrit = Math.max(0, (counts[FLOUR] || 0) - (type === 'baked' ? doughy * 0.15 : 0));   // a dusting of flour on a loaf is fine
   // A stew sits in between: a thick sauce hides a little undissolved seasoning.
   const grit = flourGrit + (counts[SODA] || 0) + (plate ? Math.max(0, seasoning - edible * 0.25) :

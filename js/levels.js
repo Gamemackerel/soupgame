@@ -36,8 +36,8 @@ const LEVELS = [
   },
   {
     id: 'creamy-corn', short: 'Corn Soup', icon: 'corn', tier: 0, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
-    blurb: 'Simmer potato until it falls apart and thickens the soup, then stir in milk over low heat.',
-    hint: 'Milk splits if the pot is boiling hard. Turn the flame down first.',
+    blurb: 'Simmer potato until it falls apart and thickens the soup, then stir in cream over low heat.',
+    hint: 'Cream splits if the pot is boiling hard. Turn the flame down first.',
     essential: ['corn'],   // without these it isn't the dish at all
     ingredients: ['oil', 'onion', 'potato', 'corn', 'water', 'salt', 'milk'],
     techniques: ['sweat', 'thicken'],
@@ -115,7 +115,7 @@ const LEVELS = [
   },
   {
     id: 'beef-chowder', short: 'Chowder', icon: 'potato', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
-    blurb: 'Sear the beef, sweat the vegetables, make a roux in the fat, add potatoes, and finish with milk.',
+    blurb: 'Sear the beef, sweat the vegetables, make a roux in the fat, add potatoes, and finish with cream.',
     hint: 'Flour into hot fat, not into water.',
     essential: ['meat', 'potato', 'milk'],   // without these it isn't the dish at all
     ingredients: ['oil', 'meat', 'onion', 'carrot', 'celery', 'flour', 'water', 'potato', 'milk', 'salt'],
@@ -194,6 +194,20 @@ const FLAW_NAMES = { burnt: 'burnt', curdled: 'split dairy', lumps: 'lumps', scr
 
 const Levels = {
   byId(id) { return LEVELS.find((l) => l.id === id); },
+
+  // Story time limit: the par recipe's own cooking time, plus half again and a minute, rounded up to 30 s.
+  timeLimit(level) {
+    if (level._limit) return level._limit;
+    let s = 0;
+    for (const st of level.par) {
+      const [cmd, a, b] = st.split(' ');
+      if (cmd === 'wait' || cmd === 'stir') s += parseFloat(a);
+      else if (cmd === 'pour') s += parseFloat(b) + 2;
+      else if (cmd === 'add' || cmd === 'crack' || cmd === 'throw') s += parseInt(b, 10) * 0.15 + 2;
+      else s += 1;
+    }
+    return (level._limit = Math.ceil((s * 1.5 + 60) / 30) * 30);
+  },
 
   // Nothing in the pot: a zero from everyone.
   empty(ids) {

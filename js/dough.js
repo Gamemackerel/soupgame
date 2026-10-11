@@ -26,7 +26,7 @@ function soakFrom(S, i, j, water) {
   // Bring the liquid's dissolved flavors along in proportion; the cell is used up as it gives water.
   const share = Math.min(1, water);
   for (let k = 0; k < NF; k++) {
-    if (k === F_WATER || k === F_EGG || k === F_LEAVEN || k === F_GLUTEN) continue;   // dough-only slots
+    if (k === F_WATER || k === F_EGG || k === F_LEAVEN || k === F_GLUTEN || k === F_YEAST) continue;   // dough-only slots
     // Dissolved soda is counted in acid-cancelling units (SODA_POWER per grain); dough counts grains.
     S.fl[a + k] += S.fl[b + k] * share * (k === F_SODA ? 1 / SODA_POWER : 1); S.fl[b + k] *= 1 - share;
   }
@@ -109,6 +109,9 @@ function absorbInto(S, i, j) {
     case BAKEPOWDER:
       S.fl[a + F_LEAVEN] += 0.5; S.setCell(j, EMPTY);
       return true;
+    case YEAST:
+      S.fl[a + F_YEAST] += 2; S.setCell(j, EMPTY);   // a pinch of yeast goes a long way
+      return true;
     case SODA:
       // Soda only leavens with acid; without it, it's soapy and barely lifts.
       // Soda waits in the dough until acid reaches it (see reactDough).
@@ -118,6 +121,8 @@ function absorbInto(S, i, j) {
   }
   return false;
 }
+
+const YEAST_K = { gas: 0.0016, tire: 0.9995, rise: 0.0015 };
 
 function reactDough(S, x, y, i) {
   const a = i * NF, t = S.temp[i], w = S.fl[a + F_WATER];
@@ -164,6 +169,20 @@ function reactDough(S, x, y, i) {
   // Resting dough slowly develops a little gluten on its own.
   if (w > 0.4 && w < 1.4 && S.fl[a + F_GLUTEN] < 0.3 && rnd() < 0.02) S.fl[a + F_GLUTEN] += 0.002;
 
+  // Yeast: alive in warm, moist dough it slowly makes gas (faster with a little sugar to eat), so a dough
+  // proofed somewhere warm rises before it ever bakes. Past ~60°C the yeast dies.
+  const yeast = S.fl[a + F_YEAST];
+  if (yeast > 0.001) {
+    if (t > 60) S.fl[a + F_YEAST] *= 0.9;
+    else if (t > 24 && w > 0.3) {
+      const food = 1 + Math.min(1, S.fl[a + F_SWEET] * 2);
+      // A dough only holds so much gas; past that it just escapes (so a proofed loaf gets a normal oven spring).
+      if (S.fl[a + F_LEAVEN] < 0.05) S.fl[a + F_LEAVEN] += yeast * YEAST_K.gas * food * (t > 32 && t < 46 ? 1.6 : 1);
+      S.fl[a + F_YEAST] *= YEAST_K.tire;   // it runs out of steam: a dough roughly doubles, it doesn't grow forever
+      if (S.fl[a + F_LEAVEN] > 0.045) S.discover('proof');   // the dough is full of gas: it has proofed
+      if (S.fl[a + F_LEAVEN] > 0.06 && rnd() < S.fl[a + F_LEAVEN] * YEAST_K.rise) { rise(S, x, y, i); S.discover('proof'); }
+    }
+  }
   // Gas comes out of the leavening as the dough warms, before it sets ("oven spring").
   if (t > 55 && S.fl[a + F_LEAVEN] > 0.01 && rnd() < S.fl[a + F_LEAVEN] * 0.15) rise(S, x, y, i);
   if (t > 90 && rnd() < (t - 85) / 280) {

@@ -34,23 +34,22 @@ const T = {
   },
 };
 
-const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SLOT_H = 23, SHELF_COLS = 3;
+const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SLOT_H = 21, SHELF_COLS = 3;
+// Clicking a pantry item is pouring, so there's no Pour tool: Stir and Taste toggle back to it.
 const TOOLS = [
-  { id: 'pour', icon: 'hand', label: 'Pour' },
   { id: 'ladle', icon: 'ladle', label: 'Stir' },
   { id: 'taste', icon: 'spoon', label: 'Taste' },
   { id: 'lid', icon: 'lid', label: 'Lid' },
-  { id: 'journal', icon: 'book', label: 'Journal' },
   { id: 'clear', icon: 'trash', label: 'Empty' },
+  { id: 'quit', icon: 'sad', label: 'Quit' },
 ];
 const TOOL_X = 266, TOOL_Y = 16, TOOL_H = 22;
 const DIAL = { x: 160, y: 227, r: 9 };
 const SERVE = { x: 266, y: 168, w: 50, h: 22 };
-const MENU_BTN = { x: 266, y: 150, w: 50, h: 14 };
 const TITLE_BOX = { x: 96, y: 0, w: 128, h: 12 };
 
 const UI = {
-  tool: 'pour', hover: null, card: null, journal: false, banners: [], confirmClear: 0,
+  tool: 'pour', hover: null, card: null, journal: false, banners: [], toasts: [], confirmClear: 0,
   dragDial: false,
 
   shelfSlot(n) { return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
@@ -63,14 +62,12 @@ const UI = {
     for (let n = 0; n < SHELF.length; n++) if (this.hit(this.shelfSlot(n), x, y)) return { type: 'ing', n };
     for (let n = 0; n < TOOLS.length; n++) if (this.hit(this.toolSlot(n), x, y)) return { type: 'tool', n };
     if (this.hit(SERVE, x, y)) return { type: 'serve' };
-    if (this.hit(MENU_BTN, x, y)) return { type: 'menu' };
     if (Game.level && this.hit(TITLE_BOX, x, y)) return { type: 'recipe' };
     if ((x - DIAL.x) ** 2 + (y - DIAL.y) ** 2 <= (DIAL.r + 4) ** 2) return { type: 'dial' };
     return null;
   },
 
   click(x, y) {
-    if (this.journal) { this.journal = false; return true; }
     if (this.card && this.card.t > 10) this.card = null;
     const h = this.pick(x, y);
     if (!h) return false;
@@ -78,15 +75,14 @@ const UI = {
     else if (h.type === 'tool') {
       const id = TOOLS[h.n].id;
       if (id === 'lid') Sim.lid = !Sim.lid;
-      else if (id === 'journal') this.journal = true;
+      else if (id === 'quit') Game.level ? Game.toMenu() : Game.toTitle();
       else if (id === 'clear') {
-        if (this.confirmClear > 0) { Sim.reset(); this.confirmClear = 0; Chef.say('Fresh start!', 60); }
+        if (this.confirmClear > 0) { this.confirmClear = 0; Game.tipPot(); }
         else { this.confirmClear = 120; }
       }
-      else this.tool = id;
+      else this.tool = this.tool === id ? 'pour' : id;   // click again to put it down
     }
     else if (h.type === 'serve') Game.serve();
-    else if (h.type === 'menu') Game.level ? Game.toMenu() : Game.toTitle();
     else if (h.type === 'recipe') this.showRecipe();
     else if (h.type === 'dial') { this.dragDial = true; this.setDial(x, y); }
     return true;
@@ -104,11 +100,14 @@ const UI = {
   showRecipe() { if (Game.level) this.card = { recipe: Game.level, t: 0 }; },
 
   banner(text, sub) { this.banners.push({ text, sub, t: 0 }); },
+  toast(text) { this.toasts.push({ text, t: 0 }); if (this.toasts.length > 4) this.toasts.shift(); },
 
   update() {
     if (this.card) { this.card.t++; if (this.card.t > (this.card.recipe ? 900 : 420)) this.card = null; }
     if (this.confirmClear > 0) this.confirmClear--;
     if (this.banners.length) { const b = this.banners[0]; if (++b.t > 150) this.banners.shift(); }
+    for (const t of this.toasts) t.t++;
+    this.toasts = this.toasts.filter((t) => t.t < 130);
   },
 
   draw(g, mx, my) {
@@ -119,25 +118,22 @@ const UI = {
       rect(g, s.x + 1, s.y + 1, s.w - 1, s.h - 1, sel ? [255, 214, 110] : hov ? [196, 140, 92] : [176, 120, 76]);
       rect(g, s.x + 1, s.y + s.h - 2, s.w - 1, 2, [120, 76, 48]);
       const bobY = sel ? Math.round(Math.sin(Chef.t * 0.15)) : 0;
-      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 1, s.y + 3 + bobY);
+      g.drawImage(Art.icon(ing.icon, ing.c), s.x + 1, s.y + 2 + bobY);
     });
     // Tool panel.
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);
     TOOLS.forEach((tl, n) => {
       const s = this.toolSlot(n);
       const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (tl.id === 'clear' && this.confirmClear > 0);
+      const hov = this.hover && this.hover.type === 'tool' && this.hover.n === n;
       rect(g, s.x, s.y, s.w, s.h, [96, 60, 40]);
-      rect(g, s.x + 1, s.y + 1, s.w - 2, s.h - 2, on ? [255, 214, 110] : [214, 176, 130]);
+      rect(g, s.x + 1, s.y + 1, s.w - 2, s.h - 2, on ? (hov ? [255, 226, 140] : [255, 214, 110]) : hov ? [236, 204, 160] : [214, 176, 130]);
       g.drawImage(Art.toolIcon(tl.icon), s.x + 2, s.y + 2);
     });
-    // Back to level select.
-    const mh = this.hover && this.hover.type === 'menu';
-    rect(g, MENU_BTN.x, MENU_BTN.y, MENU_BTN.w, MENU_BTN.h, [96, 60, 40]);
-    rect(g, MENU_BTN.x + 1, MENU_BTN.y + 1, MENU_BTN.w - 2, MENU_BTN.h - 2, mh ? [236, 204, 160] : [214, 176, 130]);
     // Serve button.
-    const pulse = Math.sin(Chef.t * 0.1) > 0 ? 1.05 : 1;
+    const pulse = Math.sin(Chef.t * 0.1) > 0 ? 1.05 : 1, sh = this.hover && this.hover.type === 'serve';
     rect(g, SERVE.x, SERVE.y, SERVE.w, SERVE.h, [60, 20, 20]);
-    rect(g, SERVE.x + 1, SERVE.y + 1, SERVE.w - 2, SERVE.h - 2, rgb([220, 60, 50], pulse));
+    rect(g, SERVE.x + 1, SERVE.y + 1, SERVE.w - 2, SERVE.h - 2, rgb(sh ? [244, 84, 70] : [220, 60, 50], pulse));
     rect(g, SERVE.x + 1, SERVE.y + 1, SERVE.w - 2, 3, [250, 120, 100]);
     // Thermometer.
     this.drawThermo(g);
@@ -152,13 +148,17 @@ const UI = {
     }
     // Taste card.
     if (this.card) this.drawCard(g);
-    if (this.journal) { rect(g, 30, 14, 260, 212, [40, 24, 30]); rect(g, 31, 15, 258, 210, [250, 240, 220]); rect(g, 31, 15, 258, 14, [170, 70, 60]); }
     if (this.banners.length) {
       const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (150 - b.t) / 12);
       const y = -30 + slide * 34;
       rect(g, 70, y, 180, 28, [40, 24, 30]); rect(g, 71, y + 1, 178, 26, [255, 222, 110]);
       for (let k = 0; k < 6; k++) rect(g, 74 + ((k * 31 + b.t * 2) % 172), y + 3 + (k * 7) % 20, 1, 1, [255, 255, 255]);
     }
+    // Toasts slide in at the side of the kitchen, same look, much smaller.
+    this.toasts.forEach((t, k) => {
+      const x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * 70), y = 20 + k * 13;
+      rect(g, x, y, 66, 11, [40, 24, 30]); rect(g, x + 1, y + 1, 64, 9, [255, 222, 110]);
+    });
   },
 
   drawThermo(g) {
@@ -199,7 +199,6 @@ const UI = {
   },
 
   drawText(T, mx, my) {
-    T.text(Game.level ? 'LEVELS' : 'MENU', MENU_BTN.x + MENU_BTN.w / 2, MENU_BTN.y + 4, { size: 5, color: '#3a2014', align: 'center' });
     // In a level the dish's name takes the title spot; click it to read the recipe blurb again.
     T.text(Game.level ? Game.level.title.toUpperCase() : 'SOUP POT', 160, 1, { size: Game.level && Game.level.title.length > 14 ? 6 : 7, color: '#ffe9c0', align: 'center' });
     const label = Game.level && Game.level.tier === 0 ? '#ffe9c0' : '#7a3a2a';   // light on the pizza shop's brick
@@ -207,7 +206,7 @@ const UI = {
     T.text('TOOLS', 291, 4, { size: 6, color: label, align: 'center' });
     TOOLS.forEach((tl, n) => {
       const s = this.toolSlot(n);
-      const label = tl.id === 'lid' ? (Sim.lid ? 'Lid on' : 'Lid off') : tl.id === 'clear' && this.confirmClear ? 'Sure?' : tl.label;
+      const label = tl.id === 'clear' && this.confirmClear ? 'Sure?' : tl.label;
       T.text(label, s.x + 20, s.y + 7, { size: 5, color: '#3a2418' });
     });
     T.text('SERVE', SERVE.x + SERVE.w / 2, SERVE.y + 7, { size: 7, color: '#fff', align: 'center', shadow: true });
@@ -221,10 +220,13 @@ const UI = {
     }
     if (this.hover && this.hover.type === 'ing') {
       const ing = SHELF[this.hover.n];
-      T.bubble(ing.name, mx + 10, my - 6);
+      T.bubble(ing.name, mx, my - 14);   // the bubble's tail points at the cursor
     }
     if (this.card) this.drawCardText(T);
-    if (this.journal) this.drawJournalText(T);
+    this.toasts.forEach((t, k) => {
+      const x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * 70), y = 20 + k * 13;
+      T.text(t.text, x + 33, y + 3, { size: 5, color: '#3a1a10', align: 'center' });
+    });
     if (this.banners.length) {
       const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (150 - b.t) / 12), y = -30 + slide * 34;
       T.text('NEW DISCOVERY: ' + b.text, 160, y + 4, { size: 7, color: '#3a1a10', align: 'center' });
@@ -239,6 +241,8 @@ const UI = {
       T.text(LEVEL_TIERS[L.tier].title.toUpperCase(), x + 116, y + 4, { size: 4, color: '#8a6a50', align: 'right' });
       T.wrap(L.title.toUpperCase(), x + 4, y + 16, 112, { size: 7, color: '#2a1820' });
       T.wrap(L.blurb, x + 4, y + 30, 112, { size: 5, color: '#4a3428' });
+      const lim = Levels.timeLimit(L);
+      T.text(`Time limit ${(lim / 60) | 0}:${String(lim % 60).padStart(2, '0')}`, x + 4, y + 57, { size: 4, color: '#a03a2a' });
       T.text('click to close', x + 116, y + 57, { size: 4, color: '#a08870', align: 'right' });
       return;
     }
@@ -262,17 +266,5 @@ const UI = {
     if (r.tex && r.tex.length) T.wrap('Texture: ' + r.tex.join(' · '), x + 4, y + 87, 128, { size: 5, color: '#3a5a7a' });
   },
 
-  drawJournalText(T) {
-    T.text('JOURNAL  ' + Sim.discovered.size + ' / ' + DISCOVERIES.length, 36, 18, { size: 7, color: '#fff' });
-    const cols = 3, rows = Math.ceil(DISCOVERIES.length / cols);
-    DISCOVERIES.forEach((d, n) => {
-      const col = (n / rows) | 0, row = n % rows;
-      const x = 35 + col * 86, y = 30 + row * 13;
-      const got = Sim.discovered.has(d.id);
-      T.text(got ? d.name : '???', x, y, { size: 5, color: got ? '#3a2418' : '#a09080' });
-      const sub = got ? d.desc : d.hint;
-      T.text(sub.length > 30 ? sub.slice(0, 29) + '…' : sub, x, y + 6, { size: 3.5, color: got ? '#6a5040' : '#b0a090' });
-    });
-    T.text('click to close', 160, 216, { size: 5, color: '#a08070', align: 'center' });
-  },
+
 };

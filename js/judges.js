@@ -202,7 +202,7 @@ Object.assign(JUDGE_ROSTER, {
       if (a.flaws.raw > 0.4) bad.push('IT\'S RAW! A good vet could still save this!');
       if (a.flaws.burnt > 0.2) bad.push('It\'s B****Y BURNT! TURN THE HEAT DOWN AND STIR!');
       if (a.flaws.mushy > 0.3) bad.push('The pasta\'s gone to MUSH, you absolute panini!');
-      if (a.flaws.curdled > 0.2) bad.push('The milk\'s SPLIT! F***ing hell, turn the heat DOWN!');
+      if (a.flaws.curdled > 0.2) bad.push('The cream\'s SPLIT! F***ing hell, turn the heat DOWN!');
       if (a.flaws.lumps > 0.2) bad.push('LUMPS! Wallpaper paste! Make a ROUX!');
       if (a.flaws.greasy > 0.3) bad.push('I could deep-fry a fish in this S***! LESS OIL!');
       if (a.flaws.shell > 0.2) bad.push('SHELL! In MY kitchen?!');
@@ -299,7 +299,7 @@ function butJoin(a, b) {
 // When the dish served isn't the one ordered: each judge says so in their own way, then a word on the taste.
 function wrongDishLine(j, level, wrong, r) {
   const dish = level.short.toLowerCase();
-  const ing = wrong.missing.length ? ({ meat: 'beef', beans: 'beans' }[wrong.missing[0]] || wrong.missing[0]) : null;
+  const ing = wrong.missing.length ? ({ meat: 'beef', milk: 'cream' }[wrong.missing[0]] || wrong.missing[0]) : null;
   const lines = {
     joe: ing ? `Uh... I ordered the ${dish}? Where's the ${ing}?` : `Uh... I ordered the ${dish}? This is something else.`,
     biscuit: ing ? `Wait... where's the ${ing}?! This isn't ${dish}!` : `Sniff sniff... this isn't ${dish}!`,

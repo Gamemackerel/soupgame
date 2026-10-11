@@ -11,7 +11,13 @@ const Progress = {
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.data)); } catch (e) { /* ignore */ } },
 
   best(id) { return this.data.best[id] || null; },
-  reset() { this.data = { best: {}, story: {} }; this.save(); },
+  reset() { this.data = { best: {}, story: {}, journal: [] }; this.save(); Sim.discovered = new Set(); },
+  // Remember a discovery for good. Returns true if it's new to you.
+  learn(id) {
+    const j = this.data.journal = this.data.journal || [];
+    if (j.includes(id)) return false;
+    j.push(id); this.save(); return true;
+  },
   passed(id) { const b = this.best(id); return !!(b && b.passed); },
 
   // Keep the best score, and every badge or handshake ever earned on the dish.
@@ -156,8 +162,9 @@ const TITLE_BTNS = [
   { id: 'settings', label: 'SETTINGS', x: 110, y: 170, w: 100, h: 20 },
 ];
 const SETTINGS_BTNS = [
-  { id: 'reset', label: 'RESET PROGRESS', x: 95, y: 110, w: 130, h: 20, danger: true },
-  { id: 'back', label: 'BACK', x: 110, y: 170, w: 100, h: 20 },
+  { id: 'journal', label: 'JOURNAL', x: 110, y: 84, w: 100, h: 20 },
+  { id: 'reset', label: 'RESET PROGRESS', x: 95, y: 122, w: 130, h: 20, danger: true },
+  { id: 'back', label: 'BACK', x: 110, y: 176, w: 100, h: 20 },
 ];
 
 const Title = {
@@ -174,6 +181,7 @@ const Title = {
     if (b.id === 'story') Game.startStory();
     else if (b.id === 'sandbox') Game.startSandbox();
     else if (b.id === 'settings') this.page = 'settings';
+    else if (b.id === 'journal') Journal.open();
     else if (b.id === 'back') this.page = 'root';
     else if (b.id === 'reset') {
       if (this.confirmReset > 0) { Progress.reset(); this.confirmReset = 0; this.flash = { text: 'Progress reset', t: 0 }; }
@@ -193,12 +201,58 @@ const Title = {
       T.text('a falling-sand cooking game', 160, 80, { size: 6, color: '#d8c0b0', align: 'center' });
     } else {
       T.text('SETTINGS', 160, 50, { size: 16, color: '#ffe9c0', align: 'center', shadow: true });
-      T.text('Wipes your scores, badges and story progress.', 160, 136, { size: 5, color: '#d8c0b0', align: 'center' });
+      T.text('Every technique you have discovered.', 160, 108, { size: 5, color: '#d8c0b0', align: 'center' });
+      T.text('Wipes your scores, badges, journal and story progress.', 160, 146, { size: 5, color: '#d8c0b0', align: 'center' });
     }
     for (const b of this.buttons()) {
       const label = b.id === 'reset' && this.confirmReset > 0 ? 'CLICK AGAIN TO RESET' : b.label;
       T.text(label, b.x + b.w / 2, b.y + 7, { size: 6, color: b.danger ? '#fff' : '#3a2020', align: 'center' });
     }
     if (this.flash) T.text(this.flash.text, 160, 200, { size: 7, color: '#ffd860', align: 'center', shadow: true });
+  },
+};
+
+// ---------- Journal: every technique, ten to a page, with the full description (or a hint if not found yet) ----------
+const JOURNAL_PER = 10;
+const JOURNAL_BTNS = [
+  { id: 'prev', label: '< PREV', x: 20, y: 216, w: 60, h: 16 },
+  { id: 'back', label: 'BACK', x: 130, y: 216, w: 60, h: 16 },
+  { id: 'next', label: 'NEXT >', x: 240, y: 216, w: 60, h: 16 },
+];
+const Journal = {
+  active: false, page: 0, hover: null,
+  open() { this.active = true; this.page = 0; },
+  close() { this.active = false; },
+  pages() { return Math.ceil(DISCOVERIES.length / JOURNAL_PER); },
+  update(mx, my) { this.hover = JOURNAL_BTNS.find((b) => UI.hit(b, mx, my)) || null; },
+  click(x, y) {
+    const b = JOURNAL_BTNS.find((b) => UI.hit(b, x, y));
+    if (!b) return;
+    if (b.id === 'back') this.close();
+    else if (b.id === 'prev') this.page = Math.max(0, this.page - 1);
+    else this.page = Math.min(this.pages() - 1, this.page + 1);
+  },
+  entry(n) { const col = n % 2, row = (n / 2) | 0; return { x: 12 + col * 150, y: 30 + row * 37, w: 146, h: 34 }; },
+  draw(g) {
+    rect(g, 0, 0, W, H, [60, 36, 30]);
+    rect(g, 6, 6, W - 12, H - 12, [40, 24, 20]); rect(g, 8, 8, W - 16, H - 16, [250, 240, 220]);
+    rect(g, 159, 26, 1, 186, [220, 204, 180]);   // the book's spine
+    DISCOVERIES.slice(this.page * JOURNAL_PER, (this.page + 1) * JOURNAL_PER).forEach((d, n) => {
+      const e = this.entry(n), got = Sim.discovered.has(d.id);
+      rect(g, e.x, e.y, e.w, e.h, got ? [255, 248, 228] : [236, 228, 212]);
+      if (got) rect(g, e.x, e.y, 2, e.h, [210, 130, 60]);
+    });
+    for (const b of JOURNAL_BTNS) button(g, b, this.hover === b);
+  },
+  drawText(T) {
+    const found = DISCOVERIES.filter((d) => Sim.discovered.has(d.id)).length;
+    T.text('JOURNAL', 14, 12, { size: 8, color: '#5a2a1a' });
+    T.text(`${found} / ${DISCOVERIES.length} discovered   ·   page ${this.page + 1} of ${this.pages()}`, W - 14, 14, { size: 5, color: '#8a6a50', align: 'right' });
+    DISCOVERIES.slice(this.page * JOURNAL_PER, (this.page + 1) * JOURNAL_PER).forEach((d, n) => {
+      const e = this.entry(n), got = Sim.discovered.has(d.id);
+      T.text(got ? d.name : '???', e.x + 5, e.y + 3, { size: 6, color: got ? '#3a2418' : '#a09080' });
+      T.wrap(got ? d.desc : 'Hint: ' + d.hint, e.x + 5, e.y + 12, e.w - 9, { size: 4.5, color: got ? '#5a4030' : '#9a8a78' });
+    });
+    for (const b of JOURNAL_BTNS) T.text(b.label, b.x + b.w / 2, b.y + 5, { size: 5, color: '#3a2020', align: 'center' });
   },
 };

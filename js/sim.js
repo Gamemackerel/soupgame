@@ -73,11 +73,13 @@ Sim.swap = function (i, j) {
   this.stamp[i] = this.stamp[j] = this.tag;
 };
 
+// Something happened: the first time in this pot raises an event; `first` means you've never seen it before.
 Sim.discover = function (id) {
+  if (this.happened.has(id)) return;
   this.happened.add(id);
-  if (this.discovered.has(id)) return;
+  const first = !this.discovered.has(id);
   this.discovered.add(id);
-  this.events.push({ t: 'discover', id });
+  this.events.push({ t: 'discover', id, first });
 };
 
 // Throttled event for chef reactions / sounds.
@@ -355,6 +357,19 @@ Sim.overflowPass = function () {
 };
 
 // A piece flung up out of the pot: it leaves as a little shower of bits that arc over the rim.
+// Pouring with the lid on: it hits the lid and flies off across the kitchen.
+Sim.bounceOffLid = function (ing, sx) {
+  const side = sx < 160 ? -1 : 1, y = GY - 9;
+  const n = ing.kind === 'chunk' ? 1 : ing.kind === 'liquid' ? 3 : 2;
+  for (let k = 0; k < n; k++) {
+    const vx = side * (0.8 + rnd() * 2.2), vy = -(1 + rnd() * 1.8);
+    if (ing.kind === 'chunk') {   // a whole piece tumbles off
+      for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) this.particle({ x: sx + dx, y: y + dy, vx, vy, life: 600, max: 600, c: ing.c, kind: 'debris' });
+    } else this.particle({ x: sx + rnd() * 4 - 2, y, vx, vy, life: 200, max: 200, c: ing.c, kind: ing.kind === 'liquid' ? 'drop' : 'debris' });
+  }
+  this.emit('splatter', 0, 0, 40);
+};
+
 Sim.ejectBody = function (cells, v) {
   // The whole piece flies out together (every cell shares one velocity), then lands on the stovetop.
   const cx = cells.reduce((s, i) => s + (i % GW), 0) / cells.length;

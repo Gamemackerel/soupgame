@@ -109,6 +109,19 @@ const ICON_DRAW = {
     ball(g, 7, 3, 2, [80, 170, 70], false); ball(g, 11, 2, 2, [70, 160, 60], false);
   },
   tomato(g) { ball(g, 8, 9, 6, [228, 50, 44], false); rect(g, 6, 3, 5, 1, [70, 150, 60]); rect(g, 8, 2, 1, 2, [70, 150, 60]); },
+  grinder(g) {
+    rect(g, 6, 2, 4, 2, [90, 70, 60]); rect(g, 7, 1, 2, 1, [120, 100, 90]);
+    rect(g, 5, 4, 6, 10, [70, 50, 40]); rect(g, 5, 4, 2, 10, [96, 72, 58]); rect(g, 4, 13, 8, 2, [50, 36, 30]);
+  },
+  packet(g) {
+    rect(g, 3, 3, 10, 11, [214, 190, 140]); rect(g, 3, 3, 10, 2, [240, 220, 170]); rect(g, 3, 12, 10, 2, [170, 140, 90]);
+    for (let k = 0; k < 4; k++) rect(g, 4 + k * 2, 2, 1, 1, [214, 190, 140]);   // crimped top
+    ball(g, 8, 8, 2, [190, 120, 60], false);
+  },
+  drumstick(g) {
+    ellipse(g, 7, 7, 5, 5, [214, 150, 80]); ellipse(g, 6, 6, 3, 3, [236, 180, 110]);
+    rect(g, 10, 10, 2, 4, [250, 246, 236]); ball(g, 12, 14, 1, [250, 246, 236], false); ball(g, 10, 14, 1, [250, 246, 236], false);
+  },
   meat(g) {
     ellipse(g, 8, 9, 6, 5, [206, 84, 96]); ellipse(g, 7, 8, 4, 3, [226, 110, 120]);
     rect(g, 3, 12, 10, 1, [250, 236, 230]); rect(g, 10, 6, 2, 2, [250, 236, 230]); ball(g, 13, 9, 1, [250, 246, 240], false);
@@ -165,6 +178,12 @@ const TOOL_DRAW = {
   spoon(g) { rect(g, 7, 7, 2, 8, [200, 206, 220]); ellipse(g, 8, 5, 3, 4, [200, 206, 220]); ellipse(g, 7, 4, 1, 2, [250, 252, 255]); },
   lid(g) { ellipse(g, 8, 10, 7, 3, [170, 178, 196]); ellipse(g, 8, 9, 6, 2, [214, 220, 232]); rect(g, 6, 5, 4, 3, [60, 50, 50]); rect(g, 7, 5, 2, 1, [110, 100, 100]); },
   book(g) { rect(g, 3, 3, 10, 11, [170, 70, 60]); rect(g, 4, 4, 8, 9, [250, 240, 220]); rect(g, 8, 4, 1, 9, [200, 180, 160]); rect(g, 5, 6, 2, 1, [150, 130, 110]); rect(g, 9, 6, 2, 1, [150, 130, 110]); },
+  sad(g) {
+    ball(g, 8, 8, 6, [250, 214, 110], false); ellipse(g, 8, 8, 6, 6, [250, 214, 110]);
+    rect(g, 5, 6, 1, 2, [60, 40, 30]); rect(g, 10, 6, 1, 2, [60, 40, 30]);
+    rect(g, 6, 11, 4, 1, [60, 40, 30]); rect(g, 5, 12, 1, 1, [60, 40, 30]); rect(g, 10, 12, 1, 1, [60, 40, 30]);
+    rect(g, 11, 8, 1, 2, [120, 180, 250]);   // a tear
+  },
   trash(g) { rect(g, 4, 5, 8, 10, [150, 160, 170]); rect(g, 3, 3, 10, 2, [180, 190, 200]); rect(g, 6, 7, 1, 6, [110, 120, 130]); rect(g, 9, 7, 1, 6, [110, 120, 130]); },
 };
 Art.tools = {};
@@ -250,6 +269,12 @@ Art.buildBackground = function (theme = 'kitchen') {
   }
   rect(g, 10, 200, W - 20, 1, [190, 196, 210]);
   // Stove front panel.
+  if (theme === 'show') {
+    // Souped Up's studio kitchen: a poster to keep the contestants moving.
+    rect(g, 62, 46, 34, 34, [60, 30, 30]); rect(g, 63, 47, 32, 32, [200, 46, 40]);
+    Art.pixelText(g, 'EVERY', 69, 51, [255, 240, 220]); Art.pixelText(g, 'SECOND', 67, 58, [255, 240, 220]); Art.pixelText(g, 'COUNTS', 67, 65, [255, 240, 220]);
+    ellipse(g, 79, 75, 3, 3, [255, 240, 220]); rect(g, 79, 73, 1, 2, [200, 46, 40]); rect(g, 79, 75, 2, 1, [200, 46, 40]);   // a little clock
+  }
   rect(g, 0, 214, W, 26, [70, 74, 92]); rect(g, 0, 214, W, 2, [150, 156, 176]);
   for (let x = 6; x < W; x += 40) rect(g, x, 232, 26, 2, [56, 60, 76]);
   // Burner grate, nearly edge-on from this angle.
@@ -317,12 +342,30 @@ Art.drawPotFront = function (g, heatGlow) {
   }
 };
 
-Art.drawLid = function (g, t) {
-  const cy = POT_TOP - 2 + Math.round(Math.sin(t * 0.3) * 0.6);
-  ellipse(g, 160, cy, 84, 5, rgb(STEEL, 0.55));
-  ellipse(g, 160, cy - 1, 82, 4, rgb(STEEL, 0.95));
-  ellipse(g, 140, cy - 2, 40, 2, rgb(STEEL, 1.2));
-  rect(g, 152, cy - 11, 16, 6, [50, 44, 50]); rect(g, 152, cy - 11, 16, 2, [100, 94, 104]);
+// lift: how far it's raised (tasting under it); rattle: a hard boil underneath makes it jump.
+Art.drawLid = function (g, t, lift = 0, rattle = false) {
+  const jig = rattle ? Math.round(Math.sin(t * 0.9) * 1.2 + (Math.sin(t * 2.3) > 0.7 ? -1 : 0)) : 0;
+  const cy = POT_TOP - 2 - lift + jig, cx = 160 + (lift ? 6 : 0);
+  if (lift) { g.fillStyle = 'rgba(240,240,250,0.35)'; for (let k = 0; k < 4; k++) g.fillRect(150 + k * 8, cy + 4 + ((t + k * 5) % 6) * -1, 2, 3); }   // steam escaping
+  ellipse(g, cx, cy, 84, 5, rgb(STEEL, 0.55));
+  ellipse(g, cx, cy - 1, 82, 4, rgb(STEEL, 0.95));
+  ellipse(g, cx - 20, cy - 2, 40, 2, rgb(STEEL, 1.2));
+  rect(g, cx - 8, cy - 11, 16, 6, [50, 44, 50]); rect(g, cx - 8, cy - 11, 16, 2, [100, 94, 104]);
+};
+
+// A tiny 3x5 pixel font for things painted in the kitchen (the timer, posters).
+const PIXEL_FONT = {
+  '0': '111101101101111', '1': '010110010010111', '2': '111001111100111', '3': '111001111001111', '4': '101101111001001',
+  '5': '111100111001111', '6': '111100111101111', '7': '111001010010010', '8': '111101111101111', '9': '111101111001111',
+  ':': '000010000010000', ' ': '000000000000000', '!': '010010010000010',
+  E: '111100110100111', V: '101101101101010', R: '110101110101101', Y: '101101010010010', S: '111100111001111', C: '111100100100111',
+  O: '111101101101111', N: '101111111111101', D: '110101101101110', U: '101101101101111', T: '111010010010010',
+};
+Art.pixelText = function (g, str, x, y, c, scale = 1) {
+  [...str].forEach((ch, n) => {
+    const bits = PIXEL_FONT[ch] || PIXEL_FONT[' '];
+    for (let k = 0; k < 15; k++) if (bits[k] === '1') rect(g, x + n * 4 * scale + (k % 3) * scale, y + ((k / 3) | 0) * scale, scale, scale, c);
+  });
 };
 
 // ---------------- Flames ----------------
