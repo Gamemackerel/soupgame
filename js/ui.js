@@ -182,6 +182,11 @@ const UI = {
     const x = 92, y = 16, tex = this.card.res.tex || [], h = tex.length > 3 ? 104 : tex.length ? 96 : 86;
     rect(g, x, y, 136, h, [40, 24, 30]); rect(g, x + 1, y + 1, 134, h - 2, [255, 250, 238]);
     if (this.card.res.empty) return;
+    if (this.card.res.unmixed) {
+      // Can't tell: question-mark bars.
+      TASTE_AXES.forEach((k, n) => { const by = y + 16 + n * 7; rect(g, x + 44, by + 1, 60, 4, [230, 222, 210]); });
+      return;
+    }
     const p = this.card.res.p;
     TASTE_AXES.forEach((k, n) => {
       const by = y + 16 + n * 7;
@@ -238,6 +243,14 @@ const UI = {
     }
     const x = 92, y = 16, r = this.card.res;
     if (r.empty) { T.text(r.line, x + 68, y + 38, { size: 6, color: '#3a2418', align: 'center' }); return; }
+    if (r.unmixed) {
+      T.text('TASTE', x + 4, y + 4, { size: 7, color: '#3a2418' });
+      if (r.temp) T.text(Math.round(r.temp) + '°C', x + 130, y + 4, { size: 6, color: '#8a5a40', align: 'right' });
+      TASTE_AXES.forEach((k, n) => { T.text(k, x + 4, y + 15 + n * 7, { size: 5, color: '#5a4038' }); T.text('?', x + 74, y + 15 + n * 7, { size: 5, color: '#a08870', align: 'center' }); });
+      T.text('? ? ?', x + 120, y + 30, { size: 7, color: '#a08870', align: 'center' });
+      T.text('"' + r.line + '"', x + 4, y + 78, { size: 5, color: '#a03a2a' });
+      return;
+    }
     T.text('TASTE', x + 4, y + 4, { size: 7, color: '#3a2418' });
     T.text(Math.round(r.temp) + '°C', x + 130, y + 4, { size: 6, color: '#8a5a40', align: 'right' });
     TASTE_AXES.forEach((k, n) => T.text(k, x + 4, y + 15 + n * 7, { size: 5, color: '#5a4038' }));

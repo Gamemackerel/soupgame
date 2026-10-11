@@ -31,6 +31,30 @@ Taste.gather = function (cx, cy, r) {
   return { raw, broth, oil, oilHeat: oilHeat / Math.max(1, broth + oil), temp: temp / Math.max(1, broth + oil) };
 };
 
+// How unevenly flavor is spread through the broth: the worst ratio, over the main taste axes, of a region's
+// strength to the pot's average (1 = even; higher = some part of the pot is far stronger than the rest).
+const MIX_AXES = [F_SALTY, F_SWEET, F_SOUR, F_UMAMI, F_HEAT];
+Taste.unevenness = function () {
+  const S = Sim, B = 12, bw = Math.ceil(GW / B), bh = Math.ceil(GH / B);
+  const sum = new Float32Array(bw * bh * MIX_AXES.length), cnt = new Uint16Array(bw * bh), tot = new Float32Array(MIX_AXES.length);
+  let n = 0;
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+    const i = y * GW + x;
+    if (S.mat[i] !== BROTH) continue;
+    const b = ((y / B) | 0) * bw + ((x / B) | 0);
+    cnt[b]++; n++;
+    MIX_AXES.forEach((k, a) => { const v = S.fl[i * NF + k]; sum[b * MIX_AXES.length + a] += v; tot[a] += v; });
+  }
+  if (n < 50) return 1;
+  let worst = 1;
+  MIX_AXES.forEach((k, a) => {
+    const mean = tot[a] / n;
+    if (mean < 0.05) return;
+    for (let b = 0; b < bw * bh; b++) if (cnt[b] >= 20) worst = Math.max(worst, sum[b * MIX_AXES.length + a] / cnt[b] / mean);
+  });
+  return worst;
+};
+
 // Apply perception rules (salt suppresses bitter, fat carries heat, acid brightens…).
 Taste.perceive = function (g, burntFrac = 0, plate = false) {
   const r = g.raw, oilFrac = g.oil / Math.max(1, g.broth + g.oil) * (plate ? 0.4 : 1);   // pan oil on a plate is mostly left behind
@@ -124,9 +148,22 @@ Taste.doneness = function (gx, gy, r = 10) {
   return out;
 };
 
+// A taste of the whole pot (you dip the spoon in at gx,gy). If the pot is badly unmixed you can't really
+// tell what it tastes like: you get question marks and a nudge to stir.
+const UNMIXED = 4;
 Taste.sip = function (gx, gy) {
-  const tex = Taste.doneness(gx, gy);
-  const g = Taste.gather(gx, gy, 8);
+  const S = Sim;
+  let inFood = false;
+  for (let dy = -3; dy <= 3 && !inFood; dy++) for (let dx = -3; dx <= 3; dx++) {
+    const x = gx + dx, y = gy + dy;
+    if (x < 0 || x >= GW || y < 0 || y >= GH) continue;
+    const m = S.mat[y * GW + x];
+    if (m !== EMPTY && CLS[m] !== C_GAS && m !== FIRE) { inFood = true; break; }
+  }
+  if (!inFood) return { empty: true, line: 'Dip the spoon in the food!' };
+  if (Taste.unevenness() > UNMIXED) return { unmixed: true, line: 'Not mixed enough to taste. Stir it!', temp: Taste.gather(0, 0, 0).temp };
+  const tex = Taste.doneness(GW >> 1, GH >> 1, GW);
+  const g = Taste.gather(0, 0, 0);
   if (g.broth + g.oil < 5) return tex.length ? { empty: true, tex, line: 'No broth here, just ' + tex.join(', ') + '.' } : { empty: true, line: 'Nothing to taste here!' };
   const p = Taste.perceive(g);
   if (g.broth === 0) return { p, score: 0.2, line: 'Just... oil.', notes: Taste.topNotes(), temp: g.temp, tex };

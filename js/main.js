@@ -66,7 +66,7 @@ screen.addEventListener('pointerdown', (e) => {
   if (!input.consumed && UI.tool === 'taste' && inGrid(p.x, p.y)) {
     const res = Taste.sip((p.x - GX) | 0, (p.y - GY) | 0);
     UI.showTaste(res);
-    Chef.sip(res.score || 0, res.line);
+    if (!res.empty) Chef.sip(res.unmixed ? 0.4 : res.score || 0, res.line);   // unmixed: a puzzled sip
     input.consumed = true;
   }
 });
@@ -92,7 +92,7 @@ addEventListener('keydown', (e) => {
 
 function update() {
   if (Menu.active) { Menu.update(input.x, input.y); Chef.t++; return; }
-  if (Judging.active) { Judging.update(); Chef.ladle = null; Chef.update(160, false, false); return; }
+  if (Judging.active) { Judging.update(); Chef.ladle = Chef.spoon = null; Chef.update(160, false, false); return; }
   UI.hover = UI.pick(input.x, input.y);
   const active = input.down && !input.consumed && !UI.dragDial && !UI.journal;
   const pouring = active && UI.tool === 'pour' && overPotArea(input.x, input.y) && !!Chef.held && Chef.held.kind !== 'whole' && !Sim.lid;
@@ -101,7 +101,10 @@ function update() {
   Chef.onMenu = !inKitchen(input.x, input.y) || UI.journal;
   Chef.ladle = UI.tool === 'ladle' && !Sim.lid && !Chef.onMenu ? ladleAt(input.x, input.y) : null;
   Chef.idleLadle = UI.tool === 'ladle' && !Chef.ladle;
-  Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid) || !!Chef.ladle, pouring);
+  // The tasting spoon works the same way: in the kitchen he reaches it wherever you point.
+  Chef.spoon = UI.tool === 'taste' && !Sim.lid && !Chef.onMenu ? { x: input.x, y: input.y } : null;
+  Chef.idleSpoon = UI.tool === 'taste' && !Chef.spoon;
+  Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour' && !Sim.lid) || !!Chef.ladle || !!Chef.spoon, pouring);
 
   if (!paused) {
     if (Chef.pouring) {
@@ -163,7 +166,7 @@ function drawParticles() {
 
 function drawCursor() {
   const x = input.x | 0, y = input.y | 0;
-  if (Chef.ladle) return;   // the chef's ladle is the cursor
+  if (Chef.ladle || Chef.spoon) return;   // the chef's ladle or spoon is the cursor
   if (UI.tool === 'ladle' && inGrid(x, y)) { g.drawImage(Art.toolIcon('ladle'), x - 8, y - 12); return; }
   if (UI.tool === 'taste' && inGrid(x, y)) { g.drawImage(Art.toolIcon('spoon'), x - 8, y - 12); return; }
   for (let k = 0; k < 7; k++) { rect(g, x, y + k, Math.max(1, 6 - k), 1, [40, 24, 30]); }

@@ -216,6 +216,8 @@ const Chef = {
       this.drawLadle(g, sh);
     } else if (this.idleLadle) {
       this.drawIdleLadle(g, sh, cx, by);
+    } else if (this.spoon || this.idleSpoon) {
+      this.drawSpoon(g, sh, cx, by);
     } else if (showItem) {
       const iconName = showItem.id === 'egg' && this.cracked ? 'eggcracked' : showItem.icon;
       const icon = Art.icon(iconName, showItem.c);
@@ -250,6 +252,21 @@ const Chef = {
     rect(g, lx - 4, ly + 1, 3, 1, [240, 244, 250]);
     ball(g, hx, hy, 3, SKIN);
     rect(g, hx - 2, hy - 1, 1, 3, rgb(SKIN, 0.8));
+  },
+
+  // The tasting spoon: reached into the pot wherever you point (his arm stretches right down in), lifted
+  // to his mouth for a sip, or held thoughtfully up by his chin while you're off in the menus.
+  drawSpoon(g, sh, cx, by) {
+    const steel = [196, 202, 216], dark = [70, 74, 90];
+    let sx, sy, hx, hy, ang;   // spoon bowl, hand, handle direction
+    if (this.sipT > 0) { sx = cx + 3; sy = 70 + by; hx = cx + 14; hy = 82 + by; }
+    else if (this.spoon) { sx = Math.round(this.spoon.x); sy = Math.round(this.spoon.y); hx = sx + 7; hy = sy - 9; }
+    else { sx = cx + 6; sy = 70 + by; hx = cx + 16; hy = 86 + by; }   // pondering, spoon at his lips
+    arm(g, sh.x, sh.y, hx, hy);
+    const dx = hx - sx, dy = hy - sy, len = Math.max(1, Math.hypot(dx, dy));
+    for (let k = 0; k <= len + 3; k++) rect(g, Math.round(sx + dx / len * k), Math.round(sy + dy / len * k), 1, 1, k > len - 2 ? [150, 156, 172] : steel);
+    ellipse(g, sx, sy, 3, 2, dark); ellipse(g, sx, sy, 2, 1, steel); rect(g, sx - 1, sy - 1, 1, 1, [250, 252, 255]);
+    ball(g, hx, hy, 3, SKIN);
   },
 
   // At ease with the ladle: held upright at his side, bowl up.
