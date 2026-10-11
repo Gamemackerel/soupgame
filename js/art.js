@@ -155,12 +155,6 @@ const ICON_DRAW = {
   },
   potato(g) { ellipse(g, 8, 9, 6, 5, [190, 146, 90]); ellipse(g, 7, 8, 4, 3, [214, 172, 112]); rect(g, 5, 8, 1, 1, [140, 100, 60]); rect(g, 10, 10, 1, 1, [140, 100, 60]); rect(g, 8, 6, 1, 1, [140, 100, 60]); },
   beans(g) { ball(g, 5, 10, 3, [206, 160, 118], false); ball(g, 10, 10, 3, [170, 70, 60], false); ball(g, 8, 6, 3, [220, 184, 140], false); },   // pinto, kidney, pinto
-  paprika(g) {   // a Hungarian paprika tin: gold lid, red tin, cream label with a little red pepper
-    rect(g, 3, 2, 10, 2, [214, 170, 60]); rect(g, 3, 2, 10, 1, [246, 214, 110]);
-    rect(g, 3, 4, 10, 11, [196, 36, 30]); rect(g, 3, 4, 2, 11, [230, 80, 64]); rect(g, 11, 4, 2, 11, [150, 24, 22]);
-    rect(g, 4, 7, 8, 6, [246, 232, 200]); rect(g, 6, 9, 4, 2, [210, 40, 30]); rect(g, 9, 8, 1, 1, [70, 140, 60]);
-    rect(g, 3, 14, 10, 1, [214, 170, 60]);
-  },
   pasta(g) {
     for (const [x, y] of [[3, 5], [9, 4], [5, 10], [10, 10]]) { rect(g, x, y, 4, 3, [236, 206, 128]); rect(g, x + 1, y + 1, 2, 1, [200, 160, 90]); rect(g, x, y, 4, 1, [250, 230, 170]); }
   },
@@ -180,6 +174,94 @@ Art.icon = function (type, c) {
     this.icons[key] = cv;
   }
   return this.icons[key];
+};
+
+// ---------------- Dish icons (24x16): each level's finished dish, for its ticket ----------------
+
+// A white bowl seen from a little above, filled with soup of color c. Returns the soup surface's center row.
+function soupBowl(g, c) {
+  ellipse(g, 12, 7, 10, 7, [214, 214, 222], 'bottom'); ellipse(g, 11, 8, 8, 5, [240, 240, 246], 'bottom');
+  rect(g, 8, 14, 8, 1, [190, 190, 200]);
+  ellipse(g, 12, 6, 10, 3, [250, 250, 252]);
+  ellipse(g, 12, 6, 8, 2, c); rect(g, 7, 5, 4, 1, mix(c, [255, 255, 255], 0.35));
+}
+function dots(g, pts, c) { for (const [x, y] of pts) rect(g, x, y, 1, 1, c); }
+const DISH_DRAW = {
+  'tomato-soup'(g) {
+    soupBowl(g, [214, 60, 40]);
+    rect(g, 10, 6, 5, 1, [250, 236, 220]); rect(g, 14, 5, 2, 1, [250, 236, 220]);   // a swirl of cream
+    rect(g, 15, 6, 2, 1, [70, 150, 60]); rect(g, 16, 5, 1, 1, [100, 180, 80]);    // basil
+  },
+  'creamy-corn'(g) {
+    soupBowl(g, [244, 224, 150]);
+    dots(g, [[8, 6], [11, 5], [14, 7], [16, 6], [12, 7], [9, 7]], [250, 200, 40]);
+    rect(g, 13, 5, 2, 1, [90, 160, 70]);   // chives
+  },
+  'flatbread'(g) {
+    // A blistered round flatbread, slightly folded, on a board.
+    rect(g, 2, 12, 20, 3, [150, 100, 60]); rect(g, 2, 12, 20, 1, [180, 128, 80]);
+    ellipse(g, 12, 9, 10, 4, [226, 182, 110]); ellipse(g, 11, 8, 8, 3, [240, 206, 140]);
+    dots(g, [[6, 8], [10, 7], [14, 9], [17, 8], [9, 10], [13, 7]], [130, 80, 40]);
+    rect(g, 15, 10, 2, 1, [110, 66, 34]);
+  },
+  'fish-stew'(g) {
+    soupBowl(g, [226, 120, 60]);
+    rect(g, 8, 5, 3, 2, [250, 246, 236]); rect(g, 13, 6, 3, 2, [246, 240, 230]);   // flakes of white fish
+    dots(g, [[12, 5], [16, 5], [7, 7]], [70, 150, 60]);   // parsley
+    rect(g, 17, 6, 1, 1, [240, 220, 90]);   // lemon
+  },
+  'minestrone'(g) {
+    soupBowl(g, [204, 96, 50]);
+    rect(g, 8, 5, 2, 1, [236, 206, 128]); rect(g, 14, 7, 2, 1, [236, 206, 128]);   // pasta
+    dots(g, [[11, 6], [16, 5]], [170, 70, 60]); dots(g, [[13, 5], [9, 7]], [244, 140, 40]);   // beans, carrot
+    dots(g, [[12, 7], [15, 6], [7, 6]], [100, 170, 70]);   // greens
+  },
+  'french-onion'(g) {
+    // A brown crock with a bubbling cheese lid browned in spots.
+    ellipse(g, 12, 8, 9, 6, [120, 70, 40], 'bottom'); rect(g, 6, 13, 12, 1, [90, 50, 30]);
+    rect(g, 2, 8, 2, 2, [120, 70, 40]); rect(g, 20, 8, 2, 2, [120, 70, 40]);   // handles
+    ellipse(g, 12, 6, 9, 3, [248, 220, 130]); ellipse(g, 12, 5, 7, 2, [252, 232, 160]);
+    rect(g, 4, 7, 2, 2, [248, 220, 130]); rect(g, 18, 7, 1, 3, [248, 220, 130]);   // cheese dripping over the rim
+    dots(g, [[9, 5], [13, 4], [15, 6], [11, 7], [7, 6]], [190, 130, 50]);
+  },
+  'beef-chowder'(g) {
+    soupBowl(g, [236, 216, 180]);
+    rect(g, 8, 5, 2, 2, [130, 70, 50]); rect(g, 14, 6, 2, 2, [130, 70, 50]);   // beef
+    rect(g, 11, 6, 2, 1, [250, 236, 180]); rect(g, 16, 5, 1, 1, [250, 236, 180]);   // potato
+    dots(g, [[12, 5], [10, 7]], [60, 54, 52]);   // cracked pepper
+  },
+  'goulash'(g) {
+    soupBowl(g, [160, 50, 30]);
+    rect(g, 8, 6, 2, 2, [100, 46, 34]); rect(g, 14, 5, 2, 2, [100, 46, 34]);   // beef
+    rect(g, 11, 5, 3, 1, [252, 250, 244]); rect(g, 12, 6, 1, 1, [252, 250, 244]);   // sour cream
+    dots(g, [[9, 5], [16, 6], [13, 7]], [220, 60, 30]);   // paprika
+  },
+  'sponge-cake'(g) {
+    // A round sponge with a slice cut out, cream between the layers, a strawberry on top.
+    ellipse(g, 12, 13, 10, 2, [220, 220, 228]);   // plate
+    rect(g, 3, 6, 18, 7, [240, 200, 120]); rect(g, 3, 9, 18, 1, [252, 246, 236]);
+    ellipse(g, 12, 6, 9, 2, [246, 216, 150]); ellipse(g, 12, 13, 9, 1, [220, 176, 100]);
+    rect(g, 14, 6, 7, 7, [200, 160, 96]); rect(g, 14, 9, 7, 1, [252, 246, 236]);   // the cut face
+    rect(g, 8, 3, 3, 3, [220, 40, 50]); rect(g, 9, 2, 1, 1, [80, 160, 60]); rect(g, 8, 3, 1, 1, [255, 140, 140]);
+  },
+  'chili'(g) {
+    soupBowl(g, [150, 40, 26]);
+    dots(g, [[8, 5], [10, 7], [14, 5], [16, 7], [12, 6]], [110, 30, 30]);   // beans
+    rect(g, 11, 5, 3, 1, [252, 250, 244]);   // sour cream
+    dots(g, [[13, 6], [9, 6]], [90, 160, 70]);   // scallion
+    rect(g, 19, 11, 3, 1, [220, 40, 30]); rect(g, 21, 10, 1, 1, [80, 150, 60]);   // a chili pepper alongside
+  },
+};
+Art.dishes = {};
+Art.dishIcon = function (id) {
+  if (!DISH_DRAW[id]) return null;
+  if (!this.dishes[id]) {
+    const cv = makeCanvas(24, 16);
+    DISH_DRAW[id](cv.getContext('2d'));
+    outlineCanvas(cv);
+    this.dishes[id] = cv;
+  }
+  return this.dishes[id];
 };
 
 // ---------------- Tool icons (16x16) ----------------

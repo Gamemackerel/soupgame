@@ -14,7 +14,7 @@ const LEVEL_TIERS = [
 const LEVELS = [
   // ---- Tier 0: each dish teaches one mechanic ----
   {
-    id: 'tomato-soup', short: 'Tomato Soup', icon: 'tomato', tier: 0, title: 'Tomato Soup', teaches: 'heat and seasoning',
+    id: 'tomato-soup', short: 'Tomato Soup', tier: 0, title: 'Tomato Soup', teaches: 'heat and seasoning',
     blurb: 'Soften the onion and garlic, melt the tomatoes down, season, and finish with fresh herbs.',
     hint: 'Herbs go in at the very end, off the heat.',
     essential: ['tomato'],   // without these it isn't the dish at all
@@ -35,7 +35,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'creamy-corn', short: 'Creamy Corn', icon: 'corn', tier: 0, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
+    id: 'creamy-corn', short: 'Creamy Corn', tier: 0, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
     blurb: 'Sweat onion, add corn and potato, and simmer until the potato falls apart and thickens the soup. Then stir in cream over low heat.',
     hint: 'Cream splits if the pot is boiling hard. Turn the flame down first.',
     essential: ['corn'],   // without these it isn't the dish at all
@@ -50,7 +50,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'flatbread', short: 'Flatbread', icon: 'flour', tier: 0, title: 'Pan Flatbread', teaches: 'dough and browning',
+    id: 'flatbread', short: 'Flatbread', tier: 0, title: 'Pan Flatbread', teaches: 'dough and browning',
     blurb: 'Stir flour, water and a pinch of salt into a dough, then bake it under the lid until golden.',
     hint: 'The lid turns the pot into an oven.',
     essential: ['flour'],   // without these it isn't the dish at all
@@ -64,7 +64,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'fish-stew', short: 'Fish Stew', icon: 'fish', tier: 0, title: 'Fish Stew', teaches: 'layering and timing',
+    id: 'fish-stew', short: 'Fish Stew', tier: 0, title: 'Fish Stew', teaches: 'layering and timing',
     blurb: 'Build a tomato and wine base, simmer the potatoes, then add the fish late so it just flakes.',
     hint: 'Fish needs a minute, not an hour.',
     essential: ['fish'],   // without these it isn't the dish at all
@@ -81,7 +81,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'minestrone', short: 'Minestrone', icon: 'pasta', tier: 0, title: 'Minestrone', teaches: 'timing many ingredients',
+    id: 'minestrone', short: 'Minestrone', tier: 0, title: 'Minestrone', teaches: 'timing many ingredients',
     blurb: 'Soften the vegetables, build the tomato broth, then add beans and pasta so everything finishes together.',
     hint: 'Pasta goes in near the end. Too long and it turns to mush.',
     essential: ['pasta', 'beans'],   // without these it isn't the dish at all
@@ -99,7 +99,7 @@ const LEVELS = [
 
   // ---- Tier 1: combining the mechanics ----
   {
-    id: 'french-onion', short: 'French Onion', icon: 'onion', tier: 1, title: 'French Onion Soup', teaches: 'patience',
+    id: 'french-onion', short: 'French Onion', tier: 1, title: 'French Onion Soup', teaches: 'patience',
     blurb: 'Caramelize a mountain of onions low and slow, deglaze with wine, and simmer into a deep broth.',
     hint: 'The onions take longer than you think. Much longer.',
     essential: ['onion'],   // without these it isn't the dish at all
@@ -114,7 +114,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'beef-chowder', short: 'Beef Chowder', icon: 'meat', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
+    id: 'beef-chowder', short: 'Beef Chowder', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
     blurb: 'Sear the beef, sweat the vegetables, make a roux in the fat, add potatoes, and finish with cream.',
     hint: 'Flour into hot fat, not into water.',
     essential: ['meat', 'potato', 'cream'],   // without these it isn't the dish at all
@@ -130,7 +130,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'goulash', short: 'Goulash', icon: 'paprika', tier: 1, title: 'Goulash', teaches: 'browning and blooming spice',
+    id: 'goulash', short: 'Goulash', tier: 1, title: 'Goulash', teaches: 'browning and blooming spice',
     blurb: 'Slow-cook the onions, brown the beef, bloom the spices in the fat, then simmer with tomato.',
     hint: 'Spices wake up in hot fat, not in water.',
     essential: ['meat', 'chili'],   // without these it isn't the dish at all
@@ -146,7 +146,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'sponge-cake', short: 'Sponge Cake', icon: 'egg', tier: 1, title: 'Pot-Oven Sponge Cake', teaches: 'baking chemistry',
+    id: 'sponge-cake', short: 'Sponge Cake', tier: 1, title: 'Pot-Oven Sponge Cake', teaches: 'baking chemistry',
     blurb: 'Whisk a sweet batter with eggs and baking powder and bake it under the lid until it rises.',
     hint: 'Baking powder makes it rise. A gentle flame keeps it from burning.',
     essential: ['flour', 'egg', 'sugar'],   // without these it isn't the dish at all
@@ -161,7 +161,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'chili', short: 'Chili', icon: 'chili', tier: 1, title: 'Chili con Carne', teaches: 'heat, spice and a long simmer',
+    id: 'chili', short: 'Chili', tier: 1, title: 'Chili con Carne', teaches: 'heat, spice and a long simmer',
     blurb: 'Brown the beef, soften onion and garlic, bloom chili and cumin, then simmer with tomato and beans.',
     hint: 'Bloom the spices in the fat before any liquid goes in.',
     essential: ['meat', 'chili'],   // without these it isn't the dish at all

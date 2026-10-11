@@ -98,14 +98,14 @@ const Menu = {
           continue;
         }
         const best = Progress.best(lv.id);
-        // Paper ticket with a clip, a perforated stub, and the dish's key ingredient.
+        // Paper ticket with a clip, a perforated stub, and the finished dish.
         rect(g, r.x + 1, y + 1, r.w, r.h, [30, 30, 38]);
         rect(g, r.x, y, r.w, r.h, hov ? [255, 255, 250] : [246, 242, 230]);
         for (let k = 2; k < r.w - 2; k += 3) rect(g, r.x + k, y + 6, 1, 1, [190, 180, 160]);
         rect(g, r.x + r.w / 2 - 3, y - 3, 7, 5, [170, 174, 188]); rect(g, r.x + r.w / 2 - 2, y - 2, 5, 1, [230, 234, 242]);
-        const ing = SHELF.find((s) => s.id === lv.icon) || (ICON_DRAW[lv.icon] && { icon: lv.icon, c: [0, 0, 0] });   // a shelf ingredient, or a drawing of its own
-        if (ing) g.drawImage(Art.icon(ing.icon, ing.c), r.x + 2, y + 8);
-        // Badges: a green check for passed, a gold star for Good Soup, two for Perfect, a little handshake.
+        const dish = Art.dishIcon(lv.id);
+        if (dish) g.drawImage(dish, r.x + 2, y + 8);
+        // A green check for a plain pass (badges are stamped on in drawText), a little handshake.
         if (best && best.passed && !best.badge) stamp(g, r.x + r.w - 9, y + 9, null);   // a plain pass: a check
         if (best && best.handshake) { rect(g, r.x + r.w - 10, y + 20, 4, 3, [176, 120, 84]); rect(g, r.x + r.w - 7, y + 21, 4, 3, [236, 196, 160]); }
       }
