@@ -41,8 +41,11 @@ const TOOLS = [
   { id: 'taste', icon: 'spoon', label: 'Taste' },
   { id: 'lid', icon: 'lid', label: 'Lid' },
   { id: 'clear', icon: 'trash', label: 'Empty' },
+  { id: 'journal', icon: 'book', label: 'Journal', sandbox: true },
   { id: 'quit', icon: 'sad', label: 'Quit' },
 ];
+// The tools shown right now (the Journal button is a sandbox thing; in story it lives in Settings).
+const tools = () => TOOLS.filter((t) => !t.sandbox || !Game.level);
 const TOOL_X = 266, TOOL_Y = 16, TOOL_H = 22;
 const DIAL = { x: 160, y: 227, r: 9 };
 const SERVE = { x: 266, y: 168, w: 50, h: 22 };
@@ -60,7 +63,7 @@ const UI = {
   // Returns what's under the cursor.
   pick(x, y) {
     for (let n = 0; n < SHELF.length; n++) if (this.hit(this.shelfSlot(n), x, y)) return { type: 'ing', n };
-    for (let n = 0; n < TOOLS.length; n++) if (this.hit(this.toolSlot(n), x, y)) return { type: 'tool', n };
+    for (let n = 0; n < tools().length; n++) if (this.hit(this.toolSlot(n), x, y)) return { type: 'tool', n };
     if (this.hit(SERVE, x, y)) return { type: 'serve' };
     if (Game.level && this.hit(TITLE_BOX, x, y)) return { type: 'recipe' };
     if ((x - DIAL.x) ** 2 + (y - DIAL.y) ** 2 <= (DIAL.r + 4) ** 2) return { type: 'dial' };
@@ -73,9 +76,10 @@ const UI = {
     if (!h) return false;
     if (h.type === 'ing') { Chef.select(SHELF[h.n]); this.tool = 'pour'; }
     else if (h.type === 'tool') {
-      const id = TOOLS[h.n].id;
+      const id = tools()[h.n].id;
       if (id === 'lid') Sim.lid = !Sim.lid;
       else if (id === 'quit') Game.level ? Game.toMenu() : Game.toTitle();
+      else if (id === 'journal') Journal.open();
       else if (id === 'clear') {
         if (this.confirmClear > 0) { this.confirmClear = 0; Game.tipPot(); }
         else { this.confirmClear = 120; }
@@ -122,7 +126,7 @@ const UI = {
     });
     // Tool panel.
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);
-    TOOLS.forEach((tl, n) => {
+    tools().forEach((tl, n) => {
       const s = this.toolSlot(n);
       const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (tl.id === 'clear' && this.confirmClear > 0);
       const hov = this.hover && this.hover.type === 'tool' && this.hover.n === n;
@@ -204,7 +208,7 @@ const UI = {
     const label = Game.level && Game.level.tier === 0 ? '#ffe9c0' : '#7a3a2a';   // light on the pizza shop's brick
     T.text('PANTRY', 29, 4, { size: 6, color: label, align: 'center' });
     T.text('TOOLS', 291, 4, { size: 6, color: label, align: 'center' });
-    TOOLS.forEach((tl, n) => {
+    tools().forEach((tl, n) => {
       const s = this.toolSlot(n);
       const label = tl.id === 'clear' && this.confirmClear ? 'Sure?' : tl.label;
       T.text(label, s.x + 20, s.y + 7, { size: 5, color: '#3a2418' });

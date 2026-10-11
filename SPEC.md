@@ -765,7 +765,7 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 
 **Tools.**
 - There's no Pour tool: clicking a pantry item is pouring. Stir and Taste toggle (click again to put them down).
-- The tools are Stir, Taste, Lid, Empty and **Quit** (with a sad face; back to level select, or the title in sandbox). Every button highlights on hover.
+- The tools are Stir, Taste, Lid, Empty, **Journal** (sandbox only) and **Quit** (with a sad face; back to level select, or the title in sandbox). Every button highlights on hover.
 - The pantry's name bubble points right at the cursor.
 
 **The Journal** has moved to Settings on the title screen; J opens it while cooking.
@@ -781,10 +781,10 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - The ladle comes to rest on top of it.
 - Pouring onto a closed pot bounces everything off the lid and across the kitchen (and sometimes onto the chef).
 
-**Emptying the pot** tips it over 45°, pivoting on its bottom corner. The contents drain from the top and the rim side first and stream out onto the floor, then the pot rights itself, empty.
+**Emptying the pot** tips it over 45° to the left, pivoting on its bottom corner. The contents drain from the top and the rim side first and stream out onto the floor, then the pot rights itself, empty.
 
 **Story levels have a time limit:** the par recipe's cooking time × 1.5 plus a minute, rounded up to 30 s (3:00 for flatbread to 10:30 for goulash).
 - A red LED countdown on the kitchen wall shows the time, and it blinks in the last 30 s. The order ticket lists the limit.
 - When time runs out, the dish goes to the judges as it is.
 
-**The First Michelin Star kitchen** is Souped Up's studio: the regular kitchen with a red "EVERY SECOND COUNTS" poster, painted in a tiny pixel font.
+**The First Michelin Star kitchen** is Souped Up's studio: the regular kitchen with an easter egg, a small faded paper sign tacked to the wall reading "EVERY SECOND COUNTS".

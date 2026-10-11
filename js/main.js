@@ -231,7 +231,7 @@ const Tip = {
     this.active = true; this.t = 0; Sim.lid = false;
     // Everything in the pot, ordered so it pours out from the top and the side nearest the rim first.
     this.queue = [];
-    for (let y = 0; y < GH; y++) for (let x = GW - 1; x >= 0; x--) { const i = y * GW + x, m = Sim.mat[i]; if (m !== EMPTY && CLS[m] !== C_GAS && m !== FIRE) this.queue.push(i); }
+    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) { const i = y * GW + x, m = Sim.mat[i]; if (m !== EMPTY && CLS[m] !== C_GAS && m !== FIRE) this.queue.push(i); }
     this.perFrame = Math.ceil(this.queue.length / 60);
     Chef.react({ t: 'overflow' });
   },
@@ -241,11 +241,11 @@ const Tip = {
     this.t++;
     if (this.t > 30 && this.t <= 90 && this.queue.length) {
       // The pot drains as it tips: cells leave the pot and stream out of the rim's corner onto the floor.
-      const a = this.angle(), h = POT_BOT - POT_TOP, rx = POT_R + Math.sin(a) * h, ry = POT_BOT - Math.cos(a) * h;
+      const a = this.angle(), h = POT_BOT - POT_TOP, rx = POT_L - Math.sin(a) * h, ry = POT_BOT - Math.cos(a) * h;
       for (let k = 0; k < this.perFrame && this.queue.length; k++) {
         const i = this.queue.shift();
         if (Sim.mat[i] === EMPTY) continue;
-        if (k < 14) Sim.particle({ x: rx - Math.random() * 6, y: ry + Math.random() * 4, vx: 0.8 + Math.random() * 1.8, vy: Math.random() * 0.8,
+        if (k < 14) Sim.particle({ x: rx + Math.random() * 6, y: ry + Math.random() * 4, vx: -(0.8 + Math.random() * 1.8), vy: Math.random() * 0.8,
                                    life: 400, max: 400, c: Sim.cellRGB(i), kind: 'debris' });
         Sim.setCell(i, EMPTY);
       }
@@ -285,8 +285,8 @@ function draw() {
     if (Sim.fire > 0) { g.fillStyle = `rgba(255,120,40,${Sim.fire * (Sim.disaster ? 0.16 : 0.08) * (0.8 + Math.random() * 0.4)})`; g.fillRect(0, 0, W, H); }
     UI.draw(g, input.x, input.y);
     if (Tip.active) {
-      // Emptying: the pot tips over (pivoting on its bottom corner) and everything pours out onto the floor.
-      g.save(); g.translate(POT_R, POT_BOT); g.rotate(Tip.angle()); g.translate(-POT_R, -POT_BOT);
+      // Emptying: the pot tips over to the left (pivoting on its bottom corner) and everything pours out onto the floor.
+      g.save(); g.translate(POT_L, POT_BOT); g.rotate(-Tip.angle()); g.translate(-POT_L, -POT_BOT);
       drawPot(t, glow);
       g.restore();
       drawParticles();

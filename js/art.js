@@ -271,9 +271,11 @@ Art.buildBackground = function (theme = 'kitchen') {
   // Stove front panel.
   if (theme === 'show') {
     // Souped Up's studio kitchen: a poster to keep the contestants moving.
-    rect(g, 62, 46, 34, 34, [60, 30, 30]); rect(g, 63, 47, 32, 32, [200, 46, 40]);
-    Art.pixelText(g, 'EVERY', 69, 51, [255, 240, 220]); Art.pixelText(g, 'SECOND', 67, 58, [255, 240, 220]); Art.pixelText(g, 'COUNTS', 67, 65, [255, 240, 220]);
-    ellipse(g, 79, 75, 3, 3, [255, 240, 220]); rect(g, 79, 73, 1, 2, [200, 46, 40]); rect(g, 79, 75, 2, 1, [200, 46, 40]);   // a little clock
+    // An easter egg: a small, faded paper sign tacked to the wall.
+    rect(g, 64, 50, 28, 22, [214, 200, 178]); rect(g, 65, 51, 26, 20, [236, 226, 206]);
+    rect(g, 77, 49, 2, 2, [150, 130, 110]);   // the tack
+    const ink = [176, 160, 140];
+    Art.pixelText(g, 'EVERY', 68, 54, ink); Art.pixelText(g, 'SECOND', 66, 60, ink); Art.pixelText(g, 'COUNTS', 66, 66, ink);
   }
   rect(g, 0, 214, W, 26, [70, 74, 92]); rect(g, 0, 214, W, 2, [150, 156, 176]);
   for (let x = 6; x < W; x += 40) rect(g, x, 232, 26, 2, [56, 60, 76]);
