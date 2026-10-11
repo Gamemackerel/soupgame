@@ -68,7 +68,7 @@ screen.addEventListener('pointerdown', (e) => {
     } else { Sim.throwFish(gx); Chef.throwIt(); }
     input.consumed = true;
   }
-  if (!input.consumed && UI.tool === 'taste' && Chef.spoon) {
+  if (!input.consumed && UI.tool === 'taste' && Chef.spoon && !Chef.spoon.air) {
     const res = Taste.sip((Chef.spoon.x - GX) | 0, (Chef.spoon.y - GY) | 0);   // wherever the spoon is in the pot
     UI.showTaste(res);
     if (!res.empty) Chef.sip(res.unmixed ? 0.4 : res.score || 0, res.line);   // unmixed: a puzzled sip
@@ -117,9 +117,11 @@ function update() {
       : ladleAt(input.x, input.y)) : null;
   Chef.idleLadle = UI.tool === 'ladle' && !Chef.ladle;
   // The tasting spoon works the same way: in the kitchen he reaches it wherever you point.
-  // The tasting spoon stays inside the pot anywhere in the kitchen (until the cursor reaches a menu).
+  // The tasting spoon stays between the pot's walls and above its bottom anywhere in the kitchen (until the cursor
+  // reaches a menu), but it lifts freely up out of the pot.
   Chef.spoon = UI.tool === 'taste' && !Chef.onMenu && !Tip.active
-    ? { x: Math.max(GX + 2, Math.min(GX + GW - 3, input.x)), y: Math.max(GY + 2, Math.min(GY + GH - 2, input.y)) } : null;
+    ? { x: Math.max(GX + 2, Math.min(GX + GW - 3, input.x)), y: Math.min(GY + GH - 2, input.y) } : null;
+  if (Chef.spoon) Chef.spoon.air = Chef.spoon.y < GY;
   Chef.idleSpoon = UI.tool === 'taste' && !Chef.spoon;
   Chef.update(input.x, (overPotArea(input.x, input.y) && UI.tool === 'pour') || !!Chef.ladle || !!Chef.spoon, pouring);
 
@@ -230,7 +232,7 @@ function drawPot(t, glow, g = window.g) {
   }
   Art.drawPotFront(g, glow);
   // The lid rattles on a hard boil, and lifts a little while you taste under it.
-  if (Sim.lid) Art.drawLid(g, t, Chef.spoon ? 7 : 0, Sim.dial >= 7 && Sim.turb > 0.3);
+  if (Sim.lid) Art.drawLid(g, t, Chef.spoon && !Chef.spoon.air ? 7 : 0, Sim.dial >= 7 && Sim.turb > 0.3);
 }
 
 // ---------- Spills: physics for food that has left the pot ----------
