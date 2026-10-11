@@ -1,8 +1,8 @@
 // Music.
 //   Menus: the menu theme loops in every menu (title, settings, journal from settings, level select) and fades out
 //   when cooking, judging or a cutscene starts. It starts over from the top each time you come back.
-//   Kitchen: now and then, at random, one of a few short tracks plays once, just to add a little life. Most of
-//   the time it's quiet.
+//   Kitchen: one of a few short tracks plays as soon as you start cooking, then now and then at random after
+//   that, just to add a little life. Most of the time it's quiet.
 // The music volume (a slider in Settings) is saved per browser.
 //
 // audio/menu-theme.flac is exactly one loop: 21.573 s (8 bars at 89 BPM), 951,369 samples at 44.1 kHz. It was
@@ -11,7 +11,7 @@
 // decodes this file to the same exact samples, and looping the whole buffer is seamless.
 const MUSIC_FADE = 0.6;   // seconds to fade out
 const KITCHEN_TRACKS = ['audio/kitchen-2.mp3', 'audio/kitchen-3.mp3', 'audio/kitchen-4.mp3', 'audio/kitchen-5.mp3'];
-const KITCHEN_FIRST = [20, 45], KITCHEN_GAP = [45, 110];   // seconds of quiet before the first track, and between tracks
+const KITCHEN_GAP = [45, 110];   // seconds of quiet between kitchen tracks
 const SETTINGS_KEY = 'soupgame.settings.v1';
 
 const Music = {
@@ -58,14 +58,14 @@ const Music = {
     // The menu theme.
     if (where === 'menu' && !this.play && this.theme) this.play = this.start(this.theme, true);
     else if (where !== 'menu' && this.play) { this.fade(this.play); this.play = null; }
-    // Kitchen tracks: quiet for a while, then one plays through once, then quiet again.
+    // Kitchen tracks: one right away (as the menu theme finishes fading), then quiet for a while between tracks.
     if (where !== 'kitchen') {
       if (this.sting) { this.fade(this.sting); this.sting = null; }
       this.nextSting = null;
       return;
     }
     if (this.sting && now >= this.sting.ends) { this.sting = null; this.nextSting = now + rand(KITCHEN_GAP); }
-    if (this.nextSting === null) this.nextSting = now + rand(KITCHEN_FIRST);
+    if (this.nextSting === null) this.nextSting = now + MUSIC_FADE;
     if (!this.sting && now >= this.nextSting) {
       const ready = this.tracks.map((b, n) => (b ? n : -1)).filter((n) => n >= 0 && n !== this.lastSting);
       if (!ready.length) return;
