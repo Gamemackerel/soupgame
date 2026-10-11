@@ -23,21 +23,21 @@ const JUDGE_ROSTER = {
       if (!plate && p.body > 0.25 && p.body < 0.7 && a.flaws.lumps < 0.2) { tech += 0.2; good.push('The texture is velvety. Well done.'); }
       // A plate is judged on its sear and doneness instead of its broth.
       if (plate && a.crust > 0.25 && a.flaws.burnt < 0.2) { tech += 0.4; good.push('A beautiful golden crust. Magnifique.'); }
-      if (plate && a.crust < 0.05 && a.doneness > 0.5) { tech -= 0.1; bad.push('No sear at all. Where is the color?'); }
+      if (plate && a.crust < 0.05 && a.doneness > 0.5) { tech -= 0.1; bad.push('No sear at all. A hotter pan, and leave it be.'); }
       if (a.flaws.chemical > 0.2) bad.push('Is that... fire extinguisher? In my soup?!');
-      if (a.flaws.burnt > 0.2) bad.push('I taste carbon. A cook must watch the flame.');
-      if (a.flaws.curdled > 0.2) bad.push('The dairy has split. Patience, always patience.');
-      if (a.flaws.lumps > 0.2) bad.push('Lumps of raw flour. Did no one teach you a roux?');
-      if (a.flaws.greasy > 0.3) bad.push(plate ? 'It is swimming in oil.' : 'An oil slick on top. Unacceptable.');
-      if (a.flaws.raw > 0.4) bad.push('These vegetables are raw. Cook them!');
-      if (a.flaws.mushy > 0.3) bad.push('The pasta is mush. Watch the clock!');
-      if (a.flaws.gritty > 0.3) bad.push('Gritty! The seasoning never dissolved.');
-      if (a.flaws.shell > 0.2 && !a.wholeEgg) bad.push('Crunchy eggshell. Disgraceful.');
+      if (a.flaws.burnt > 0.2) bad.push('I taste carbon. Lower the flame, and stir.');
+      if (a.flaws.curdled > 0.2) bad.push('The dairy has split. Add it gently, off the boil.');
+      if (a.flaws.lumps > 0.2) bad.push('Lumps of raw flour. Cook it in the fat first: a roux.');
+      if (a.flaws.greasy > 0.3) bad.push(plate ? 'It is swimming in oil. Less, please.' : 'An oil slick on top. Use less oil.');
+      if (a.flaws.raw > 0.4) bad.push('Undercooked. It needed more time on the heat.');
+      if (a.flaws.mushy > 0.3) bad.push('The pasta is mush. Add it later.');
+      if (a.flaws.gritty > 0.3) bad.push('Gritty! Stir the seasoning in while it is hot.');
+      if (a.flaws.shell > 0.2 && !a.wholeEgg) bad.push('Crunchy eggshell. Crack it on the rim first.');
       if (a.eggPieces > 15 && a.flaws.shell < 0.2) good.push('A perfectly set egg. Very refined.');
       if (a.fish && a.fishCooked > 90 && a.fishCooked < 170) good.push('The fish is just cooked through. Bravo.');
-      if (p.salty < 0.22) bad.push('Under-seasoned. Salt is not optional.');
-      if (p.salty > 0.82) bad.push('Over-salted. A cardinal sin.');
-      if (!plate && p.body < 0.08) bad.push('Thin as dishwater.');
+      if (p.salty < 0.22) bad.push('Under-seasoned. A pinch more salt.');
+      if (p.salty > 0.82) bad.push('Over-salted. Go lighter, or add water.');
+      if (!plate && p.body < 0.08) bad.push('Thin as dishwater. Reduce it, or thicken it.');
       const bal = Taste.score(p, { plate });
       if (!good.length && bal > 0.6) good.push(plate ? 'A balanced plate. Classic.' : 'A balanced bowl. Classic.');
       const s = 10 * (0.6 * bal + 0.25 * Math.max(0, Math.min(1, tech)) + 0.15) - a.flawSum * 12;
@@ -58,12 +58,12 @@ const JUDGE_ROSTER = {
       if (p.heat > 0.55) good.push('Now THAT has fire! I love it.');
       else if (p.heat < 0.1) bad.push('Where is the heat? Give me a chili!');
       if (p.umami > 0.6) good.push('Deep and savory. It punches!');
-      else if (p.umami < 0.3) bad.push('It whispers. I want it to SING.');
-      if (p.sour < 0.08) bad.push('No acid, no life. Squeeze something sour in!');
+      else if (p.umami < 0.3) bad.push('It whispers! Brown something, add soy... make it SING!');
+      if (p.sour < 0.08) bad.push('No acid, no life! A splash of vinegar, or tomato!');
       else if (acid === 1) good.push('That acidity brightens everything.');
       if (p.aroma > 0.6) good.push('The aroma hit me from across the room.');
       if (a.notes.length >= 3) good.push('Layers! I taste ' + a.notes.slice(0, 3).join(', ') + '.');
-      if (p.bitter > 0.35) bad.push('Bitter, and not the good kind.');
+      if (p.bitter > 0.35) bad.push('Bitter, and not the good kind. Something scorched?');
       if (a.fish) good.push(a.fishCooked > 60 ? 'FISH! I can taste the ocean!' : 'Is this fish... alive?');
       const s = 10 * (0.3 * p.umami + 0.2 * Math.min(1, p.aroma * 1.4) + 0.15 * acid + 0.15 * heatMod +
                       0.2 * complexity) - p.bitter * 4 - a.flawSum * 4 + 1;
@@ -79,17 +79,17 @@ const JUDGE_ROSTER = {
       if (a.type === 'baked') return judgeBakeComfort(a);
       const p = a.p, good = [], bad = [];
       const warm = a.temp > 60 ? 1 : a.temp > 40 ? 0.5 : 0;
-      if (!warm) bad.push('Oh dear, it\'s gone stone cold.');
+      if (!warm) bad.push('Oh dear, it\'s gone cold. Serve it hot, dear.');
       else if (a.temp > 70) good.push('Nice and piping hot, just right.');
       if (p.rich > 0.35) good.push('Rich and cozy, like a hug.');
       if (a.type === 'plate') good.push('A proper plate of food. How lovely.');
       else if (a.chunkiness > 0.25) good.push('Lovely hearty bits in here.');
-      else if (a.chunkiness < 0.05) bad.push('A bit thin for me. Where\'s the good stuff?');
-      if (p.heat > 0.5) bad.push('Oh my! Too spicy for this old tongue.');
-      if (p.sour > 0.35) bad.push('Goodness, that\'s sour!');
-      if (p.salty > 0.75) bad.push('My blood pressure, dear!');
+      else if (a.chunkiness < 0.05) bad.push('A bit thin for me. More vegetables, dear?');
+      if (p.heat > 0.5) bad.push('Oh my! Go easy on the chili for this old tongue.');
+      if (p.sour > 0.35) bad.push('Goodness, that\'s sour! A pinch of sugar softens it.');
+      if (p.salty > 0.75) bad.push('All that salt! My blood pressure, dear!');
       const oily = a.type !== 'plate' && a.flaws.greasy > 0.3;
-      if (oily) bad.push('Oh my, it\'s awfully oily, dear.');
+      if (oily) bad.push('Oh my, it\'s awfully oily. Less oil, dear.');
       if (p.sweet > 0.15 && p.sweet < 0.55) good.push('A gentle sweetness, just how I make it.');
       if (a.ribbons > 30) good.push('Egg ribbons! My mother used to make those.');
       if (a.wholeEgg) (a.eggPieces > 10 ? good : bad).push(a.eggPieces > 10 ? 'A whole boiled egg, shell and all! How... rustic.' : 'There is a raw egg in here. Still in its shell.');
@@ -107,19 +107,19 @@ function judgeBakeClassic(a) {
   const b = a.bake, good = [], bad = [];
   let s = 4;
   if (b.doneness > 0.95) { s += 2; good.push(`A properly baked ${b.kind}.`); }
-  else if (b.doneness < 0.7) { s -= 2; bad.push('Raw in the middle. Gummy. Non.'); }
+  else if (b.doneness < 0.7) { s -= 2; bad.push('Raw in the middle. Gummy. Bake it longer.'); }
   if (b.wantsRise) {
     if (b.rise >= 1.3 && b.rise <= 2.4) { s += 2; good.push('Light, with a lovely open crumb.'); }
-    else if (b.rise < 1.15) { s -= 1.5; bad.push('Dense as a brick. Where is the lift?'); }
-    else if (b.rise > 2.6) { s -= 1; bad.push('Over-risen: big holes, no structure.'); }
+    else if (b.rise < 1.15) { s -= 1.5; bad.push('Dense as a brick. Baking powder gives it lift.'); }
+    else if (b.rise > 2.6) { s -= 1; bad.push('Over-risen: big holes. Less leavening.'); }
   }
   if (b.wantsCrust) {
     if (b.crust > 0.25) { s += 1.5; good.push('A beautiful golden crust.'); }
-    else if (b.crust < 0.08) { s -= 0.5; bad.push('Pale. It needed more color.'); }
+    else if (b.crust < 0.08) { s -= 0.5; bad.push('Pale. Longer under the lid.'); }
   }
-  if (b.burnt > 0.2) { s -= 2; bad.push('The bottom is burnt black.'); }
-  if (b.water > 1.8 && b.kind !== 'pancake' && b.kind !== 'crêpe') { s -= 1; bad.push('Soggy and gummy inside.'); }
-  if (b.water < 0.4) { s -= 1; bad.push('Dry and crumbly.'); }
+  if (b.burnt > 0.2) { s -= 2; bad.push('The bottom is burnt black. Lower the flame.'); }
+  if (b.water > 1.8 && b.kind !== 'pancake' && b.kind !== 'crêpe') { s -= 1; bad.push('Soggy inside. Less liquid in the dough.'); }
+  if (b.water < 0.4) { s -= 1; bad.push('Dry and crumbly. It needed more liquid.'); }
   if (b.soda > 0.08) { s -= 2; bad.push('Soapy. Too much baking soda, no acid.'); }
   if (a.flaws.gritty > 0.3) { s -= 1.5; bad.push('Pockets of raw flour. It was never mixed properly.'); }
   if (b.gluten > 0.25 && (b.kind === 'bread' || b.kind === 'flatbread')) { s += 0.5; good.push('Good chew. It was kneaded properly.'); }
@@ -135,7 +135,7 @@ function judgeBakeFlavor(a) {
   if (sweetKind) { if (p.sweet > 0.3) { good.push('Sweet and delicious!'); s += 2; } else bad.push(`A ${b.kind} with no sugar? Sad.`); }
   if (a.notes.includes('toasty') || b.crust > 0.2) { good.push('That toasty crust smell!'); s += 1.5; }
   if (b.rich > 0.3 || b.egg > 0.2) { good.push('Rich. Is that egg? Butter?'); s += 1; }
-  if (p.bitter > 0.35) { bad.push('Bitter. Soapy, almost.'); s -= 2; }
+  if (p.bitter > 0.35) { bad.push('Bitter. Too much soda? Or scorched?'); s -= 2; }
   if (a.flaws.gritty > 0.3) { bad.push('Dry floury bits in it!'); s -= 1.5; }
   return { score: s + Math.min(2, a.notes.length * 0.5) - a.flawSum * 4, good, bad };
 }
@@ -145,9 +145,9 @@ function judgeBakeComfort(a) {
   if (a.temp > 50) { good.push(`Warm fresh ${b.kind}, like my own kitchen.`); s += 2; }
   else bad.push(`This ${b.kind} has gone cold.`);
   if (b.water >= 0.5 && b.water <= 1.6 && b.doneness > 0.85) { good.push('So soft and tender.'); s += 1.5; }
-  if (b.doneness < 0.7) { bad.push('Oh dear, the inside is still raw.'); s -= 2; }
+  if (b.doneness < 0.7) { bad.push('Oh dear, still raw inside. A little longer next time.'); s -= 2; }
   if (p.sweet > 0.3 && (b.kind === 'cake' || b.kind === 'cookie')) { good.push('A treat! You spoil me.'); s += 1.5; }
-  if (b.burnt > 0.2) { bad.push('A little scorched, dear.'); s -= 1; }
+  if (b.burnt > 0.2) { bad.push('A little scorched, dear. A gentler flame.'); s -= 1; }
   return { score: s - a.flawSum * 5, good, bad };
 }
 
@@ -173,7 +173,7 @@ Object.assign(JUDGE_ROSTER, {
       if (p.heat > 0.6) bad.push('That\'s... a lot of spice. Like, too much.');
       if (!warm) bad.push('It\'s cold, dude.');
       if (filling > 0.6) good.push('Hearty! That\'ll keep me going.');
-      else if (!plate && filling < 0.15) bad.push('Kinda watery. I\'d still be hungry.');
+      else if (!plate && filling < 0.15) bad.push('Kinda watery. Could use more stuff in it.');
       if (a.flaws.shell > 0.2) bad.push('Is that... eggshell? Crunchy.');
       if (a.flaws.burnt > 0.2) bad.push('Tastes a little burnt, not gonna lie.');
       if (a.flaws.raw > 0.4) bad.push('Pretty sure this isn\'t cooked yet.');
@@ -199,16 +199,16 @@ Object.assign(JUDGE_ROSTER, {
       if (H.has('bloom')) { tech += 0.2; good.push('Spices woken up in the fat. Lovely.'); }
       if (plate && a.crust > 0.25 && a.flaws.burnt < 0.2) { tech += 0.4; good.push('Gorgeous sear. FINALLY.'); }
       if (a.flaws.raw > 0.4) bad.push('IT\'S RAW! A good vet could still save this!');
-      if (a.flaws.burnt > 0.2) bad.push('It\'s B****Y BURNT! I can taste the smoke alarm!');
+      if (a.flaws.burnt > 0.2) bad.push('It\'s B****Y BURNT! TURN THE HEAT DOWN AND STIR!');
       if (a.flaws.mushy > 0.3) bad.push('The pasta\'s gone to MUSH, you absolute panini!');
       if (a.flaws.curdled > 0.2) bad.push('The milk\'s SPLIT! F***ing hell, turn the heat DOWN!');
-      if (a.flaws.lumps > 0.2) bad.push('LUMPS! This is wallpaper paste!');
-      if (a.flaws.greasy > 0.3) bad.push('I could deep-fry a fish in this S***!');
+      if (a.flaws.lumps > 0.2) bad.push('LUMPS! Wallpaper paste! Make a ROUX!');
+      if (a.flaws.greasy > 0.3) bad.push('I could deep-fry a fish in this S***! LESS OIL!');
       if (a.flaws.shell > 0.2) bad.push('SHELL! In MY kitchen?!');
       if (a.flaws.chemical > 0.2) bad.push('You put the FIRE EXTINGUISHER in it?! GET OUT!');
       if (p.salty < 0.22) bad.push('Bland! SEASON it, you donkey!');
       if (p.salty > 0.82) bad.push('It\'s a S***ing salt lick!');
-      if (!plate && p.body < 0.06 && a.chunkiness < 0.1) bad.push('Dishwater. D*** dishwater.');
+      if (!plate && p.body < 0.06 && a.chunkiness < 0.1) bad.push('Dishwater. D*** dishwater. REDUCE IT!');
       const bal = Taste.score(p, { plate });
       if (!good.length && bal > 0.65) good.push('Clean. Well seasoned. Good.');
       const s = 10 * (0.55 * bal + 0.25 * Math.max(0, Math.min(1, tech)) + 0.15) - a.flawSum * 14;
@@ -231,12 +231,12 @@ Object.assign(JUDGE_ROSTER, {
         else if (b.doneness < 0.7) { s -= 2.5; bad.push('It\'s raw in the middle. Soggy bottom.'); }
         if (b.wantsRise) {
           if (b.rise >= 1.3 && b.rise <= 2.4) { s += 2; good.push('Good rise. Lovely even crumb.'); }
-          else if (b.rise < 1.15) { s -= 2; bad.push('Under-proved. Dense as a brick.'); }
+          else if (b.rise < 1.15) { s -= 2; bad.push('Under-proved. Dense. It needs more raising agent.'); }
           else if (b.rise > 2.6) { s -= 1; bad.push('Over-proved. It\'s all holes.'); }
         }
         if (b.wantsCrust) { if (b.crust > 0.25) { s += 1; good.push('Nice colour on it.'); } else if (b.crust < 0.08) { s -= 0.5; bad.push('Pale. Bake it longer.'); } }
-        if (b.burnt > 0.2) { s -= 2; bad.push('The bottom\'s burnt.'); }
-        if (b.soda > 0.08) { s -= 2; bad.push('Soapy. Too much soda.'); }
+        if (b.burnt > 0.2) { s -= 2; bad.push('The bottom\'s burnt. Too much heat.'); }
+        if (b.soda > 0.08) { s -= 2; bad.push('Soapy. Too much soda, not enough acid.'); }
         if (a.flaws.gritty > 0.3) { s -= 1.5; bad.push('Pockets of raw flour. Under-mixed.'); }
         if (b.water > 1.8 && b.kind !== 'pancake' && b.kind !== 'crêpe') { s -= 1; bad.push('Stodgy. Too wet.'); }
         if (spiceUsed()) { s += 0.5; good.push('A little spice in a bake. Bold. I like it.'); }
@@ -252,7 +252,7 @@ Object.assign(JUDGE_ROSTER, {
         else bad.push('Raw spice. Chalky. Bloom it in the oil first.');
         if (p.heat >= 0.65) bad.push('Too much heat. It drowns everything else out.');
       } else if (p.aroma < 0.3) bad.push('It\'s pleasant. But where\'s the depth? Where\'s the spice?');
-      if (a.flaws.lumps > 0.2) bad.push('Lumpy. Texture matters.');
+      if (a.flaws.lumps > 0.2) bad.push('Lumpy. Make a roux first.');
       if (p.body > 0.25 && p.body < 0.7 && a.flaws.lumps < 0.2) good.push('Good body to it.');
       if (!good.length && bal > 0.65) good.push('Well balanced. Nothing shouting over anything else.');
       const s = 10 * (0.45 * bal + 0.3 * spiceQ + 0.25) - a.flawSum * 8;
