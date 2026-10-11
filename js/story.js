@@ -114,12 +114,14 @@ const STORY = {
   pizzaDone: [
     { who: 'dom', mood: 'happy', lines: ['Kid... you did it!'] },
     { picture: (g, t) => drawShop(g, t, false), sign: true, dur: 150 },
-    { who: 'dom', mood: 'happy', lines: [
+    { who: 'dom', mood: 'happy', fadeOut: 60, lines: [
       'Look at that line. Around the block.',
       "I always said this place ain't a business. It's family.",
       "And you? You're family now.",
     ] },
-    { who: 'gordo', mood: 'neutral', silhouette: true, lines: ['Excuse me... could we talk for a second?'] },
+    // It looks like the scene is over... then, out of the dark:
+    { black: true, dur: 130 },
+    { who: 'gordo', mood: 'neutral', silhouette: true, fadeIn: 70, lines: ['Excuse me... could we talk for a second?'] },
     { who: 'gordo', mood: 'neutral', lines: [
       "Gordo Hamsie. I've eaten in this little pizza shop three times this week.",
       "You've got something, mate. Raw. Rough round the edges. But something.",
@@ -159,11 +161,11 @@ const Story = {
     if (!this.active) return;
     this.t++;
     const s = this.shot();
-    if (this.phase === 'in' && this.t >= FADE) { this.phase = 'show'; this.t = 0; }
+    if (this.phase === 'in' && this.t >= (s.fadeIn || FADE)) { this.phase = 'show'; this.t = 0; }
     else if (this.phase === 'show') {
       if (s.lines) this.typed = Math.min(s.lines[this.n].length, this.typed + 0.9);
-      if (s.picture && this.t >= s.dur) this.next();
-    } else if (this.phase === 'out' && this.t >= FADE) {
+      if ((s.picture || s.black) && this.t >= s.dur) this.next();
+    } else if (this.phase === 'out' && this.t >= (s.fadeOut || FADE)) {
       if (++this.k >= STORY[this.id].length) return this.finish();
       this.n = 0; this.typed = 0; this.phase = 'in'; this.t = 0;
     }
@@ -171,7 +173,7 @@ const Story = {
   next() { this.phase = 'out'; this.t = 0; },
   click() {
     const s = this.shot();
-    if (this.phase !== 'show') return;
+    if (this.phase !== 'show' || s.black) return;   // the dramatic pause can't be clicked through
     if (s.lines && !s.card) {
       if (this.typed < s.lines[this.n].length) { this.typed = s.lines[this.n].length; return; }
       if (this.n + 1 < s.lines.length) { this.n++; this.typed = 0; return; }
@@ -195,6 +197,7 @@ const Story = {
 
   draw(g) {
     const s = this.shot();
+    if (s.black) { rect(g, 0, 0, W, H, [0, 0, 0]); return; }
     if (s.picture) s.picture(g, this.phase === 'show' ? this.t : this.phase === 'out' ? s.dur : 0);
     else if (s.card) rect(g, 0, 0, W, H, [14, 12, 18]);
     else {
@@ -218,12 +221,13 @@ const Story = {
       rect(g, 9, 179, W - 18, 11, s.silhouette ? [60, 60, 80] : sp.theme);
     }
     // Fades.
-    const a = this.phase === 'in' ? 1 - this.t / FADE : this.phase === 'out' ? this.t / FADE : 0;
+    const a = this.phase === 'in' ? 1 - this.t / (s.fadeIn || FADE) : this.phase === 'out' ? this.t / (s.fadeOut || FADE) : 0;
     if (a > 0) { g.fillStyle = `rgba(0,0,0,${Math.min(1, a)})`; g.fillRect(0, 0, W, H); }
   },
 
   drawText(T) {
     const s = this.shot(), fade = this.phase === 'show';
+    if (s.black) return;
     if (s.sign) {
       // PAPA DOM'S PIZZA in neon; at night one letter sputters.
       const word = "PAPA DOM'S PIZZA", night = this.k === 1 && this.id === 'intro';
