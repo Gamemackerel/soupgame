@@ -1,21 +1,31 @@
-// Music: the menu theme loops in every menu (title, settings, journal from settings, level select) and fades
-// out when cooking, judging or a cutscene starts. It starts over from the top each time you come back.
+// Music.
+//   Menus: the menu theme loops in every menu (title, settings, journal from settings, level select) and fades out
+//   when cooking, judging or a cutscene starts. It starts over from the top each time you come back.
+//   Kitchen: now and then, at random, one of a few short tracks plays once, just to add a little life. Most of
+//   the time it's quiet.
+// The music volume (a slider in Settings) is saved per browser.
 //
 // audio/menu-theme.flac is exactly one loop: 21.573 s (8 bars at 89 BPM), 951,369 samples at 44.1 kHz. It was
 // cut from the composer's MP3, which carries ~24 ms of encoder padding at the start that browsers don't strip
 // (it has no gapless header), so looping the MP3 at 21.573 s would land early. FLAC has no padding: every browser
 // decodes this file to the same exact samples, and looping the whole buffer is seamless.
-const MUSIC_VOLUME = 0.7, MUSIC_FADE = 0.6;   // seconds to fade out
+const MUSIC_FADE = 0.6;   // seconds to fade out
+const KITCHEN_TRACKS = ['audio/kitchen-2.mp3', 'audio/kitchen-3.mp3', 'audio/kitchen-4.mp3', 'audio/kitchen-5.mp3'];
+const KITCHEN_FIRST = [20, 45], KITCHEN_GAP = [45, 110];   // seconds of quiet before the first track, and between tracks
+const SETTINGS_KEY = 'soupgame.settings.v1';
+
 const Music = {
-  ctx: null, buf: null, play: null,
+  ctx: null, theme: null, tracks: [], play: null, sting: null, nextSting: null, lastSting: -1,
+  volume: 0.7,
 
   // Decode up front (an offline context needs no permission), so it's ready the moment sound is allowed.
   load() {
+    try { const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (typeof s.music === 'number') this.volume = s.music; } catch (e) {}
     const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     if (!OAC) return;
-    fetch('audio/menu-theme.flac').then((r) => r.arrayBuffer())
-      .then((b) => new OAC(2, 44100, 44100).decodeAudioData(b))
-      .then((buf) => { this.buf = buf; }).catch(() => {});
+    const decode = (url) => fetch(url).then((r) => r.arrayBuffer()).then((b) => new OAC(2, 44100, 44100).decodeAudioData(b));
+    decode('audio/menu-theme.flac').then((buf) => { this.theme = buf; }).catch(() => {});
+    KITCHEN_TRACKS.forEach((url, n) => decode(url).then((buf) => { this.tracks[n] = buf; }).catch(() => {}));
   },
   // Browsers only allow sound after the player clicks or presses a key: called from those handlers.
   unlock() {
@@ -23,20 +33,44 @@ const Music = {
     if (!this.ctx && AC) this.ctx = new AC();
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
   },
-  // Called every frame with whether the menu theme should be playing.
-  update(want) {
-    if (!this.ctx || !this.buf || this.ctx.state !== 'running') return;
-    if (want && !this.play) {
-      const src = this.ctx.createBufferSource(), gain = this.ctx.createGain();
-      src.buffer = this.buf; src.loop = true;   // the whole buffer is the loop
-      gain.gain.value = MUSIC_VOLUME;
-      src.connect(gain); gain.connect(this.ctx.destination); src.start();
-      this.play = { src, gain };
-    } else if (!want && this.play) {
-      const { src, gain } = this.play, now = this.ctx.currentTime;
-      gain.gain.setValueAtTime(gain.gain.value, now); gain.gain.linearRampToValueAtTime(0, now + MUSIC_FADE);
-      src.stop(now + MUSIC_FADE + 0.05);
-      this.play = null;
+  setVolume(v) {
+    this.volume = Math.max(0, Math.min(1, v));
+    for (const p of [this.play, this.sting]) if (p && !p.fading) p.gain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ music: this.volume })); } catch (e) {}
+  },
+  start(buf, loop) {
+    const src = this.ctx.createBufferSource(), gain = this.ctx.createGain();
+    src.buffer = buf; src.loop = loop;   // looping: the whole buffer is the loop
+    gain.gain.value = this.volume;
+    src.connect(gain); gain.connect(this.ctx.destination); src.start();
+    return { src, gain, ends: loop ? Infinity : this.ctx.currentTime + buf.duration };
+  },
+  fade(p) {
+    const now = this.ctx.currentTime;
+    p.fading = true;
+    p.gain.gain.setValueAtTime(p.gain.gain.value, now); p.gain.gain.linearRampToValueAtTime(0, now + MUSIC_FADE);
+    p.src.stop(now + MUSIC_FADE + 0.05);
+  },
+  // Called every frame with where the player is: 'menu', 'kitchen' or neither.
+  update(where) {
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    const now = this.ctx.currentTime, rand = ([a, b]) => a + Math.random() * (b - a);
+    // The menu theme.
+    if (where === 'menu' && !this.play && this.theme) this.play = this.start(this.theme, true);
+    else if (where !== 'menu' && this.play) { this.fade(this.play); this.play = null; }
+    // Kitchen tracks: quiet for a while, then one plays through once, then quiet again.
+    if (where !== 'kitchen') {
+      if (this.sting) { this.fade(this.sting); this.sting = null; }
+      this.nextSting = null;
+      return;
+    }
+    if (this.sting && now >= this.sting.ends) { this.sting = null; this.nextSting = now + rand(KITCHEN_GAP); }
+    if (this.nextSting === null) this.nextSting = now + rand(KITCHEN_FIRST);
+    if (!this.sting && now >= this.nextSting) {
+      const ready = this.tracks.map((b, n) => (b ? n : -1)).filter((n) => n >= 0 && n !== this.lastSting);
+      if (!ready.length) return;
+      this.lastSting = ready[(Math.random() * ready.length) | 0];   // never the same one twice in a row
+      this.sting = this.start(this.tracks[this.lastSting], false);
     }
   },
 };

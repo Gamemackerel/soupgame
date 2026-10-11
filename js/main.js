@@ -80,8 +80,9 @@ screen.addEventListener('pointermove', (e) => {
   const p = toInternal(e);
   input.x = p.x; input.y = p.y;
   if (UI.dragDial) UI.setDial(p.x, p.y);
+  if (Title.dragging) Title.slide(p.x);
 });
-const release = () => { input.down = false; UI.dragDial = false; };
+const release = () => { input.down = false; UI.dragDial = false; Title.dragging = false; };
 screen.addEventListener('pointerup', release);
 screen.addEventListener('pointercancel', release);
 screen.addEventListener('wheel', (e) => {
@@ -498,7 +499,8 @@ function draw() {
 function loop() {
   update();
   draw();
-  Music.update(!Story.active && (Title.active || Menu.active));   // the menu theme, in the menus only
+  // The menu theme in the menus; now and then a short track while cooking; nothing in cutscenes or judging.
+  Music.update(Story.active ? null : Title.active || Menu.active ? 'menu' : Judging.active ? null : 'kitchen');
   requestAnimationFrame(loop);
 }
 

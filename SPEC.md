@@ -813,3 +813,5 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - The menu theme plays in every menu (title, settings, level select) and fades out for cooking, judging and cutscenes. It restarts from the top each time you return.
 - It loops at exactly 21.573 s (8 bars at 89 BPM). `audio/menu-theme.flac` is exactly that one loop, cut from the composer's MP3 with its encoder padding removed, so looping the whole buffer is sample-exact in every browser.
 - Sound starts after the player's first click or key press, as browsers require.
+- While cooking, now and then one of four short tracks (`audio/kitchen-*.mp3`) plays once. The first comes after 20–45 s of quiet, then 45–110 s of quiet between tracks, never the same one twice in a row. They stop in menus, judging and cutscenes.
+- A Music volume slider in Settings (click or drag) sets the volume for both; it's saved per browser.
