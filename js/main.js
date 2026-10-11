@@ -169,11 +169,14 @@ function drawParticles() {
   g.globalCompositeOperation = 'source-over';
 }
 
-function drawCursor() {
+// plain: menus and cutscenes always show the arrow (never a tool).
+function drawCursor(plain) {
   const x = input.x | 0, y = input.y | 0;
-  if (Chef.ladle || Chef.spoon) return;   // the chef's ladle or spoon is the cursor
-  if (UI.tool === 'ladle' && inGrid(x, y)) { g.drawImage(Art.toolIcon('ladle'), x - 8, y - 12); return; }
-  if (UI.tool === 'taste' && inGrid(x, y)) { g.drawImage(Art.toolIcon('spoon'), x - 8, y - 12); return; }
+  if (!plain) {
+    if (Chef.ladle || Chef.spoon) return;   // the chef's ladle or spoon is the cursor
+    if (UI.tool === 'ladle' && inGrid(x, y)) { g.drawImage(Art.toolIcon('ladle'), x - 8, y - 12); return; }
+    if (UI.tool === 'taste' && inGrid(x, y)) { g.drawImage(Art.toolIcon('spoon'), x - 8, y - 12); return; }
+  }
   for (let k = 0; k < 7; k++) { rect(g, x, y + k, Math.max(1, 6 - k), 1, [40, 24, 30]); }
   for (let k = 1; k < 6; k++) { rect(g, x + 1, y + k, Math.max(1, 4 - k), 1, [255, 255, 255]); }
 }
@@ -182,7 +185,7 @@ function draw() {
   // Full-screen pages: a cutscene, the title menu, or level select.
   const page = Story.active ? Story : Title.active ? Title : Menu.active ? Menu : null;
   if (page) {
-    page.draw(g); if (page !== Story) drawCursor();
+    page.draw(g); drawCursor(true);
     sctx.imageSmoothingEnabled = false;
     sctx.drawImage(off, 0, 0, screen.width, screen.height);
     page.drawText(T);
@@ -303,7 +306,7 @@ Sim.hitChef = (p) => Chef.hit(p);
 Progress.load();
 if (Game.level) UI.showRecipe();
 if (!DEV.view && !DEV.level && !DEV.panel && !DEV.story) Title.active = true;
-if (DEV.story && STORY[DEV.story]) Story.play(DEV.story, () => Game.toTitle());   // dev: #story=intro / pizzaDone / showDone
+if (DEV.story && STORY[DEV.story]) Story.play(DEV.story, () => Game.toMenu());   // dev: #story=intro / pizzaDone / showDone
 
 if (DEV.view === 'bread') {
   // Dev: a kneaded, leavened loaf baking in the pot oven (lid on).

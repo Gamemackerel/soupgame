@@ -727,12 +727,12 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 
 Level select has a Back button to the title. In sandbox, the tools panel's Menu button and the results screen's Menu button return to the title. In a level they go to level select.
 
-**Story scenes** are character portraits under a dramatic vignette with typed-out dialogue (click to advance, Esc to skip), picture shots of about 2.5 s, and fades between. Each plays once.
+**Story scenes** end at level select. They are character portraits under a dramatic vignette with typed-out dialogue (click to advance, Esc to skip), picture shots of about 2.5 s, and fades between. Each plays once.
 
 | Scene | When | Beats |
 |---|---|---|
 | `intro` | First time you open Story | **Papa Dom**: the shop is struggling, "we need to innovate". **The shop at night:** neon PAPA DOM'S PIZZA with a sputtering letter, a rat crossing the pavement. **Dom** promotes you from lowly employee to head chef: a huge soup pot from Craigslist, a pile of ingredients and his nonna's old recipe book. "Find something truly delicious that brings customers in the door." |
-| `pizzaDone` | First time every Pizza Shop dish is passed | **Dom**: "You did it!" **The shop by day** with a line out the door. **Dom**: "This place ain't a business. It's family." A **silhouette**: "Excuse me... could we talk for a second?" **Gordo Hamsie** has scouted you for his new show, *Souped Up*: amateur chefs competing for glory, and the winner earns a Michelin star. |
+| `pizzaDone` | First time every Pizza Shop dish is passed | **Dom**: "You did it!" **The shop by day** with a line out the door. **Dom**: "This place ain't a business. It's family." A **silhouette**: "Excuse me... could we talk for a second?" **Gordo Hamsie** has scouted you: "I'm launching a new show. Amateur chefs, competing for glory. It's called... SOUPED UP." The winner earns a Michelin star. |
 | `showDone` | First time every First Michelin Star dish is passed | **Gordo**: "I didn't think you could do it!" Then a warning: don't beat any chefs you're not supposed to; embarrassing the wrong person would be a huge mistake. A **To Be Continued** card (developer note: tiers 2 and 3 are coming soon). |
 
 **Papa Dom** is a satirical Vin Diesel lookalike, all about family: bald, stubbled, built like a truck, in a ribbed tank top, red apron and gold chain.
