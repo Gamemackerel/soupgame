@@ -1043,11 +1043,15 @@ Sim.firePass = function () {
   else if (fuel.length) this.fire = Math.min(1, this.fire + 0.0003 + 0.0009 * Math.min(1, fuel.length / 30));   // builds over ~10-15 s
   else this.fire -= 0.008;
   if (this.fire < 0.02) { this.fire = 0; this.fireBig = 0; if (this.disaster) this.disaster = false; return; }
+  // The fire is a heat source of its own: the burning surface stays hot whatever the burner is doing,
+  // and it heats the pot (and so the rest of the oil) from inside. Only smothering puts it out.
+  const surfaceT = 200 + 60 * this.fire;
   for (const i of fuel) {
     const j = i - GW;
     if (j >= 0 && this.mat[j] === EMPTY && rnd() < this.fire * 0.06) this.setCell(j, FIRE, 320);
-    this.temp[i] = Math.min(260, this.temp[i] + this.fire * 0.8);   // burning oil keeps itself hot
+    if (!this.lid && !this.smother && this.temp[i] < surfaceT) this.temp[i] += (surfaceT - this.temp[i]) * 0.2;
   }
+  if (fuel.length && !this.lid && !this.smother) this.panT += (180 + 60 * this.fire - this.panT) * 0.01 * this.fire;
   // Flames leap up out of the pot.
   if (fuel.length && !this.lid) {
     const n = this.fire * Math.min(5, fuel.length * 0.1) + (rnd() < this.fire ? 1 : 0);

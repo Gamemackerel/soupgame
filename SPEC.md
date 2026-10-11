@@ -696,7 +696,7 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - **Putting it out:**
   - The lid smothers it within a second or two and keeps the pot from reigniting for a few seconds after.
   - The extinguisher does the same.
-  - Turning the burner off doesn't put it out: burning oil keeps itself hot.
+  - Turning the burner off doesn't put it out: the fire is its own heat source. It holds the burning surface at 200 °C or more and keeps the pot hot.
 
 **Disasters (rare).**
 - **Fireball:** water poured onto burning oil throws a fireball. The screen shakes, the chef is sooted, and it becomes a kitchen fire. (The "Fireball!" discovery.)
