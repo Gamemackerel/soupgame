@@ -10,10 +10,12 @@ const F_SALTY = 0, F_SWEET = 1, F_SOUR = 2, F_BITTER = 3, F_UMAMI = 4, F_RICH = 
       F_HEAT = 6, F_AROMA = 7, F_BODY = 8, F_RED = 9, F_BROWN = 10, F_WHITE = 11,
       F_ALCOHOL = 12, F_GOLD = 13,
       // Dough composition (only meaningful in dough/bread cells): water, egg, leavening, gluten, unreacted soda.
-      F_WATER = 14, F_EGG = 15, F_LEAVEN = 16, F_GLUTEN = 17, F_SODA = 18, F_YEAST = 19;
-const NF = 20;
+      F_WATER = 14, F_EGG = 15, F_LEAVEN = 16, F_GLUTEN = 17, F_SODA = 18, F_YEAST = 19,
+      // Dairy: only cream carries it. It's what can curdle. (White is just color: fish stock is cloudy too.)
+      F_DAIRY = 20;
+const NF = 21;
 const FLAVOR_KEYS = ['salty','sweet','sour','bitter','umami','rich','heat','aroma',
-                     'body','red','brown','white','alcohol','gold','water','egg','leaven','gluten','soda','yeast'];
+                     'body','red','brown','white','alcohol','gold','water','egg','leaven','gluten','soda','yeast','dairy'];
 
 function flavorVec(obj) {
   const v = new Float32Array(NF);
@@ -163,7 +165,7 @@ const SHELF = [
   { id: 'water',   name: 'Water',       kind: 'liquid', mat: BROTH, rate: 12, icon: 'jug',    c: [110, 170, 230] },
   { id: 'oil',     name: 'Oil',         kind: 'liquid', mat: OIL,   rate: 4, icon: 'bottle', c: [236, 196, 70] },
   { id: 'cream',    name: 'Cream',       kind: 'liquid', mat: BROTH, rate: 5, icon: 'carton', c: [246, 246, 250],
-    flavor: flavorVec({ rich: 1.4, white: 3, sweet: 0.3, body: 0.3 }) },
+    flavor: flavorVec({ rich: 1.4, white: 3, dairy: 3, sweet: 0.3, body: 0.3 }) },
   { id: 'wine',    name: 'Wine',        kind: 'liquid', mat: BROTH, rate: 4, icon: 'bottle', c: [150, 30, 60],
     flavor: flavorVec({ alcohol: 3, sour: 1.2, sweet: 0.4, red: 2, aroma: 1.5 }) },
   { id: 'vinegar', name: 'Vinegar',     kind: 'liquid', mat: BROTH, rate: 3, icon: 'bottle', c: [230, 220, 170],
