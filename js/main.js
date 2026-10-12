@@ -496,8 +496,17 @@ function draw() {
   else { UI.drawText(T, input.x, input.y); Chef.drawText(T); }
 }
 
-function loop() {
-  update();
+// Fixed timestep: the game always runs 60 steps a second of real time, whatever the screen's refresh rate (a 144 Hz
+// monitor used to run everything 2.4x fast). Each animation frame runs however many steps have come due, then draws.
+const STEP_MS = 1000 / 60, MAX_STEPS = 5;
+let lastFrame = null, stepDebt = 0;
+function loop(now = performance.now()) {
+  stepDebt += lastFrame === null ? STEP_MS : Math.min(250, now - lastFrame);   // (back from a hidden tab: no fast-forward)
+  lastFrame = now;
+  let steps = 0;
+  // A hair of slack, so a 60 Hz screen's jittery frame times still give exactly one step a frame (the average holds).
+  while (stepDebt > STEP_MS - 1 && steps < MAX_STEPS) { update(); stepDebt -= STEP_MS; steps++; }
+  if (steps === MAX_STEPS) stepDebt = 0;   // a very slow machine runs slower rather than piling up
   draw();
   // The menu theme in the menus; now and then a short track while cooking; nothing in cutscenes or judging.
   Music.update(Story.active ? null : Title.active || Menu.active ? 'menu' : Judging.active ? null : 'kitchen');
