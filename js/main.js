@@ -89,11 +89,13 @@ screen.addEventListener('wheel', (e) => {
   e.preventDefault();
   Sim.dial = Math.max(0, Math.min(10, Sim.dial + (e.deltaY < 0 ? 0.5 : -0.5)));
 }, { passive: false });
+// In the kitchen with nothing on top of it (not a menu, a cutscene, judging or the journal).
+function cooking() { return !Story.active && !Title.active && !Menu.active && !Judging.active && !Journal.active && !Tip.active; }
 addEventListener('keydown', (e) => {
   Music.unlock();
   if (e.key >= '0' && e.key <= '9') Sim.dial = e.key === '0' ? 0 : +e.key + (e.shiftKey ? 1 : 0);
   else if (e.key === ' ') { paused = !paused; e.preventDefault(); }
-  else if (e.key === 'l' || e.key === 'L') Sim.lid = !Sim.lid;
+  else if (cooking() && !e.metaKey && !e.ctrlKey && UI.hotkey(e.key.toLowerCase())) {}   // S, T, L, W (see UI.hotkey)
   else if (e.key === 'j' || e.key === 'J') { if (Journal.active) Journal.close(); else if (!Title.active && !Story.active) Journal.open(); }
   else if (e.key === 'Escape') { if (Story.active) Story.skip(); if (Journal.active) Journal.close(); UI.card = null; }
 });

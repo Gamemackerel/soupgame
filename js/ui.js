@@ -54,11 +54,11 @@ const T = {
 const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SLOT_H = 21, SHELF_COLS = 3;
 // Clicking a pantry item is pouring, so there's no Pour tool: Stir and Taste toggle back to it.
 const TOOLS = [
-  { id: 'ladle', icon: 'ladle', label: 'Stir' },
-  { id: 'taste', icon: 'spoon', label: 'Taste' },
-  { id: 'lid', icon: 'lid', label: 'Lid' },
+  { id: 'ladle', icon: 'ladle', label: 'Stir', key: 'S' },
+  { id: 'taste', icon: 'spoon', label: 'Taste', key: 'T' },
+  { id: 'lid', icon: 'lid', label: 'Lid', key: 'L' },
   { id: 'clear', icon: 'trash', label: 'Empty' },
-  { id: 'journal', icon: 'book', label: 'Journal', sandbox: true },
+  { id: 'journal', icon: 'book', label: 'Journal', sandbox: true, key: 'J' },
   { id: 'quit', icon: 'door', label: 'Quit' },
 ];
 // The tools shown right now (the Journal button is a sandbox thing; in story it lives in Settings).
@@ -73,6 +73,14 @@ const UI = {
   dragDial: false,
 
   shelfSlot(n) { return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
+  // Hotkeys while cooking: S stir, T taste (again to put it down), L lid, W water.
+  hotkey(k) {
+    if (k === 's' || k === 't') { const id = k === 's' ? 'ladle' : 'taste'; this.tool = this.tool === id ? 'pour' : id; }
+    else if (k === 'l') Sim.lid = !Sim.lid;
+    else if (k === 'w') { Chef.select(SHELF.find((s) => s.id === 'water')); this.tool = 'pour'; }
+    else return false;
+    return true;
+  },
   toolSlot(n) { return { x: TOOL_X, y: TOOL_Y + n * TOOL_H, w: 50, h: TOOL_H - 2 }; },
 
   hit(r, x, y) { return x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h; },
@@ -237,6 +245,7 @@ const UI = {
       const s = this.toolSlot(n);
       const label = this.confirm && this.confirm.id === tl.id ? 'Sure?' : tl.label;
       T.text(label, s.x + 20, s.y + 7, { size: 5, color: '#3a2418' });
+      if (tl.key) T.text(tl.key, s.x + s.w - 3, s.y + 2, { size: 4, color: '#9a7458', align: 'right' });   // its hotkey
     });
     T.text('SERVE', SERVE.x + SERVE.w / 2, SERVE.y + 7, { size: 7, color: '#fff', align: 'center', shadow: true });
     T.text(Math.round(this.potTemp || 20) + '°C', 291, 208, { size: 6, color: '#fff2d8', align: 'center' });
@@ -249,7 +258,7 @@ const UI = {
     }
     if (this.hover && this.hover.type === 'ing') {
       const ing = SHELF[this.hover.n];
-      T.bubble(ing.name, mx, my - 14);   // the bubble's tail points at the cursor
+      T.bubble(ing.name + (ing.id === 'water' ? ' (W)' : ''), mx, my - 14);   // the bubble's tail points at the cursor
     }
     if (this.card) this.drawCardText(T);
     this.toasts.forEach((t, k) => {
