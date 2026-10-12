@@ -183,11 +183,16 @@ const LEVELS = [
 //   match   how close the taste is to the par recipe's
 //   recipe  the recipe's techniques and ingredients (half each)
 //   taste   their own taste, relative to how they scored the par recipe (capped at par)
-// Cooking par flawlessly lands at 9. A flourish (an extra ingredient a judge thinks improved it, by their own
-// taste, beyond par) adds 1 from that judge: a perfect 10 takes par plus a flourish every judge loves.
+// Cooking par flawlessly lands at 9. A flourish (an extra ingredient that makes the overall flavor better by the
+// judges' taste: the panel's average taste rises FLOURISH_GAIN over par, and nobody likes it more than
+// FLOURISH_SLACK less) adds 1 from every judge: par plus a flourish is a perfect 10.
 // Caps: anything the recipe needs missing → below 8 (no badge); a forbidden flaw → below 6 (chopped).
 const LEVEL_AXES = ['salty', 'sweet', 'sour', 'bitter', 'umami', 'rich', 'heat', 'aroma', 'body'];
 const LEVEL_PASS = 6, LEVEL_GOOD = 8, LEVEL_PAR = 9, WRONG_DISH_MAX = 3;
+// Within this much of the recipe on any taste axis is free (the taste card's green band); past it, points fall off
+// gradually. (A judge's own palate counts for at most 30% of their score: see JUDGE_ROSTER blends.)
+const LEVEL_FREE = 0.15, LEVEL_FALLOFF = 0.22;
+const FLOURISH_GAIN = 0.15, FLOURISH_SLACK = 0.3;
 const NOT_A_FLOURISH = new Set(['water', 'extinguisher']);
 const FLAW_NAMES = { burnt: 'burnt', curdled: 'split dairy', lumps: 'lumps', scrambled: 'scrambled egg', raw: 'undercooked',
                      gritty: 'undissolved seasoning', greasy: 'greasy', shell: 'eggshell', chemical: 'extinguisher powder', mushy: 'mushy pasta' };
@@ -216,23 +221,43 @@ const Levels = {
              notes: ['Nothing was served. Cook something first!'] };
   },
 
+  target(level) { return (level && typeof LEVEL_TARGETS !== 'undefined' && LEVEL_TARGETS[level.id]) || null; },
+
+  // How close a taste is to the recipe's, 0..1, and the axis furthest off. Axes the dish is about count more;
+  // differences within LEVEL_FREE cost nothing.
+  match(level, p) {
+    const target = this.target(level);
+    if (!target) return { match: 1, worst: null };
+    let sw = 0, se = 0, worst = null;
+    for (const ax of LEVEL_AXES) {
+      const want = target.taste[ax], got = p[ax] || 0, w = 1 + 2 * want;
+      const err = Math.max(0, Math.abs(got - want) - LEVEL_FREE);
+      sw += w; se += w * err;
+      if (!worst || w * err > worst.e) worst = { ax, e: w * err, d: got - want };
+    }
+    return { match: Math.max(0, Math.min(1, 1 - se / sw / LEVEL_FALLOFF)), worst: worst && worst.e > 0 ? worst : null };
+  },
+
+  // What the chef says tasting in a level: how it compares with the recipe (burnt and the like still come first).
+  tasteLine(level, p) {
+    if (p.bitter > 0.45) return 'Bitter... something burned.';
+    const { worst } = this.match(level, p);
+    if (!worst) return 'Just like the recipe!';
+    const word = AXIS_WORDS[worst.ax] || worst.ax, more = AXIS_MORE[worst.ax] || 'more ' + word, big = worst.e > 0.15;
+    return worst.d > 0 ? (big ? `Way too ${word} for this.` : `A little too ${word}.`) : (big ? `Needs to be much ${more}.` : `Could be a bit ${more}.`);
+  },
+
   // a: Taste.analyzeBowl(); happened/used: Sets from the pot; ids: the panel; tastes: each judge's own score (evaluate).
   score(level, a, happened, used, ids, tastes) {
-    const target = (typeof LEVEL_TARGETS !== 'undefined' && LEVEL_TARGETS[level.id]) || null;
+    const target = this.target(level);
     const notes = [];
     const name = (i) => (SHELF.find((s) => s.id === i) || { name: i }).name.toLowerCase();
 
-    // How close the taste is to the recipe. Axes the dish is about count more; small differences are free.
+    // How close the taste is to the recipe.
     let match = a.empty ? 0 : 1, gap = null;
     if (target && !a.empty) {
-      let sw = 0, se = 0, worst = null;
-      for (const ax of LEVEL_AXES) {
-        const want = target.taste[ax], got = a.p[ax] || 0, w = 1 + 2 * want;
-        const err = Math.max(0, Math.abs(got - want) - 0.08);
-        sw += w; se += w * err;
-        if (!worst || w * err > worst.e) worst = { ax, e: w * err, d: got - want };
-      }
-      match = Math.max(0, Math.min(1, 1 - se / sw / 0.22));
+      const m = this.match(level, a.p), worst = m.worst;
+      match = m.match;
       if (worst && worst.e > 0.05) { gap = { ax: worst.ax, d: worst.d }; notes.push(`It was ${worst.d < 0 ? 'less' : 'more'} ${AXIS_WORDS[worst.ax] || worst.ax} than the recipe.`); }
     }
 
@@ -259,13 +284,16 @@ const Levels = {
     }
     const extras = [...used].filter((i) => !level.ingredients.includes(i) && !NOT_A_FLOURISH.has(i));
 
+    // A flourish counts when the panel, by their own palates, finds the dish better than par overall (and nobody
+    // finds it noticeably worse), and it's still the dish. Then every judge credits it.
+    const parOf = (id) => Math.max(3, (target && target.judges && target.judges[id]) || 7);
+    const gain = ids.reduce((s, id, n) => s + tastes[n] - parOf(id), 0) / ids.length;
+    const flourish = extras.length > 0 && match >= 0.8 && !missing.length && gain >= FLOURISH_GAIN &&
+                     ids.every((id, n) => tastes[n] >= parOf(id) - FLOURISH_SLACK);
     const judges = ids.map((id, n) => {
-      const w = JUDGE_ROSTER[id].blend, par = Math.max(3, (target && target.judges && target.judges[id]) || 7);
-      const taste = tastes[n], rel = Math.max(0, Math.min(1, taste / par));
-      // A flourish only counts if this judge thinks it made the dish better than par, and it's still the dish.
-      const flourish = extras.length > 0 && taste >= par + 0.5 && match >= 0.8 && !missing.length;
-      // A judge who loves the flourish doesn't hold its drift from par against you.
-      return { id, score: LEVEL_PAR * (w.match * (flourish ? 1 : match) + w.recipe * recipe + w.taste * rel) + (flourish ? 1 : 0), flourish };
+      const w = JUDGE_ROSTER[id].blend, rel = Math.max(0, Math.min(1, tastes[n] / parOf(id)));
+      // A flourish's drift from par isn't held against you.
+      return { id, score: LEVEL_PAR * (w.match * (flourish ? 1 : match) + w.recipe * recipe + w.taste * (flourish ? 1 : rel)) + (flourish ? 1 : 0), flourish };
     });
     const raw = judges.reduce((s, j) => s + j.score, 0) / judges.length;
     let total = raw;
@@ -286,5 +314,7 @@ const Levels = {
   },
 };
 
+const AXIS_MORE = { salty: 'saltier', sweet: 'sweeter', sour: 'more tart', bitter: 'more bitter', umami: 'more savory', rich: 'richer',
+                    heat: 'spicier', aroma: 'more aromatic', body: 'thicker' };
 const AXIS_WORDS = { salty: 'salty', sweet: 'sweet', sour: 'tart', bitter: 'bitter', umami: 'savory', rich: 'rich',
                      heat: 'spicy', aroma: 'aromatic', body: 'thick' };

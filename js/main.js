@@ -71,6 +71,8 @@ screen.addEventListener('pointerdown', (e) => {
   }
   if (!input.consumed && UI.tool === 'taste' && Chef.spoon && !Chef.spoon.air) {
     const res = Taste.sip((Chef.spoon.x - GX) | 0, (Chef.spoon.y - GY) | 0);   // wherever the spoon is in the pot
+    // In a level, the stars and the chef's comment are about how close it is to the recipe.
+    if (Game.level && !res.empty && !res.unmixed && res.p) { res.score = Levels.match(Game.level, res.p).match; res.line = Levels.tasteLine(Game.level, res.p); }
     UI.showTaste(res);
     if (!res.empty) Chef.sip(res.unmixed ? 0.4 : res.score || 0, res.line);   // unmixed: a puzzled sip
     input.consumed = true;

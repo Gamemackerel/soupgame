@@ -52,7 +52,7 @@ A falling-sand cooking sandbox. The simulation lives inside a soup pot. Around i
 | Mouse wheel / `[` `]` | Pour rate or brush size |
 | Heat dial (drag or `1`–`9`, `0` = off) | Flame size and heat input. Continuous from 0 to 10 |
 | Ladle tool | Drag in the pot to stir. The chef holds a real ladle whose bowl follows the cursor. It goes in when the cursor enters the pot and keeps working up to 25 px outside it (clamped to the nearest wall or the bottom), so you can scrape along them; it only comes out past that. It displaces cells along the drag, shoves pieces through loose food (and passes the push on through a packed stew), scoops what's on the bottom up off the hot metal, and scrapes char loose a little at a time |
-| Taste tool | Click the liquid. The chef sips, reacts, and a flavor readout appears (§6) |
+| Taste tool | Click the liquid. The chef sips, reacts, and a flavor readout appears (§6). In a level each bar shows the recipe's target (a tick) and the band the judges don't mind (green: inside it, amber: under, red: over); the stars and the chef's comment say how close it is to the recipe. In the sandbox the bars are plain readings |
 | Skimmer | Removes foam, scum and floating fat from the surface |
 | Lid toggle | Traps steam: faster boiling, no reduction, keeps aroma. Raises boil-over risk |
 | Spacebar | Pause the simulation |
@@ -588,18 +588,18 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 
 **Score:**
 - **Each judge blends.** Every judge gives their own 0–10, and the level score is the panel's average. A judge's score is 9 × (match + recipe + taste, each weighted), where:
-  - **match** is how close the taste is to the par recipe's (§16)
+  - **match** is how close the taste is to the par recipe's (§16). Within ±0.15 of the recipe on any taste axis is free (the taste card's green band); past that, points fall off gradually
   - **recipe** is the recipe's techniques and ingredients, half each
-  - **taste** is the judge's own taste score relative to how they scored the par recipe, capped at par
+  - **taste** is the judge's own taste score relative to how they scored the par recipe, capped at par. A judge's own palate counts for at most 30%, so matching the recipe is what mostly decides the score
 
   | Judge | Match | Recipe | Own taste |
   |---|---|---|---|
-  | Joe | 20% | 10% | 70% |
-  | Biscuit | 30% | 20% | 50% |
-  | Nanny Mae | 30% | 20% | 50% |
+  | Joe | 45% | 25% | 30% |
+  | Biscuit | 45% | 25% | 30% |
+  | Nanny Mae | 45% | 25% | 30% |
   | Sir Pounce | 35% | 35% | 30% |
   | Gordo Hamsie | 25% | 45% | 30% |
-  | Paul Bollywood | 30% | 30% | 40% |
+  | Paul Bollywood | 35% | 35% | 30% |
 
   The par recipe cooked flawlessly therefore scores exactly 9. `tools/build-levels.js` records each judge's own taste of the par in `js/level-targets.js`.
 - **Soft caps:**
@@ -614,9 +614,8 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - **Mixed verdicts read as one thought:** praise and criticism are joined with "but" or "however" ("A lovely crust. But under-seasoned.").
 - **A perfect 10 takes par plus a flourish.** A flawless par recipe lands around 9.
   - **Flourish:** an extra ingredient not in the recipe.
-  - It earns a bonus only if the judges' taste score beats the par recipe's (precomputed by `build-levels.js`).
-  - Each judge who liked it adds 1 to their own score and calls it out. A judge who loves the flourish doesn't count its drift from par against the match.
-  - The tomato soup's known flourish (a pinch of chili) wins over all three tier-0 judges and can reach 10.
+  - It counts only if it makes the overall flavor better by the judges' own palates: the panel's average taste beats its average for the par recipe (precomputed by `build-levels.js`) by at least 0.15, nobody likes it more than 0.3 less than par, it's still close to the recipe (match ≥ 0.8), and nothing the recipe needs is missing.
+  - Then every judge credits it: +1 each, and its drift from par isn't held against the match. Par plus a flourish is a 10.
 
 **Panels:**
 

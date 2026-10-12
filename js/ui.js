@@ -224,14 +224,17 @@ const UI = {
       TASTE_AXES.forEach((k, n) => { const by = y + 16 + n * 7; rect(g, x + 44, by + 1, 60, 4, [230, 222, 210]); });
       return;
     }
-    const p = this.card.res.p;
+    // In a level: each bar against the recipe's taste, with the band the judges don't mind (green inside it,
+    // red over, amber under). In the sandbox there's no recipe: just the readings.
+    const p = this.card.res.p, target = Levels.target(Game.level);
     TASTE_AXES.forEach((k, n) => {
-      const by = y + 16 + n * 7;
+      const by = y + 16 + n * 7, v = Math.min(1, p[k]);
       rect(g, x + 44, by + 1, 60, 4, [230, 222, 210]);
-      const v = p[k], [ideal, tol] = IDEAL[k];
-      const good = Math.abs(v - ideal) <= tol + 0.05;
-      rect(g, x + 44, by + 1, 60 * v, 4, good ? [110, 190, 90] : v > ideal ? [230, 90, 70] : [240, 180, 70]);
-      rect(g, x + 44 + 60 * ideal, by, 1, 6, [80, 60, 70]);
+      if (!target) { rect(g, x + 44, by + 1, 60 * v, 4, [150, 130, 170]); return; }
+      const want = target.taste[k], lo = Math.max(0, want - LEVEL_FREE), hi = Math.min(1, want + LEVEL_FREE);
+      rect(g, x + 44 + Math.round(60 * lo), by, Math.max(1, Math.round(60 * (hi - lo))), 6, [200, 226, 180]);   // the band
+      rect(g, x + 44, by + 1, 60 * v, 4, v > hi ? [230, 90, 70] : v < lo ? [240, 180, 70] : [110, 190, 90]);
+      rect(g, x + 44 + Math.round(60 * want), by, 1, 6, [80, 60, 70]);   // the recipe
     });
   },
 

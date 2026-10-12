@@ -47,7 +47,7 @@ const JUDGE_ROSTER = {
   },
   biscuit: {
     id: 'biscuit', name: 'Biscuit', title: 'The Flavor Hound',
-    blend: { match: 0.3, recipe: 0.2, taste: 0.5 },
+    blend: { match: 0.45, recipe: 0.25, taste: 0.3 },
     fur: [238, 184, 110], dark: [170, 104, 58], belly: [253, 238, 210], theme: [220, 120, 60],
     sounds: { good: ['WOOF!', '*tail wags*'], bad: ['*whimper*', 'Grrr.'] },
     evaluate(a) {
@@ -73,7 +73,7 @@ const JUDGE_ROSTER = {
   },
   nanny: {
     id: 'nanny', name: 'Nanny Mae', title: 'The Comfort Goat',
-    blend: { match: 0.3, recipe: 0.2, taste: 0.5 },
+    blend: { match: 0.45, recipe: 0.25, taste: 0.3 },
     fur: [248, 244, 236], dark: [208, 186, 154], belly: [255, 255, 255], theme: [200, 120, 170],
     sounds: { good: ['Baa~!', '*happy bleat*'], bad: ['Baaah...', '*chews thoughtfully*'] },
     evaluate(a) {
@@ -159,7 +159,7 @@ Object.assign(JUDGE_ROSTER, {
   // A fair customer: would he order it again? Balance, warmth, something to chew on, no nasty surprises.
   joe: {
     id: 'joe', name: 'Joe', title: 'The Regular',
-    blend: { match: 0.2, recipe: 0.1, taste: 0.7 },
+    blend: { match: 0.45, recipe: 0.25, taste: 0.3 },
     skin: [236, 190, 150], hoodie: [84, 120, 176], cap: [210, 60, 50], theme: [84, 120, 176],
     sounds: { good: ['*nods slowly*', 'Oh, nice.'], bad: ['Uhh...', '*polite chewing*'] },
     evaluate(a) {
@@ -220,7 +220,7 @@ Object.assign(JUDGE_ROSTER, {
   // The master baker, who also knows his spices: rise, crust and crumb on a bake; bloomed spice and balance on the rest.
   paul: {
     id: 'paul', name: 'Paul Bollywood', title: 'The Master Baker',
-    blend: { match: 0.3, recipe: 0.3, taste: 0.4 },
+    blend: { match: 0.35, recipe: 0.35, taste: 0.3 },
     skin: [234, 180, 144], hair: [206, 208, 216], iris: [70, 160, 250], shirt: [40, 50, 84], theme: [70, 110, 190],
     sounds: { good: ['*raises an eyebrow*', 'Hmm. Yes.'], bad: ['*stares*', 'Hmm. No.'] },
     evaluate(a) {
