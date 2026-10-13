@@ -1,0 +1,63 @@
+{
+  "name": "judges/paul-front",
+  "path": "characters/judges/paul-front",
+  "group": "characters",
+  "cell": [
+    96,
+    48
+  ],
+  "anchor": [
+    48,
+    -96
+  ],
+  "sheet": [
+    576,
+    96
+  ],
+  "states": [
+    {
+      "name": "neutral",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [
+        "tasting",
+        "happy",
+        "meh",
+        "upset"
+      ],
+      "note": "waiting"
+    },
+    {
+      "name": "handshake",
+      "row": 1,
+      "frames": 6,
+      "fps": 12,
+      "loop": false,
+      "also": [],
+      "note": "his arm reaches across the table, then holds (plays once)"
+    }
+  ],
+  "shared": {
+    "tasting": "neutral",
+    "happy": "neutral",
+    "meh": "neutral",
+    "upset": "neutral"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset",
+    "handshake"
+  ],
+  "notes": "Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ]
+}

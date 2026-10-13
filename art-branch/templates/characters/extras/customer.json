@@ -1,0 +1,124 @@
+{
+  "name": "extras/customer",
+  "path": "characters/extras/customer",
+  "group": "characters",
+  "cell": [
+    12,
+    29
+  ],
+  "anchor": [
+    6,
+    -172
+  ],
+  "sheet": [
+    12,
+    290
+  ],
+  "states": [
+    {
+      "name": "c0",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c1",
+      "row": 1,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c2",
+      "row": 2,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c3",
+      "row": 3,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c4",
+      "row": 4,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c5",
+      "row": 5,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c6",
+      "row": 6,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c7",
+      "row": 7,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c8",
+      "row": 8,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "c9",
+      "row": 9,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    }
+  ],
+  "shared": {},
+  "order": [
+    "c0",
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6",
+    "c7",
+    "c8",
+    "c9"
+  ],
+  "notes": "Ten different customers queueing outside the shop by day, facing right. The anchor is the middle of their feet line minus 172 (they stand on the pavement).",
+  "guides": []
+}

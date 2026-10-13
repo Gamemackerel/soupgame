@@ -1,0 +1,34 @@
+{
+  "name": "backgrounds/shop-day",
+  "path": "backgrounds/shop-day",
+  "group": "backgrounds",
+  "cell": [
+    320,
+    240
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    320,
+    240
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    }
+  ],
+  "shared": {},
+  "order": [
+    "default"
+  ],
+  "notes": "The same shop front by day, after it takes off. The neon sign is drawn by code; the queue of customers stands on the pavement in front of the window.",
+  "guides": []
+}

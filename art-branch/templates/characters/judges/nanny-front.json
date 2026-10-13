@@ -1,0 +1,53 @@
+{
+  "name": "judges/nanny-front",
+  "path": "characters/judges/nanny-front",
+  "group": "characters",
+  "cell": [
+    96,
+    48
+  ],
+  "anchor": [
+    48,
+    -96
+  ],
+  "sheet": [
+    384,
+    48
+  ],
+  "states": [
+    {
+      "name": "neutral",
+      "row": 0,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "also": [
+        "tasting",
+        "happy",
+        "meh",
+        "upset"
+      ],
+      "note": "waiting"
+    }
+  ],
+  "shared": {
+    "tasting": "neutral",
+    "happy": "neutral",
+    "meh": "neutral",
+    "upset": "neutral"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset"
+  ],
+  "notes": "Nanny Mae: a cozy old goat. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ]
+}

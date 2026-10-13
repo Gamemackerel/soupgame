@@ -1,0 +1,34 @@
+{
+  "name": "ingredients/oil",
+  "path": "ingredients/oil",
+  "group": "ingredients",
+  "cell": [
+    16,
+    16
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    16,
+    16
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    }
+  ],
+  "shared": {},
+  "order": [
+    "default"
+  ],
+  "notes": "Oil: on the shelf, and in the chef's hand.",
+  "guides": []
+}

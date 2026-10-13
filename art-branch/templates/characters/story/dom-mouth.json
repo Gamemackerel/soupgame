@@ -1,0 +1,64 @@
+{
+  "name": "story/dom-mouth",
+  "path": "characters/story/dom-mouth",
+  "group": "characters",
+  "cell": [
+    14,
+    8
+  ],
+  "anchor": [
+    7,
+    -66
+  ],
+  "sheet": [
+    14,
+    32
+  ],
+  "states": [
+    {
+      "name": "sad",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "stern",
+      "row": 1,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "happy",
+      "row": 2,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "talk",
+      "row": 3,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": "open, mid-word"
+    }
+  ],
+  "shared": {},
+  "order": [
+    "sad",
+    "stern",
+    "happy",
+    "talk"
+  ],
+  "notes": "Papa Dom's mouth, laid over his face (same anchor as story/dom). One per mood, and open for talking: while he speaks, the game alternates the open mouth with his mood's.",
+  "guides": []
+}
