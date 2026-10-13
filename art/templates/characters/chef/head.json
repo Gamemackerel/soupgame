@@ -30,5 +30,7 @@
     "idle"
   ],
   "notes": "Head, ears and toque, with no face. The anchor is the center of his face; chef/face is laid over it.",
-  "guides": []
+  "spec": "The chef must be wearing a chef hat, and otherwise be dressed in traditional chef attire.",
+  "guides": [],
+  "animated": false
 }

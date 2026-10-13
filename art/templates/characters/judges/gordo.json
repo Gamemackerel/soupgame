@@ -75,10 +75,12 @@
     "rant"
   ],
   "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+  "spec": "He should look like Gordon Ramsay.",
   "guides": [
     {
       "y": 118,
       "label": "table top"
     }
-  ]
+  ],
+  "animated": true
 }

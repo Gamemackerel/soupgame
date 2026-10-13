@@ -31,7 +31,9 @@
       "idle"
     ],
     "notes": "His torso and coat above the pot rim. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.",
-    "guides": []
+    "spec": "The chef must be wearing a traditional chef shirt and a red scarf.",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "chef/head",
@@ -65,7 +67,9 @@
       "idle"
     ],
     "notes": "Head, ears and toque, with no face. The anchor is the center of his face; chef/face is laid over it.",
-    "guides": []
+    "spec": "The chef must be wearing a chef hat, and otherwise be dressed in traditional chef attire.",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "chef/face",
@@ -178,7 +182,9 @@
       "angry"
     ],
     "notes": "Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "judges/pounce",
@@ -252,12 +258,14 @@
       "upset"
     ],
     "notes": "Sir Pounce: a snooty cat. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/pounce-front",
@@ -305,12 +313,14 @@
       "upset"
     ],
     "notes": "Sir Pounce: a snooty cat. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": false
   },
   {
     "name": "judges/biscuit",
@@ -384,12 +394,14 @@
       "upset"
     ],
     "notes": "Biscuit: an excitable pup. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/biscuit-front",
@@ -444,12 +456,14 @@
       "upset"
     ],
     "notes": "Biscuit: an excitable pup. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/nanny",
@@ -523,12 +537,14 @@
       "upset"
     ],
     "notes": "Nanny Mae: a cozy old goat. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/nanny-front",
@@ -576,12 +592,14 @@
       "upset"
     ],
     "notes": "Nanny Mae: a cozy old goat. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/joe",
@@ -655,12 +673,14 @@
       "upset"
     ],
     "notes": "Joe: the pizza-shop regular. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/joe-front",
@@ -715,12 +735,14 @@
       "upset"
     ],
     "notes": "Joe: the pizza-shop regular. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/gordo",
@@ -799,12 +821,14 @@
       "rant"
     ],
     "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "spec": "He should look like Gordon Ramsay.",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/gordo-front",
@@ -870,12 +894,14 @@
       "rant"
     ],
     "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": false
   },
   {
     "name": "judges/paul",
@@ -959,12 +985,14 @@
       "handshake"
     ],
     "notes": "Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "judges/paul-front",
@@ -1022,12 +1050,14 @@
       "handshake"
     ],
     "notes": "Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": true
   },
   {
     "name": "story/dom",
@@ -1081,7 +1111,9 @@
       "happy"
     ],
     "notes": "Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).",
-    "guides": []
+    "spec": "He should be wearing a pizza chef apron and have big muscles showing.",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "story/dom-mouth",
@@ -1145,7 +1177,9 @@
       "talk"
     ],
     "notes": "Papa Dom's mouth, laid over his face (same anchor as story/dom). One per mood, and open for talking: while he speaks, the game alternates the open mouth with his mood's.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "extras/rat",
@@ -1179,7 +1213,9 @@
       "walk"
     ],
     "notes": "Scurries across the pavement outside the shop at night, left to right.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": true
   },
   {
     "name": "extras/customer",
@@ -1303,7 +1339,9 @@
       "c9"
     ],
     "notes": "Ten different customers queueing outside the shop by day, facing right. The anchor is the middle of their feet line minus 172 (they stand on the pavement).",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/water",
@@ -1337,7 +1375,9 @@
       "default"
     ],
     "notes": "Water: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/oil",
@@ -1371,7 +1411,9 @@
       "default"
     ],
     "notes": "Oil: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/cream",
@@ -1405,7 +1447,9 @@
       "default"
     ],
     "notes": "Cream: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/wine",
@@ -1439,7 +1483,9 @@
       "default"
     ],
     "notes": "Wine: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/vinegar",
@@ -1473,7 +1519,9 @@
       "default"
     ],
     "notes": "Vinegar: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/soy",
@@ -1507,7 +1555,9 @@
       "default"
     ],
     "notes": "Soy Sauce: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/salt",
@@ -1541,7 +1591,9 @@
       "default"
     ],
     "notes": "Salt: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/sugar",
@@ -1575,7 +1627,9 @@
       "default"
     ],
     "notes": "Sugar: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/flour",
@@ -1609,7 +1663,9 @@
       "default"
     ],
     "notes": "Flour: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/chili",
@@ -1643,7 +1699,9 @@
       "default"
     ],
     "notes": "Chili Flakes: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/cumin",
@@ -1677,7 +1735,9 @@
       "default"
     ],
     "notes": "Cumin: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/pepper",
@@ -1711,7 +1771,9 @@
       "default"
     ],
     "notes": "Black Pepper: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/soda",
@@ -1745,7 +1807,9 @@
       "default"
     ],
     "notes": "Baking Soda: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/powder",
@@ -1779,7 +1843,9 @@
       "default"
     ],
     "notes": "Baking Powder: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/yeast",
@@ -1813,7 +1879,9 @@
       "default"
     ],
     "notes": "Yeast: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/onion",
@@ -1847,7 +1915,9 @@
       "default"
     ],
     "notes": "Onion: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/garlic",
@@ -1881,7 +1951,9 @@
       "default"
     ],
     "notes": "Garlic: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/carrot",
@@ -1915,7 +1987,9 @@
       "default"
     ],
     "notes": "Carrot: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/celery",
@@ -1949,7 +2023,9 @@
       "default"
     ],
     "notes": "Celery: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/tomato",
@@ -1983,7 +2059,9 @@
       "default"
     ],
     "notes": "Tomato: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/potato",
@@ -2017,7 +2095,9 @@
       "default"
     ],
     "notes": "Potato: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/corn",
@@ -2051,7 +2131,9 @@
       "default"
     ],
     "notes": "Corn: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/beans",
@@ -2085,7 +2167,9 @@
       "default"
     ],
     "notes": "Beans: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/herbs",
@@ -2119,7 +2203,9 @@
       "default"
     ],
     "notes": "Fresh Herbs: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/meat",
@@ -2153,7 +2239,9 @@
       "default"
     ],
     "notes": "Beef: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/chicken",
@@ -2187,7 +2275,9 @@
       "default"
     ],
     "notes": "Chicken: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/fish",
@@ -2221,7 +2311,9 @@
       "default"
     ],
     "notes": "Whole Fish: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/egg",
@@ -2265,7 +2357,9 @@
       "cracked"
     ],
     "notes": "Egg: on the shelf, and in the chef's hand. Cracked: after tapping it on the rim.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/pasta",
@@ -2299,7 +2393,9 @@
       "default"
     ],
     "notes": "Small Pasta: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "ingredients/extinguisher",
@@ -2333,7 +2429,9 @@
       "default"
     ],
     "notes": "Fire Extinguisher: on the shelf, and in the chef's hand.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/tomato-soup",
@@ -2367,7 +2465,9 @@
       "default"
     ],
     "notes": "Tomato Soup, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/creamy-corn",
@@ -2401,7 +2501,9 @@
       "default"
     ],
     "notes": "Creamy Corn Soup, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/flatbread",
@@ -2435,7 +2537,9 @@
       "default"
     ],
     "notes": "Pan Flatbread, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/fish-stew",
@@ -2469,7 +2573,9 @@
       "default"
     ],
     "notes": "Fish Stew, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/minestrone",
@@ -2503,7 +2609,9 @@
       "default"
     ],
     "notes": "Minestrone, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/french-onion",
@@ -2537,7 +2645,9 @@
       "default"
     ],
     "notes": "French Onion Soup, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/beef-chowder",
@@ -2571,7 +2681,9 @@
       "default"
     ],
     "notes": "Beef Chowder, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/goulash",
@@ -2605,7 +2717,9 @@
       "default"
     ],
     "notes": "Goulash, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/sponge-cake",
@@ -2639,7 +2753,9 @@
       "default"
     ],
     "notes": "Pot-Oven Sponge Cake, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "dishes/chili",
@@ -2673,7 +2789,9 @@
       "default"
     ],
     "notes": "Chili con Carne, finished: its ticket on the level select board.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "backgrounds/kitchen",
@@ -2707,6 +2825,7 @@
       "default"
     ],
     "notes": "Sandbox kitchen. The pot, flames and everything in it are drawn on top, centered at the bottom.",
+    "spec": "",
     "guides": [
       {
         "y": 106,
@@ -2716,7 +2835,8 @@
         "y": 206,
         "label": "pot bottom"
       }
-    ]
+    ],
+    "animated": false
   },
   {
     "name": "backgrounds/pizza-shop",
@@ -2750,6 +2870,7 @@
       "default"
     ],
     "notes": "Papa Dom's pizza shop kitchen (Pizza Shop levels). The pot sits in the same place as the kitchen.",
+    "spec": "",
     "guides": [
       {
         "y": 106,
@@ -2759,7 +2880,8 @@
         "y": 206,
         "label": "pot bottom"
       }
-    ]
+    ],
+    "animated": false
   },
   {
     "name": "backgrounds/studio-kitchen",
@@ -2793,6 +2915,7 @@
       "default"
     ],
     "notes": "Souped Up's studio kitchen (First Michelin Star levels), with the faded EVERY SECOND COUNTS sign.",
+    "spec": "",
     "guides": [
       {
         "y": 106,
@@ -2802,7 +2925,8 @@
         "y": 206,
         "label": "pot bottom"
       }
-    ]
+    ],
+    "animated": false
   },
   {
     "name": "backgrounds/stage",
@@ -2836,7 +2960,9 @@
       "default"
     ],
     "notes": "The judging stage behind the judges, with a spotlight on each of the three seats (x = 76, 160, 244). The table is a separate layer.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "backgrounds/stage-table",
@@ -2870,12 +2996,14 @@
       "default"
     ],
     "notes": "The judging table and the floor, drawn over the judges. Keep everything above the table top transparent. The bowl sits at y = 140, score cards above x+30.",
+    "spec": "",
     "guides": [
       {
         "y": 118,
         "label": "table top"
       }
-    ]
+    ],
+    "animated": false
   },
   {
     "name": "backgrounds/shop-night",
@@ -2909,7 +3037,9 @@
       "default"
     ],
     "notes": "Papa Dom's shop front at night, struggling. The neon sign's letters are drawn on the dark sign board by code (one flickers). The rat runs along y = 206.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "backgrounds/shop-day",
@@ -2943,7 +3073,9 @@
       "default"
     ],
     "notes": "The same shop front by day, after it takes off. The neon sign is drawn by code; the queue of customers stands on the pavement in front of the window.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   },
   {
     "name": "backgrounds/level-select",
@@ -2977,6 +3109,8 @@
       "default"
     ],
     "notes": "The wall behind the level select board (a kitchen pass with heat lamps). The tier plates, ticket rails and tickets are drawn on top by code.",
-    "guides": []
+    "spec": "",
+    "guides": [],
+    "animated": false
   }
 ]

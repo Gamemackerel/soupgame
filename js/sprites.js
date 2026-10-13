@@ -125,27 +125,29 @@ const Sprites = {
         also: d.order.filter((o) => d.alias[o] === s), note: d.states[s].note || null })),
       shared: Object.assign({}, d.alias),   // state → the state whose drawing it uses
       order: d.order.slice(),               // every state, rows and shared alike
-      notes: d.notes || '', guides: d.guides || [],
+      notes: d.notes || '', spec: d.spec || '', guides: d.guides || [],
     };
     return { sheet, meta };
   },
 
   // A zoomed copy with a labelled grid, the anchor and guide lines: a picture of what goes where.
-  guide(name) {
+  // all: every frame (the optional animation too); otherwise just the drawings that are required, one per pose.
+  guide(name, all = false) {
     const { sheet, meta } = this.template(name), d = this.defs[name];
     const z = d.w >= 200 ? 2 : d.h >= 60 ? 4 : 8, labW = 110, head = 34;
-    const cols = sheet.width / d.w, cw = d.w * z, ch = d.h * z;
+    const cols = all ? sheet.width / d.w : 1, cw = d.w * z, ch = d.h * z;
     const cv = document.createElement('canvas'); cv.width = labW + cols * cw + 1; cv.height = head + d.rows.length * ch + 1;
     const c = cv.getContext('2d'); c.imageSmoothingEnabled = false;
     c.fillStyle = '#1d1b24'; c.fillRect(0, 0, cv.width, cv.height);
     c.font = '13px monospace'; c.fillStyle = '#f2e8d8'; c.textBaseline = 'top';
     c.fillText(`${meta.path}   cell ${d.w}x${d.h}   anchor ${-d.ox},${-d.oy}   x${z}`, 6, 4);
     c.fillStyle = '#9a94a8';
-    for (let f = 0; f < cols; f++) c.fillText('frame ' + f, labW + f * cw + 4, 20);
+    for (let f = 0; f < cols; f++) c.fillText(all ? 'frame ' + f : 'drawing', labW + f * cw + 4, 20);
     d.rows.forEach((s, r) => {
       const y = head + r * ch, st = d.states[s], also = d.order.filter((o) => d.alias[o] === s);
       c.fillStyle = '#f2e8d8'; c.fillText(s, 6, y + 4);
-      c.fillStyle = '#9a94a8'; if (st.frames > 1) c.fillText(`${st.frames}f ${st.fps}fps${st.loop ? '' : ' once'}`, 6, y + 20);
+      c.fillStyle = '#9a94a8';
+      if (st.frames > 1) c.fillText(all ? `${st.frames}f ${st.fps}fps${st.loop ? '' : ' once'}` : `+${st.frames - 1} optional`, 6, y + 20);
       also.forEach((a, k) => c.fillText((k ? '' : 'also: ') + a, 6, y + 36 + k * 14));
       for (let f = 0; f < cols; f++) {
         const x = labW + f * cw;
@@ -181,8 +183,8 @@ const Sprites = {
 
   exportAll() {
     return Object.keys(this.defs).map((name) => {
-      const { sheet, meta } = this.template(name);
-      return { meta, sheet: sheet.toDataURL('image/png'), guide: this.guide(name).toDataURL('image/png') };
+      const { sheet, meta } = this.template(name), d = this.defs[name], animated = d.rows.some((s) => d.states[s].frames > 1);
+      return { meta, sheet: sheet.toDataURL('image/png'), guide: this.guide(name).toDataURL('image/png'), frames: animated ? this.guide(name, true).toDataURL('image/png') : null };
     });
   },
 };
@@ -194,9 +196,11 @@ const IDLE = { frames: 4, fps: 4 };
 // The chef: body, head and face are separate, so a new mood is just a new face. Bobbing, hopping, shaking and
 // the sip are the whole sprite moving (code), and his arms are drawn by code to reach the cursor.
 Sprites.def('chef/body', { path: 'characters/chef/body', w: 48, h: 46, ox: -24, oy: 74, static: true,
+  spec: 'The chef must be wearing a traditional chef shirt and a red scarf.',
   notes: 'His torso and coat above the pot rim. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.',
   states: { idle: {} }, render: (g) => Chef.drawBody(g) });
 Sprites.def('chef/head', { path: 'characters/chef/head', w: 40, h: 52, ox: -20, oy: -36, static: true,
+  spec: 'The chef must be wearing a chef hat, and otherwise be dressed in traditional chef attire.',
   notes: 'Head, ears and toque, with no face. The anchor is the center of his face; chef/face is laid over it.',
   states: { idle: {} }, render: (g) => Chef.drawHead(g) });
 Sprites.def('chef/face', { path: 'characters/chef/face', w: 24, h: 22, ox: -12, oy: -8, static: true,
@@ -217,6 +221,8 @@ function judgeCtx(id, pose, t) {
   const mood = { tasting: 'neutral', rant: 'upset', handshake: 'happy' }[pose] || pose;
   return { j: JUDGE_ROSTER[id], J: { t, typed: 0 }, s: { mood, ft: t, active: pose === 'tasting' || pose === 'rant', tasting: pose === 'tasting', handshake: pose === 'handshake' } };
 }
+// The artist's brief for each judge, where there is one.
+const JUDGE_SPECS = { gordo: 'He should look like Gordon Ramsay.' };
 const JUDGE_NOTES = {
   pounce: 'Sir Pounce: a snooty cat.', biscuit: 'Biscuit: an excitable pup.', nanny: 'Nanny Mae: a cozy old goat.',
   joe: 'Joe: the pizza-shop regular.', gordo: 'Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes.',
@@ -232,6 +238,7 @@ for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
   };
   Sprites.def('judges/' + id, { path: 'characters/judges/' + id, w: 96, h: 128, ox: -48, oy: 0,
     notes: JUDGE_NOTES[id] + ' Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.',
+    spec: JUDGE_SPECS[id] || '',
     guides: [{ y: 118, label: 'table top' }], states: poses, render: render('body') });
   Sprites.def('judges/' + id + '-front', { path: 'characters/judges/' + id + '-front', w: 96, h: 48, ox: -48, oy: 96,
     notes: JUDGE_NOTES[id] + ' What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.',
@@ -241,6 +248,7 @@ for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
 // Papa Dom, for the story cutscenes (shown at 2x): him without a mouth, one drawing per mood, and his mouth on its
 // own (each mood's, plus open for talking: the game flaps it open and shut). His breathing bob is the game's.
 Sprites.def('story/dom', { path: 'characters/story/dom', w: 120, h: 130, ox: -60, oy: 0, static: true,
+  spec: 'He should be wearing a pizza chef apron and have big muscles showing.',
   notes: 'Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).',
   states: { sad: {}, stern: {}, happy: {} },
   render: (g, state) => drawDom(g, 0, { t: 0 }, { mood: state, ft: 0, noMouth: true }) });
@@ -330,7 +338,7 @@ const PLACEHOLDER_SKETCHES = true;   // the art branch: plain placeholders (fals
 const SKETCH_FILL = [226, 222, 214], SKETCH_INK = [70, 60, 66];
 const SKETCH = {
   'chef/body': (g) => { ellipse(g, 0, 92, 21, 13, SKETCH_FILL); rect(g, -21, 92, 42, 26, SKETCH_FILL); },
-  'chef/head': (g) => { ellipse(g, 0, 0, 13, 13, SKETCH_FILL); ellipse(g, 0, -20, 12, 9, SKETCH_FILL); },
+  'chef/head': (g) => { ellipse(g, 0, 0, 13, 13, SKETCH_FILL); },
   'chef/face': (g) => { rect(g, -5, -1, 2, 2, SKETCH_INK); rect(g, 4, -1, 2, 2, SKETCH_INK); rect(g, -3, 7, 6, 1, SKETCH_INK); },
   judge: (g) => {
     ellipse(g, 0, 108, 26, 22, SKETCH_FILL); rect(g, -6, 72, 12, 16, SKETCH_FILL); ellipse(g, 0, 60, 16, 16, SKETCH_FILL);
