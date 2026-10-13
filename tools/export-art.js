@@ -83,10 +83,11 @@ function catalog(metas) {
       <p class="facts">cell ${m.cell[0]}×${m.cell[1]} · anchor ${m.anchor[0]},${m.anchor[1]} · sheet ${m.sheet[0]}×${m.sheet[1]} ·
         <a href="templates/${esc(m.path)}.png">template</a> · <a href="templates/${esc(m.path)}.json">json</a></p>
       <p>${esc(m.notes)}</p>
-      <table>${m.states.map((s) => `<tr><td>${s.row}</td><td><b>${esc(s.name)}</b></td><td>${s.frames} frame${s.frames > 1 ? 's' : ''}${s.fps ? ` @ ${s.fps} fps${s.loop ? ', loops' : ', plays once'}` : ''}</td><td>${esc(s.note || '')}</td></tr>`).join('')}</table>
+      <table>${m.states.map((s) => `<tr><td>${s.row}</td><td><b>${esc(s.name)}</b>${s.also && s.also.length ? `<br><small>also used for ${esc(s.also.join(', '))}</small>` : ''}</td><td>1 drawing${s.frames > 1 ? ` <small>+ ${s.frames - 1} optional animation frame${s.frames > 2 ? 's' : ''} (${s.fps} fps${s.loop ? ', loops' : ', plays once'})</small>` : ''}</td><td>${esc(s.note || '')}</td></tr>`).join('')}</table>
       <img src="templates/${esc(m.path)}.guide.png" alt="${esc(m.path)} guide">
     </section>`).join('');
-    return `<h2 id="${g}">${g[0].toUpperCase() + g.slice(1)} <small>${ms.length} sprites, ${ms.reduce((n, m) => n + m.states.reduce((k, s) => k + s.frames, 0), 0)} cells</small></h2>${cards}`;
+    const drawings = ms.reduce((n, m) => n + m.states.length, 0), extra = ms.reduce((n, m) => n + m.states.reduce((k, s) => k + s.frames - 1, 0), 0);
+    return `<h2 id="${g}">${g[0].toUpperCase() + g.slice(1)} <small>${drawings} drawings${extra ? ` + ${extra} optional animation frames` : ''}</small></h2>${cards}`;
   }).join('\n');
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -105,7 +106,8 @@ function catalog(metas) {
   a { color: var(--accent); }
 </style></head><body><main>
 <h1>Soup Pot: art templates</h1>
-<p>Everything to redraw, with every state and frame. Paint over each sprite's <b>template</b> at its exact pixel size, keeping the grid of rows (states) and columns (frames). The full instructions are in the <a href="https://github.com/Gamemackerel/soupgame/blob/main/art/README.md">art README</a>.</p>
+<p>Everything to redraw. You'll draw in the ready-made Aseprite files (<code>art/aseprite/</code>); this page shows what each piece is, where it sits and which poses it needs. The full instructions are in the <a href="https://github.com/Gamemackerel/soupgame/blob/main/art/README.md">art README</a>.</p>
+<p><b>Only the first frame of each pose is required.</b> Extra frames are optional animation: left empty, the game holds the first frame. Poses marked "also used for" share one drawing, so it's drawn once.</p>
 <nav>${order.map((g) => `<a href="#${g}">${g}</a>`).join('')}</nav>
 ${sections}
 </main></body></html>
