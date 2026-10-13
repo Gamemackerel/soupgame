@@ -807,6 +807,7 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - Each sprite is a sheet: one row per state, one column per frame, fixed cell size and anchor. The game draws `art/sprites/<path>.png` when it's listed in `art/sprites/index.json`, and the code drawing otherwise.
 - `tools/export-art.js` renders the code drawings to `art/templates/` (sheet, zoomed guide, JSON) and `art/index.html`. `tools/art-index.js` validates finished sheets and writes the index. The workflow is in `art/README.md`.
 - Motion the game adds (bob, hop, shake, sliding) is never in the art. A state whose frames all render the same is collapsed to one frame.
+- **Aseprite files for the artist** (`tools/art-aseprite.js make`, on the `art` branch): one per character, with a layer group per game sprite on one canvas (the chef's body, head and face; each judge's body and table front), a tag per pose, and reference layers (old art, guides) that are never exported. `export` flattens each group per frame, crops it to the sprite's cell by its anchor, and writes `art/sprites/` (only sprites with every pose drawn). `tools/aseprite.js` reads and writes the format (RGBA, grayscale or indexed) and `tools/png.js` reads and writes PNGs, with no dependencies.
 
 ## 25. Music (implemented, `js/audio.js`)
 
