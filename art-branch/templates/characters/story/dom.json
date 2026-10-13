@@ -49,8 +49,7 @@
     "stern",
     "happy"
   ],
-  "notes": "Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).",
-  "spec": "He should be wearing a pizza chef apron and have big muscles showing.",
+  "notes": "Papa Dom, the pizza shop owner (a Vin Diesel lookalike): he should be wearing a pizza chef apron and have big muscles showing. Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).",
   "guides": [],
   "animated": false
 }

@@ -29,8 +29,7 @@
   "order": [
     "idle"
   ],
-  "notes": "His torso and coat above the pot rim. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.",
-  "spec": "The chef must be wearing a traditional chef shirt and a red scarf.",
+  "notes": "His torso above the pot rim: he must be wearing a traditional chef shirt and a red scarf. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.",
   "guides": [],
   "animated": false
 }
