@@ -21,6 +21,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     },
     {
@@ -29,8 +30,14 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     }
+  ],
+  "shared": {},
+  "order": [
+    "default",
+    "cracked"
   ],
   "notes": "Egg: on the shelf, and in the chef's hand. Cracked: after tapping it on the rim.",
   "guides": []

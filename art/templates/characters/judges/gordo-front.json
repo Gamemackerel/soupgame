@@ -12,7 +12,7 @@
   ],
   "sheet": [
     96,
-    288
+    144
   ],
   "states": [
     {
@@ -21,48 +21,45 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [
+        "tasting"
+      ],
       "note": "waiting"
     },
     {
-      "name": "tasting",
+      "name": "happy",
       "row": 1,
       "frames": 1,
       "fps": null,
       "loop": null,
-      "note": "spoon in mouth"
+      "also": [
+        "meh",
+        "upset"
+      ],
+      "note": "scored 7+"
     },
     {
-      "name": "happy",
+      "name": "rant",
       "row": 2,
       "frames": 1,
       "fps": null,
       "loop": null,
-      "note": "scored 7+"
-    },
-    {
-      "name": "meh",
-      "row": 3,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored 5-6"
-    },
-    {
-      "name": "upset",
-      "row": 4,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored under 5"
-    },
-    {
-      "name": "rant",
-      "row": 5,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
+      "also": [],
       "note": "upset and speaking: shaking with rage, jabbing a finger"
     }
+  ],
+  "shared": {
+    "tasting": "neutral",
+    "meh": "happy",
+    "upset": "happy"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset",
+    "rant"
   ],
   "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
   "guides": [

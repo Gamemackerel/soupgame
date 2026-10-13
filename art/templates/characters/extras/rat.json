@@ -21,8 +21,13 @@
       "frames": 4,
       "fps": 15,
       "loop": true,
+      "also": [],
       "note": null
     }
+  ],
+  "shared": {},
+  "order": [
+    "walk"
   ],
   "notes": "Scurries across the pavement outside the shop at night, left to right.",
   "guides": []

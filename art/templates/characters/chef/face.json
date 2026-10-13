@@ -12,7 +12,7 @@
   ],
   "sheet": [
     24,
-    220
+    176
   ],
   "states": [
     {
@@ -21,6 +21,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     },
     {
@@ -29,6 +30,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "idle with eyes shut, shown for a few frames now and then"
     },
     {
@@ -37,6 +39,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     },
     {
@@ -45,6 +48,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "after a great taste"
     },
     {
@@ -53,48 +57,56 @@
       "frames": 1,
       "fps": null,
       "loop": null,
-      "note": null
-    },
-    {
-      "name": "worried",
-      "row": 5,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
+      "also": [
+        "worried"
+      ],
       "note": null
     },
     {
       "name": "gross",
-      "row": 6,
+      "row": 5,
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "burnt food"
     },
     {
       "name": "shock",
+      "row": 6,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [
+        "panic"
+      ],
+      "note": null
+    },
+    {
+      "name": "angry",
       "row": 7,
       "frames": 1,
       "fps": null,
       "loop": null,
-      "note": null
-    },
-    {
-      "name": "panic",
-      "row": 8,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "fire"
-    },
-    {
-      "name": "angry",
-      "row": 9,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
+      "also": [],
       "note": "flipping the pot over"
     }
+  ],
+  "shared": {
+    "worried": "meh",
+    "panic": "shock"
+  },
+  "order": [
+    "idle",
+    "blink",
+    "happy",
+    "love",
+    "meh",
+    "worried",
+    "gross",
+    "shock",
+    "panic",
+    "angry"
   ],
   "notes": "Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).",
   "guides": []

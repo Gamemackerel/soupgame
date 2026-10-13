@@ -12,7 +12,7 @@
   ],
   "sheet": [
     576,
-    288
+    96
   ],
   "states": [
     {
@@ -21,48 +21,37 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [
+        "tasting",
+        "happy",
+        "meh",
+        "upset"
+      ],
       "note": "waiting"
     },
     {
-      "name": "tasting",
-      "row": 1,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "spoon in mouth"
-    },
-    {
-      "name": "happy",
-      "row": 2,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored 7+"
-    },
-    {
-      "name": "meh",
-      "row": 3,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored 5-6"
-    },
-    {
-      "name": "upset",
-      "row": 4,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored under 5"
-    },
-    {
       "name": "handshake",
-      "row": 5,
+      "row": 1,
       "frames": 6,
       "fps": 12,
       "loop": false,
+      "also": [],
       "note": "his arm reaches across the table, then holds (plays once)"
     }
+  ],
+  "shared": {
+    "tasting": "neutral",
+    "happy": "neutral",
+    "meh": "neutral",
+    "upset": "neutral"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset",
+    "handshake"
   ],
   "notes": "Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
   "guides": [

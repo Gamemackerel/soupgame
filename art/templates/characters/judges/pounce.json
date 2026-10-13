@@ -21,6 +21,7 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "waiting"
     },
     {
@@ -29,6 +30,7 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "spoon in mouth"
     },
     {
@@ -37,6 +39,7 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "scored 7+"
     },
     {
@@ -45,6 +48,7 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "scored 5-6"
     },
     {
@@ -53,8 +57,17 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "scored under 5"
     }
+  ],
+  "shared": {},
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset"
   ],
   "notes": "Sir Pounce: a snooty cat. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
   "guides": [

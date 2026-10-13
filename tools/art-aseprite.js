@@ -12,7 +12,10 @@
 //   - A TAG per mood/pose/animation (happy, upset, tasting, ...), covering exactly the frames the game uses.
 //   - Reference layers (Aseprite's own kind, never exported): the old art, faint, and guides such as the table line.
 //   Anything outside the groups, or hidden, is ignored. A sprite is only exported once every one of its poses has
-//   something drawn, so half-finished work never shows up blank in the game.
+//   its FIRST frame drawn (so half-finished work never shows up blank in the game); an empty later frame holds the
+//   one before it, so animation is optional polish.
+//   Drawings that poses share (a judge's paws that don't change between moods) appear once, in the first pose that
+//   uses them, and every other pose's frames are linked to them.
 const fs = require('fs'), path = require('path');
 const PNG = require('./png'), ASE = require('./aseprite');
 
@@ -49,7 +52,8 @@ function documents() {
       parts: { body: { sprite: 'characters/judges/' + id, at: [0, 0] }, front: { sprite: 'characters/judges/' + id + '-front', at: [0, 0] } },
       layers: [{ part: 'body' }, tableGuide(160), { part: 'front' }] });
   }
-  docs.push({ file: 'characters/dom', kind: 'parts', parts: { dom: { sprite: 'characters/story/dom', at: [0, 0] } }, layers: [{ part: 'dom' }] });
+  docs.push({ file: 'characters/dom', kind: 'parts', parts: { dom: { sprite: 'characters/story/dom', at: [0, 0] }, mouth: { sprite: 'characters/story/dom-mouth', at: [0, 0] } },
+    layers: [{ part: 'dom' }, { part: 'mouth' }] });
   docs.push({ file: 'characters/rat', kind: 'parts', parts: { rat: { sprite: 'characters/extras/rat', at: [0, 0] } }, layers: [{ part: 'rat' }] });
   docs.push({ file: 'characters/customers', kind: 'items', group: 'customer', items: tpl('characters/extras/customer').meta.states.map((s) => ({ sprite: 'characters/extras/customer', state: s.name, tag: s.name })) });
 
@@ -70,7 +74,8 @@ function documents() {
   return docs;
 }
 
-// Lay a 'parts' document out: the canvas covering every part, each part's offset, and the tags (poses).
+// Lay a 'parts' document out: the canvas covering every part, each part's offset, and the tags (poses). Each part's
+// drawing for a pose is its own (`home`: drawn there) or shared with an earlier pose (linked to that pose's frames).
 function layout(doc) {
   const parts = Object.entries(doc.parts).map(([group, p]) => {
     const t = tpl(p.sprite), [w, h] = t.meta.cell, [ax, ay] = t.meta.anchor;
@@ -79,18 +84,30 @@ function layout(doc) {
   const x0 = Math.min(...parts.map((p) => p.x)), y0 = Math.min(...parts.map((p) => p.y));
   const W = Math.max(...parts.map((p) => p.x + p.w)) - x0, H = Math.max(...parts.map((p) => p.y + p.h)) - y0;
   for (const p of parts) { p.x -= x0; p.y -= y0; }
-  // Poses: every state of any part with more than one, in order; a part with a single state shows it in all of them.
+  // Poses: every state of any part, in order. A part shows its own drawing for a pose, the one it shares with an
+  // earlier pose, or (if it has no such pose, like the chef's body) its first.
   const names = [];
-  for (const p of parts) if (p.t.meta.states.length > 1 || parts.length === 1) for (const s of p.t.meta.states) if (!names.includes(s.name)) names.push(s.name);
-  if (!names.length) names.push(parts[0].t.meta.states[0].name);
-  const stateOf = (p, tag) => p.t.meta.states.find((s) => s.name === tag) || p.t.meta.states[0];
+  for (const p of parts) for (const n of p.t.meta.order || p.t.meta.states.map((s) => s.name)) if (!names.includes(n)) names.push(n);
+  const stateOf = (p, tag) => p.t.meta.states.find((s) => s.name === ((p.t.meta.shared || {})[tag] || tag)) || p.t.meta.states[0];
+  // A pose where every part's drawing already appeared in an earlier pose has nothing new to draw: no tag for it.
+  const seen = parts.map(() => new Set()), poses = [];
+  for (const name of names) {
+    const fresh = parts.some((p, k) => !seen[k].has(stateOf(p, name).name));
+    parts.forEach((p, k) => seen[k].add(stateOf(p, name).name));
+    if (fresh || !poses.length) poses.push(name);
+  }
   let f = 0;
-  const tags = names.map((name) => {
+  const tags = poses.map((name) => {
     const frames = Math.max(...parts.map((p) => stateOf(p, name).frames)), fps = Math.max(...parts.map((p) => stateOf(p, name).fps || 0));
     const tag = { name, from: f, to: f + frames - 1, frames, duration: fps ? Math.round(1000 / fps) : 400 };
     f += frames;
     return tag;
   });
+  // Where each part's drawings live: the first tag that shows them.
+  for (const p of parts) {
+    p.home = {};
+    for (const t of tags) { const s = stateOf(p, t.name); if (!p.home[s.name]) p.home[s.name] = t; }
+  }
   return { W, H, parts, tags, stateOf, off: { x: -x0, y: -y0 } };
 }
 
@@ -114,6 +131,7 @@ function make(doc) {
     for (const ly of doc.layers) if (ly.part) { const p = L.parts.find((q) => q.group === ly.part), s = L.stateOf(p, t.name); compose(cell(p.t, s.name, Math.min(k, s.frames - 1)), img, p.x, p.y); }
     cels.push({ layer: 0, frame: t.from + k, img });
   }
+  const drawLayer = {};   // part group → its 'draw here' layer index
   for (const ly of doc.layers) {
     if (ly.guide) {
       const img = PNG.blank(L.W, L.H); ly.draw(img, L.off);
@@ -122,7 +140,17 @@ function make(doc) {
       for (let f = 1; f < frames.length; f++) cels.push({ layer: idx, frame: f, link: 0 });
       continue;
     }
-    layers.push({ name: ly.part, group: true, level: 0 }, { name: 'draw here', level: 1 });
+    layers.push({ name: ly.part, group: true, level: 0 });
+    drawLayer[ly.part] = layers.push({ name: 'draw here', level: 1 }) - 1;
+  }
+  // Link every frame that shows a drawing made elsewhere (a shared pose, or a part that's still while others move),
+  // so the artist sees it everywhere it's used but draws it once.
+  for (const p of L.parts) for (const t of L.tags) {
+    const s = L.stateOf(p, t.name), home = p.home[s.name];
+    for (let k = 0; k < t.frames; k++) {
+      const src = home.from + Math.min(k, s.frames - 1);
+      if (src !== t.from + k) cels.push({ layer: drawLayer[p.group], frame: t.from + k, link: src });
+    }
   }
   return { w: L.W, h: L.H, frames, layers, cels, palette: DB32, tags: L.tags.map((t, k) => ({ name: t.name, from: t.from, to: t.to, color: TAG_COLORS[k % TAG_COLORS.length] })) };
 }
@@ -145,7 +173,7 @@ function exportDoc(doc, file) {
     if (!sheets[sprite]) { const meta = tpl(sprite).meta; sheets[sprite] = { meta, img: PNG.blank(meta.sheet[0], meta.sheet[1]), missing: new Set(meta.states.map((s) => s.name)) }; }
     const sh = sheets[sprite], s = sh.meta.states.find((x) => x.name === state);
     PNG.blit(img, 0, 0, img.w, img.h, sh.img, frame * sh.meta.cell[0], s.row * sh.meta.cell[1]);
-    if (!PNG.isEmpty(img)) sh.missing.delete(state);
+    if (frame === 0 && !PNG.isEmpty(img)) sh.missing.delete(state);   // a pose counts as drawn once its first frame is
   };
   const crop = (full, x, y, w, h) => { const out = PNG.blank(w, h); PNG.blit(full, x, y, w, h, out, 0, 0); return out; };
   if (doc.kind === 'items') {
@@ -153,7 +181,7 @@ function exportDoc(doc, file) {
     if (g < 0) return { done, skipped: [`no "${doc.group}" group`], warnings: ase.warnings };
     for (const it of doc.items) {
       const t = tagOf(it.tag);
-      if (!t) { put(it.sprite, it.state, 0, PNG.blank(1, 1)); continue; }
+      if (!t) continue;
       const full = ASE.renderGroup(ase, g, t.from), meta = tpl(it.sprite).meta;
       put(it.sprite, it.state, 0, crop(full, 0, 0, meta.cell[0], meta.cell[1]));
     }
@@ -164,10 +192,15 @@ function exportDoc(doc, file) {
       const g = groupIndex(p.group);
       if (g < 0) { skipped.push(`${p.t.meta.path}: no "${p.group}" group`); continue; }
       for (const s of p.t.meta.states) {
-        // The state's own tag; a single-state part (the chef's body) takes the first tag.
-        const t = tagOf(s.name) || (p.t.meta.states.length === 1 ? ase.tags[0] || { from: 0 } : null);
-        if (!t) { skipped.push(`${p.t.meta.path}: no "${s.name}" tag`); continue; }
-        for (let k = 0; k < s.frames; k++) put(p.t.meta.path, s.name, k, crop(ASE.renderGroup(ase, g, t.from + k), p.x, p.y, p.w, p.h));
+        // Each drawing is read from where it lives (its home pose); empty later frames hold the one before.
+        const home = p.home[s.name], t = home && tagOf(home.name);
+        if (!t) { skipped.push(`${p.t.meta.path}: no "${home ? home.name : s.name}" tag`); continue; }
+        let prev = null;
+        for (let k = 0; k < s.frames; k++) {
+          let img = crop(ASE.renderGroup(ase, g, t.from + k), p.x, p.y, p.w, p.h);
+          if (k && prev && PNG.isEmpty(img)) img = prev;
+          put(p.t.meta.path, s.name, k, img); prev = img;
+        }
       }
     }
   }
