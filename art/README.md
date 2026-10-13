@@ -15,25 +15,31 @@ You're going to draw the art for Soup Pot. You'll draw on paper first, then turn
 ## Your first drawing: the carrot
 
 **1. Draw it on paper.**
+
 Draw a carrot on paper. Keep it simple, with a bold outline and a few colors. Then take a photo of it with your phone and put the photo on your computer.
 
 *Want to use graph paper?* The carrot is **16 × 16 pixels**. Mark out a box 16 squares wide and 16 squares tall, and treat each square as one pixel.
 
 **2. Open the carrot's file.**
+
 In Aseprite, open `ingredients.aseprite`. It holds every ingredient, one after another.
 
 Above the timeline at the bottom you'll see colored bars with names. These are called **tags**. Click the one called **carrot**. Now you're looking at the carrot's spot. The faint carrot you see is just a guide showing the size, and the game won't use it.
 
 **3. Bring in your photo.**
+
 Go to *Layer → New → New Reference Layer from File* and pick your photo. With that layer selected, press **Ctrl+A** (**Cmd+A** on a Mac) to select it. Drag the corner handles to shrink your photo, then drag the middle to slide it over the faint carrot. Press **Enter** when it fits. It's only a guide to trace.
 
 **4. Pick the right layer.**
+
 On the left of the timeline is the list of **layers**. Find the folder called **ingredient** and click the layer inside it called **draw here**. Whatever you draw on this layer goes into the game.
 
 **5. Draw the pixels.**
+
 Choose the **Pencil** (press **B**). Zoom in a lot, because the carrot is only 16 × 16 pixels. Trace your drawing one pixel at a time. Start with the outline, then fill in the colors.
 
 **6. Check it, then save.**
+
 Click the eye next to your photo's layer to hide it, and look at your carrot. Happy? Press **Ctrl+S** (or **Cmd+S** on a Mac) to save.
 
 Done! That's the whole process. 🥕
@@ -75,13 +81,12 @@ Save in Aseprite, then send the `.aseprite` files you finished. Send a few at a 
 
 ## About AI
 
-The whole point is that the game's art is **drawn by you**. Please don't use AI to make, redraw or "improve" your art. If you use it at all, keep it to a small chore, like helping split your finished drawing into pieces.
+The whole point is that the game's art is **drawn by you**. You can use tools to help with your drawing, especially to help with splitting up the different parts of the chef. But avoid getting AI to do the drawing or improve on your drawing!
 
 ## Good to know
 
 - Layers whose names start with `_` are just helpers and never go in the game. The `_about` layers describe each piece and what it needs to show.
 - Some frames are **linked**. They show the same drawing in several places, so drawing it once fills them all.
-- Unfinished files are fine to send. A piece goes into the game once every tag has its first frame drawn.
 
 ---
 
