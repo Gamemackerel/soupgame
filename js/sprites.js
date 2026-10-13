@@ -151,9 +151,10 @@ const Sprites = {
       also.forEach((a, k) => c.fillText((k ? '' : 'also: ') + a, 6, y + 36 + k * 14));
       for (let f = 0; f < cols; f++) {
         const x = labW + f * cw;
-        // Checkerboard for transparency, dimmed where the row has no frame.
+        // Checkerboard for transparency (light under faces and mouths, which are dark features on their own),
+        // dimmed where the row has no frame.
         for (let yy = 0; yy < ch; yy += 8) for (let xx = 0; xx < cw; xx += 8) {
-          c.fillStyle = f >= st.frames ? '#15141a' : ((xx + yy) / 8) & 1 ? '#3a3844' : '#44424e';
+          c.fillStyle = f >= st.frames ? '#15141a' : d.lightGuide ? (((xx + yy) / 8) & 1 ? '#e6e2da' : '#f2eee6') : ((xx + yy) / 8) & 1 ? '#3a3844' : '#44424e';
           c.fillRect(x + xx, y + yy, Math.min(8, cw - xx), Math.min(8, ch - yy));
         }
         if (f < st.frames) c.drawImage(sheet, f * d.w, r * d.h, d.w, d.h, x, y, cw, ch);
@@ -201,7 +202,7 @@ Sprites.def('chef/body', { path: 'characters/chef/body', w: 48, h: 46, ox: -24, 
 Sprites.def('chef/head', { path: 'characters/chef/head', w: 40, h: 52, ox: -20, oy: -36, static: true,
   notes: 'Head and ears, with no face. He must be wearing a chef hat, and otherwise be dressed in traditional chef attire. The anchor is the center of his face; chef/face is laid over it.',
   states: { idle: {} }, render: (g) => Chef.drawHead(g) });
-Sprites.def('chef/face', { path: 'characters/chef/face', w: 24, h: 22, ox: -12, oy: -8, static: true,
+Sprites.def('chef/face', { path: 'characters/chef/face', w: 24, h: 22, ox: -12, oy: -8, static: true, lightGuide: true,
   notes: 'Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).',
   states: {
     idle: {}, blink: { note: 'idle with eyes shut, shown for a few frames now and then' }, happy: {}, love: { note: 'after a great taste' },
@@ -246,7 +247,7 @@ Sprites.def('story/dom', { path: 'characters/story/dom', w: 120, h: 130, ox: -60
   notes: 'Papa Dom, the pizza shop owner (a Vin Diesel lookalike): he should be wearing a pizza chef apron and have big muscles showing. Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).',
   states: { sad: {}, stern: {}, happy: {} },
   render: (g, state) => drawDom(g, 0, { t: 0 }, { mood: state, ft: 0, noMouth: true }) });
-Sprites.def('story/dom-mouth', { path: 'characters/story/dom-mouth', w: 14, h: 8, ox: -7, oy: 66, static: true,
+Sprites.def('story/dom-mouth', { path: 'characters/story/dom-mouth', w: 14, h: 8, ox: -7, oy: 66, static: true, lightGuide: true,
   notes: "Papa Dom's mouth, laid over his face (same anchor as story/dom). One per mood, and open for talking: while he speaks, the game alternates the open mouth with his mood's.",
   states: { sad: {}, stern: {}, happy: {}, talk: { note: 'open, mid-word' } },
   render: (g, state) => drawDomMouth(g, 0, 70, state, state === 'talk') });
@@ -329,21 +330,21 @@ Sprites.def('backgrounds/level-select', { path: 'backgrounds/level-select', w: W
 // redraw: just the right size and place (head, body, hands on the table...). Every pose looks the same; the pose
 // names and notes say what each one is. (The list of drawings asked for is fixed in js/sprite-layout.js.)
 const PLACEHOLDER_SKETCHES = false;
-const SKETCH_FILL = [226, 222, 214], SKETCH_INK = [70, 60, 66];
+const SKETCH_FILL = [226, 222, 214], SKETCH_INK = [70, 60, 66], SKETCH_FACE = [0, 0, 0];   // ink: the border; face: eyes and mouths
 const SKETCH = {
   'chef/body': (g) => { ellipse(g, 0, 92, 21, 13, SKETCH_FILL); rect(g, -21, 92, 42, 26, SKETCH_FILL); },
   'chef/head': (g) => { ellipse(g, 0, 0, 13, 13, SKETCH_FILL); },
-  'chef/face': (g) => { rect(g, -5, -1, 2, 2, SKETCH_INK); rect(g, 4, -1, 2, 2, SKETCH_INK); rect(g, -3, 7, 6, 1, SKETCH_INK); },
+  'chef/face': (g) => { rect(g, -5, -1, 2, 2, SKETCH_FACE); rect(g, 4, -1, 2, 2, SKETCH_FACE); rect(g, -3, 7, 6, 1, SKETCH_FACE); },
   judge: (g) => {
     ellipse(g, 0, 108, 26, 22, SKETCH_FILL); rect(g, -6, 72, 12, 16, SKETCH_FILL); ellipse(g, 0, 60, 16, 16, SKETCH_FILL);
-    rect(g, -6, 58, 2, 2, SKETCH_INK); rect(g, 4, 58, 2, 2, SKETCH_INK);
+    rect(g, -6, 58, 2, 2, SKETCH_FACE); rect(g, 4, 58, 2, 2, SKETCH_FACE);
   },
   'judge-front': (g) => { ellipse(g, -18, 120, 6, 3, SKETCH_FILL); ellipse(g, 18, 120, 6, 3, SKETCH_FILL); },
   'story/dom': (g) => {
     ellipse(g, 0, 110, 34, 22, SKETCH_FILL); rect(g, -10, 68, 20, 24, SKETCH_FILL); ellipse(g, 0, 58, 17, 18, SKETCH_FILL);
-    rect(g, -7, 58, 3, 2, SKETCH_INK); rect(g, 5, 58, 3, 2, SKETCH_INK);
+    rect(g, -7, 58, 3, 2, SKETCH_FACE); rect(g, 5, 58, 3, 2, SKETCH_FACE);
   },
-  'story/dom-mouth': (g, state) => { if (state === 'talk') ellipse(g, 0, 70, 3, 2, SKETCH_INK); else rect(g, -4, 70, 8, 1, SKETCH_INK); },
+  'story/dom-mouth': (g, state) => { if (state === 'talk') ellipse(g, 0, 70, 3, 2, SKETCH_FACE); else rect(g, -4, 70, 8, 1, SKETCH_FACE); },
   'extras/rat': (g) => { ellipse(g, 0, 0, 6, 3, SKETCH_FILL); ellipse(g, 6, -1, 3, 3, SKETCH_FILL); rect(g, -15, 0, 9, 1, SKETCH_INK); },
   'extras/customer': (g) => { rect(g, -4, 182, 8, 14, SKETCH_FILL); rect(g, -3, 196, 2, 4, SKETCH_FILL); rect(g, 1, 196, 2, 4, SKETCH_FILL); ellipse(g, 0, 177, 4, 4, SKETCH_FILL); },
 };
