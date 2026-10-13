@@ -3,7 +3,7 @@
 **Download the files:** https://gamemackerel.github.io/soupgame/art-branch/soup-pot-aseprite.zip
 **See every piece:** https://gamemackerel.github.io/soupgame/art-branch/
 
-You'll redraw the game's characters, ingredients and backgrounds in **Aseprite** (aseprite.org or Steam, about $20). The pot, the chef's arms, flames, food in the pot, buttons and text are drawn by the game, so you don't draw those.
+You'll redraw the game's characters, ingredients and backgrounds in **Aseprite** (aseprite.org). The pot, the chef's arms, flames, food in the pot, buttons and text are drawn by the game, so you don't draw those.
 
 ## How it works
 
@@ -15,17 +15,15 @@ You'll redraw the game's characters, ingredients and backgrounds in **Aseprite**
    - `_old art` is a faint placeholder to show size and position.
    - `_guides` are marks like the pot rim or the table line.
 
-**You only have to draw the first frame of each pose.** Extra frames are optional animation. Leave them empty and the game holds the first frame.
+**To begin, you only have to draw the first frame of each pose.** Extra animation frames will come later.
 
-Some frames are **linked** (joined in the timeline): one drawing used in several poses. Draw it once and it shows up everywhere it's linked.
+Some frames are **linked**: one drawing used in several poses. Draw it once and it shows up everywhere it's linked.
 
 ## Rules
 
 - Don't resize the canvas, and don't rename groups or tags.
 - Keep each piece where the old art is.
 - Transparent background, hard pixels (use the Pencil). Soft transparency is fine for glows.
-- Don't draw motion through space. Bobbing, hopping and shaking are done by the game.
-- Hidden layers aren't used, so hide anything you want to keep but not ship.
 
 ## Suggested order
 
@@ -33,7 +31,7 @@ Ingredients → dishes → the chef → judges → Papa Dom and extras → backg
 
 ## Sending it back
 
-Just save in Aseprite, and send back the `.aseprite` files you changed (or, if you use GitHub Desktop, commit and push to the `art` branch). Unfinished work is fine: a piece only goes into the game once the first frame of every pose is drawn.
+Just save in Aseprite, and send back the `.aseprite` files you changed once you finish a batch of them. Send a few at a time as you complete them.
 
 ---
 
