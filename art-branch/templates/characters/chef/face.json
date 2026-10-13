@@ -1,0 +1,113 @@
+{
+  "name": "chef/face",
+  "path": "characters/chef/face",
+  "group": "characters",
+  "cell": [
+    24,
+    22
+  ],
+  "anchor": [
+    12,
+    8
+  ],
+  "sheet": [
+    24,
+    176
+  ],
+  "states": [
+    {
+      "name": "idle",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "blink",
+      "row": 1,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": "idle with eyes shut, shown for a few frames now and then"
+    },
+    {
+      "name": "happy",
+      "row": 2,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "love",
+      "row": 3,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": "after a great taste"
+    },
+    {
+      "name": "meh",
+      "row": 4,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [
+        "worried"
+      ],
+      "note": null
+    },
+    {
+      "name": "gross",
+      "row": 5,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": "burnt food"
+    },
+    {
+      "name": "shock",
+      "row": 6,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [
+        "panic"
+      ],
+      "note": null
+    },
+    {
+      "name": "angry",
+      "row": 7,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": "flipping the pot over"
+    }
+  ],
+  "shared": {
+    "worried": "meh",
+    "panic": "shock"
+  },
+  "order": [
+    "idle",
+    "blink",
+    "happy",
+    "love",
+    "meh",
+    "worried",
+    "gross",
+    "shock",
+    "panic",
+    "angry"
+  ],
+  "notes": "Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).",
+  "guides": []
+}

@@ -1,0 +1,60 @@
+{
+  "name": "judges/biscuit-front",
+  "path": "characters/judges/biscuit-front",
+  "group": "characters",
+  "cell": [
+    96,
+    48
+  ],
+  "anchor": [
+    48,
+    -96
+  ],
+  "sheet": [
+    384,
+    96
+  ],
+  "states": [
+    {
+      "name": "neutral",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [
+        "tasting",
+        "meh",
+        "upset"
+      ],
+      "note": "waiting"
+    },
+    {
+      "name": "happy",
+      "row": 1,
+      "frames": 4,
+      "fps": 4,
+      "loop": true,
+      "also": [],
+      "note": "scored 7+"
+    }
+  ],
+  "shared": {
+    "tasting": "neutral",
+    "meh": "neutral",
+    "upset": "neutral"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset"
+  ],
+  "notes": "Biscuit: an excitable pup. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ]
+}

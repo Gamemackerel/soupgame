@@ -1,0 +1,54 @@
+{
+  "name": "story/dom",
+  "path": "characters/story/dom",
+  "group": "characters",
+  "cell": [
+    120,
+    130
+  ],
+  "anchor": [
+    60,
+    0
+  ],
+  "sheet": [
+    120,
+    390
+  ],
+  "states": [
+    {
+      "name": "sad",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "stern",
+      "row": 1,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    },
+    {
+      "name": "happy",
+      "row": 2,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    }
+  ],
+  "shared": {},
+  "order": [
+    "sad",
+    "stern",
+    "happy"
+  ],
+  "notes": "Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).",
+  "guides": []
+}

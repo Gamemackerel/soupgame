@@ -1,0 +1,34 @@
+{
+  "name": "chef/head",
+  "path": "characters/chef/head",
+  "group": "characters",
+  "cell": [
+    40,
+    52
+  ],
+  "anchor": [
+    20,
+    36
+  ],
+  "sheet": [
+    40,
+    52
+  ],
+  "states": [
+    {
+      "name": "idle",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    }
+  ],
+  "shared": {},
+  "order": [
+    "idle"
+  ],
+  "notes": "Head, ears and toque, with no face. The anchor is the center of his face; chef/face is laid over it.",
+  "guides": []
+}

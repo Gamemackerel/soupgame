@@ -1,0 +1,2982 @@
+[
+  {
+    "name": "chef/body",
+    "path": "characters/chef/body",
+    "group": "characters",
+    "cell": [
+      48,
+      46
+    ],
+    "anchor": [
+      24,
+      -74
+    ],
+    "sheet": [
+      48,
+      46
+    ],
+    "states": [
+      {
+        "name": "idle",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "idle"
+    ],
+    "notes": "His torso and coat above the pot rim. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.",
+    "guides": []
+  },
+  {
+    "name": "chef/head",
+    "path": "characters/chef/head",
+    "group": "characters",
+    "cell": [
+      40,
+      52
+    ],
+    "anchor": [
+      20,
+      36
+    ],
+    "sheet": [
+      40,
+      52
+    ],
+    "states": [
+      {
+        "name": "idle",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "idle"
+    ],
+    "notes": "Head, ears and toque, with no face. The anchor is the center of his face; chef/face is laid over it.",
+    "guides": []
+  },
+  {
+    "name": "chef/face",
+    "path": "characters/chef/face",
+    "group": "characters",
+    "cell": [
+      24,
+      22
+    ],
+    "anchor": [
+      12,
+      8
+    ],
+    "sheet": [
+      24,
+      176
+    ],
+    "states": [
+      {
+        "name": "idle",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "blink",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "idle with eyes shut, shown for a few frames now and then"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "love",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "after a great taste"
+      },
+      {
+        "name": "meh",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "worried"
+        ],
+        "note": null
+      },
+      {
+        "name": "gross",
+        "row": 5,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "burnt food"
+      },
+      {
+        "name": "shock",
+        "row": 6,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "panic"
+        ],
+        "note": null
+      },
+      {
+        "name": "angry",
+        "row": 7,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "flipping the pot over"
+      }
+    ],
+    "shared": {
+      "worried": "meh",
+      "panic": "shock"
+    },
+    "order": [
+      "idle",
+      "blink",
+      "happy",
+      "love",
+      "meh",
+      "worried",
+      "gross",
+      "shock",
+      "panic",
+      "angry"
+    ],
+    "notes": "Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).",
+    "guides": []
+  },
+  {
+    "name": "judges/pounce",
+    "path": "characters/judges/pounce",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Sir Pounce: a snooty cat. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/pounce-front",
+    "path": "characters/judges/pounce-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Sir Pounce: a snooty cat. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/biscuit",
+    "path": "characters/judges/biscuit",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Biscuit: an excitable pup. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/biscuit-front",
+    "path": "characters/judges/biscuit-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      384,
+      96
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      },
+      {
+        "name": "happy",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 7+"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Biscuit: an excitable pup. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/nanny",
+    "path": "characters/judges/nanny",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Nanny Mae: a cozy old goat. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/nanny-front",
+    "path": "characters/judges/nanny-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      384,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Nanny Mae: a cozy old goat. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/joe",
+    "path": "characters/judges/joe",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Joe: the pizza-shop regular. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/joe-front",
+    "path": "characters/judges/joe-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      384,
+      96
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "spoon in mouth"
+      }
+    ],
+    "shared": {
+      "happy": "tasting",
+      "meh": "tasting",
+      "upset": "tasting"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Joe: the pizza-shop regular. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/gordo",
+    "path": "characters/judges/gordo",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "meh"
+        ],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "upset",
+        "row": 3,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "scored under 5"
+      },
+      {
+        "name": "rant",
+        "row": 4,
+        "frames": 4,
+        "fps": 12,
+        "loop": true,
+        "also": [],
+        "note": "upset and speaking: shaking with rage, jabbing a finger"
+      }
+    ],
+    "shared": {
+      "meh": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset",
+      "rant"
+    ],
+    "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/gordo-front",
+    "path": "characters/judges/gordo-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      144
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting"
+        ],
+        "note": "waiting"
+      },
+      {
+        "name": "happy",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "meh",
+          "upset"
+        ],
+        "note": "scored 7+"
+      },
+      {
+        "name": "rant",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "upset and speaking: shaking with rage, jabbing a finger"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "meh": "happy",
+      "upset": "happy"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset",
+      "rant"
+    ],
+    "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/paul",
+    "path": "characters/judges/paul",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      768
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      },
+      {
+        "name": "handshake",
+        "row": 5,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "offering the handshake (9+ on a dish he loves)"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset",
+      "handshake"
+    ],
+    "notes": "Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "judges/paul-front",
+    "path": "characters/judges/paul-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      576,
+      96
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      },
+      {
+        "name": "handshake",
+        "row": 1,
+        "frames": 6,
+        "fps": 12,
+        "loop": false,
+        "also": [],
+        "note": "his arm reaches across the table, then holds (plays once)"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset",
+      "handshake"
+    ],
+    "notes": "Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "story/dom",
+    "path": "characters/story/dom",
+    "group": "characters",
+    "cell": [
+      120,
+      130
+    ],
+    "anchor": [
+      60,
+      0
+    ],
+    "sheet": [
+      120,
+      390
+    ],
+    "states": [
+      {
+        "name": "sad",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "stern",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "sad",
+      "stern",
+      "happy"
+    ],
+    "notes": "Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).",
+    "guides": []
+  },
+  {
+    "name": "story/dom-mouth",
+    "path": "characters/story/dom-mouth",
+    "group": "characters",
+    "cell": [
+      14,
+      8
+    ],
+    "anchor": [
+      7,
+      -66
+    ],
+    "sheet": [
+      14,
+      32
+    ],
+    "states": [
+      {
+        "name": "sad",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "stern",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "talk",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "open, mid-word"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "sad",
+      "stern",
+      "happy",
+      "talk"
+    ],
+    "notes": "Papa Dom's mouth, laid over his face (same anchor as story/dom). One per mood, and open for talking: while he speaks, the game alternates the open mouth with his mood's.",
+    "guides": []
+  },
+  {
+    "name": "extras/rat",
+    "path": "characters/extras/rat",
+    "group": "characters",
+    "cell": [
+      28,
+      12
+    ],
+    "anchor": [
+      17,
+      6
+    ],
+    "sheet": [
+      112,
+      12
+    ],
+    "states": [
+      {
+        "name": "walk",
+        "row": 0,
+        "frames": 4,
+        "fps": 15,
+        "loop": true,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "walk"
+    ],
+    "notes": "Scurries across the pavement outside the shop at night, left to right.",
+    "guides": []
+  },
+  {
+    "name": "extras/customer",
+    "path": "characters/extras/customer",
+    "group": "characters",
+    "cell": [
+      12,
+      29
+    ],
+    "anchor": [
+      6,
+      -172
+    ],
+    "sheet": [
+      12,
+      290
+    ],
+    "states": [
+      {
+        "name": "c0",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c1",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c2",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c3",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c4",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c5",
+        "row": 5,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c6",
+        "row": 6,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c7",
+        "row": 7,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c8",
+        "row": 8,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "c9",
+        "row": 9,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "c0",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8",
+      "c9"
+    ],
+    "notes": "Ten different customers queueing outside the shop by day, facing right. The anchor is the middle of their feet line minus 172 (they stand on the pavement).",
+    "guides": []
+  },
+  {
+    "name": "ingredients/water",
+    "path": "ingredients/water",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Water: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/oil",
+    "path": "ingredients/oil",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Oil: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/cream",
+    "path": "ingredients/cream",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Cream: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/wine",
+    "path": "ingredients/wine",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Wine: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/vinegar",
+    "path": "ingredients/vinegar",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Vinegar: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/soy",
+    "path": "ingredients/soy",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Soy Sauce: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/salt",
+    "path": "ingredients/salt",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Salt: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/sugar",
+    "path": "ingredients/sugar",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Sugar: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/flour",
+    "path": "ingredients/flour",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Flour: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/chili",
+    "path": "ingredients/chili",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Chili Flakes: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/cumin",
+    "path": "ingredients/cumin",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Cumin: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/pepper",
+    "path": "ingredients/pepper",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Black Pepper: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/soda",
+    "path": "ingredients/soda",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Baking Soda: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/powder",
+    "path": "ingredients/powder",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Baking Powder: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/yeast",
+    "path": "ingredients/yeast",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Yeast: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/onion",
+    "path": "ingredients/onion",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Onion: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/garlic",
+    "path": "ingredients/garlic",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Garlic: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/carrot",
+    "path": "ingredients/carrot",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Carrot: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/celery",
+    "path": "ingredients/celery",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Celery: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/tomato",
+    "path": "ingredients/tomato",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Tomato: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/potato",
+    "path": "ingredients/potato",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Potato: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/corn",
+    "path": "ingredients/corn",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Corn: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/beans",
+    "path": "ingredients/beans",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Beans: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/herbs",
+    "path": "ingredients/herbs",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Fresh Herbs: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/meat",
+    "path": "ingredients/meat",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Beef: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/chicken",
+    "path": "ingredients/chicken",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Chicken: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/fish",
+    "path": "ingredients/fish",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Whole Fish: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/egg",
+    "path": "ingredients/egg",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      32
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      },
+      {
+        "name": "cracked",
+        "row": 1,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default",
+      "cracked"
+    ],
+    "notes": "Egg: on the shelf, and in the chef's hand. Cracked: after tapping it on the rim.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/pasta",
+    "path": "ingredients/pasta",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Small Pasta: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "ingredients/extinguisher",
+    "path": "ingredients/extinguisher",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Fire Extinguisher: on the shelf, and in the chef's hand.",
+    "guides": []
+  },
+  {
+    "name": "dishes/tomato-soup",
+    "path": "ingredients/dishes/tomato-soup",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Tomato Soup, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/creamy-corn",
+    "path": "ingredients/dishes/creamy-corn",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Creamy Corn Soup, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/flatbread",
+    "path": "ingredients/dishes/flatbread",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Pan Flatbread, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/fish-stew",
+    "path": "ingredients/dishes/fish-stew",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Fish Stew, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/minestrone",
+    "path": "ingredients/dishes/minestrone",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Minestrone, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/french-onion",
+    "path": "ingredients/dishes/french-onion",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "French Onion Soup, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/beef-chowder",
+    "path": "ingredients/dishes/beef-chowder",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Beef Chowder, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/goulash",
+    "path": "ingredients/dishes/goulash",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Goulash, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/sponge-cake",
+    "path": "ingredients/dishes/sponge-cake",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Pot-Oven Sponge Cake, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "dishes/chili",
+    "path": "ingredients/dishes/chili",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Chili con Carne, finished: its ticket on the level select board.",
+    "guides": []
+  },
+  {
+    "name": "backgrounds/kitchen",
+    "path": "backgrounds/kitchen",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Sandbox kitchen. The pot, flames and everything in it are drawn on top, centered at the bottom.",
+    "guides": [
+      {
+        "y": 106,
+        "label": "pot rim"
+      },
+      {
+        "y": 206,
+        "label": "pot bottom"
+      }
+    ]
+  },
+  {
+    "name": "backgrounds/pizza-shop",
+    "path": "backgrounds/pizza-shop",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Papa Dom's pizza shop kitchen (Pizza Shop levels). The pot sits in the same place as the kitchen.",
+    "guides": [
+      {
+        "y": 106,
+        "label": "pot rim"
+      },
+      {
+        "y": 206,
+        "label": "pot bottom"
+      }
+    ]
+  },
+  {
+    "name": "backgrounds/studio-kitchen",
+    "path": "backgrounds/studio-kitchen",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Souped Up's studio kitchen (First Michelin Star levels), with the faded EVERY SECOND COUNTS sign.",
+    "guides": [
+      {
+        "y": 106,
+        "label": "pot rim"
+      },
+      {
+        "y": 206,
+        "label": "pot bottom"
+      }
+    ]
+  },
+  {
+    "name": "backgrounds/stage",
+    "path": "backgrounds/stage",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "The judging stage behind the judges, with a spotlight on each of the three seats (x = 76, 160, 244). The table is a separate layer.",
+    "guides": []
+  },
+  {
+    "name": "backgrounds/stage-table",
+    "path": "backgrounds/stage-table",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "The judging table and the floor, drawn over the judges. Keep everything above the table top transparent. The bowl sits at y = 140, score cards above x+30.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ]
+  },
+  {
+    "name": "backgrounds/shop-night",
+    "path": "backgrounds/shop-night",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Papa Dom's shop front at night, struggling. The neon sign's letters are drawn on the dark sign board by code (one flickers). The rat runs along y = 206.",
+    "guides": []
+  },
+  {
+    "name": "backgrounds/shop-day",
+    "path": "backgrounds/shop-day",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "The same shop front by day, after it takes off. The neon sign is drawn by code; the queue of customers stands on the pavement in front of the window.",
+    "guides": []
+  },
+  {
+    "name": "backgrounds/level-select",
+    "path": "backgrounds/level-select",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "The wall behind the level select board (a kitchen pass with heat lamps). The tier plates, ticket rails and tickets are drawn on top by code.",
+    "guides": []
+  }
+]
