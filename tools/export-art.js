@@ -1,6 +1,7 @@
 // Renders every artist-owned sprite (js/sprites.js) into art/templates/ for redrawing:
 //   <path>.png        the sheet at native size: one row per state, one column per frame. Paint over this.
-//   <path>.guide.png  the same, zoomed, with state names, frame numbers, the anchor (red cross) and guide lines.
+//   <path>.guide.png  the required drawings (one per pose), zoomed, with names, the anchor (red cross) and guide lines.
+//   <path>.frames.png every frame, the optional animation too (only for sprites that animate).
 //   <path>.json       cell size, anchor, and each row's state, frame count and speed.
 // plus art/templates/catalog.json and art/index.html, a page showing every guide by group.
 //
@@ -53,11 +54,13 @@ const server = http.createServer((req, res) => {
 
   fs.rmSync(OUT, { recursive: true, force: true });
   const png = (url) => Buffer.from(url.split(',')[1], 'base64');
-  for (const { meta, sheet, guide } of all.sheets) {
+  for (const { meta, sheet, guide, frames } of all.sheets) {
     const base = path.join(OUT, meta.path);
     fs.mkdirSync(path.dirname(base), { recursive: true });
     fs.writeFileSync(base + '.png', png(sheet));
     fs.writeFileSync(base + '.guide.png', png(guide));
+    if (frames) fs.writeFileSync(base + '.frames.png', png(frames));
+    meta.animated = !!frames;
     fs.writeFileSync(base + '.json', JSON.stringify(meta, null, 2) + '\n');
   }
   const metas = all.sheets.map((a) => a.meta);
@@ -82,9 +85,11 @@ function catalog(metas) {
       <h3>${esc(m.path)}</h3>
       <p class="facts">cell ${m.cell[0]}×${m.cell[1]} · anchor ${m.anchor[0]},${m.anchor[1]} · sheet ${m.sheet[0]}×${m.sheet[1]} ·
         <a href="templates/${esc(m.path)}.png">template</a> · <a href="templates/${esc(m.path)}.json">json</a></p>
+      ${m.spec ? `<p class="spec"><b>Spec:</b> ${esc(m.spec)}</p>` : ''}
       <p>${esc(m.notes)}</p>
       <table>${m.states.map((s) => `<tr><td>${s.row}</td><td><b>${esc(s.name)}</b>${s.also && s.also.length ? `<br><small>also used for ${esc(s.also.join(', '))}</small>` : ''}</td><td>1 drawing${s.frames > 1 ? ` <small>+ ${s.frames - 1} optional animation frame${s.frames > 2 ? 's' : ''} (${s.fps} fps${s.loop ? ', loops' : ', plays once'})</small>` : ''}</td><td>${esc(s.note || '')}</td></tr>`).join('')}</table>
       <img src="templates/${esc(m.path)}.guide.png" alt="${esc(m.path)} guide">
+      ${m.animated ? `<details><summary>Show the optional animation frames</summary><img src="templates/${esc(m.path)}.frames.png" alt="${esc(m.path)} animation frames" loading="lazy"></details>` : ''}
     </section>`).join('');
     const drawings = ms.reduce((n, m) => n + m.states.length, 0), extra = ms.reduce((n, m) => n + m.states.reduce((k, s) => k + s.frames - 1, 0), 0);
     return `<h2 id="${g}">${g[0].toUpperCase() + g.slice(1)} <small>${drawings} drawings${extra ? ` + ${extra} optional animation frames` : ''}</small></h2>${cards}`;
@@ -103,6 +108,8 @@ function catalog(metas) {
   .sprite h3 { margin: 0; font-family: ui-monospace, monospace; } .facts { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
   table { border-collapse: collapse; font-size: 13px; margin-bottom: 10px; } td { padding: 2px 10px 2px 0; vertical-align: top; }
   img { image-rendering: pixelated; max-width: 100%; display: block; }
+  .spec { background: var(--bg); border-left: 3px solid var(--accent); padding: 6px 10px; margin: 8px 0; }
+  details { margin-top: 10px; } summary { cursor: pointer; color: var(--accent); }
   a { color: var(--accent); }
 </style></head><body><main>
 <h1>Soup Pot: art templates</h1>

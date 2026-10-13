@@ -30,5 +30,7 @@
     "default"
   ],
   "notes": "The judging stage behind the judges, with a spotlight on each of the three seats (x = 76, 160, 244). The table is a separate layer.",
-  "guides": []
+  "spec": "",
+  "guides": [],
+  "animated": false
 }

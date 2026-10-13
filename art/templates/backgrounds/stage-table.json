@@ -30,10 +30,12 @@
     "default"
   ],
   "notes": "The judging table and the floor, drawn over the judges. Keep everything above the table top transparent. The bowl sits at y = 140, score cards above x+30.",
+  "spec": "",
   "guides": [
     {
       "y": 118,
       "label": "table top"
     }
-  ]
+  ],
+  "animated": false
 }

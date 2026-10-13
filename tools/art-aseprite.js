@@ -143,6 +143,8 @@ function make(doc) {
     layers.push({ name: ly.part, group: true, level: 0 });
     drawLayer[ly.part] = layers.push({ name: 'draw here', level: 1 }) - 1;
   }
+  // The brief, where a piece has one, as empty reference layers at the top: the artist reads it in the layer list.
+  for (const p of L.parts) if (p.t.meta.spec) layers.push({ name: `_SPEC ${p.group}: ${p.t.meta.spec}`, level: 0, reference: true, locked: true });
   // Link every frame that shows a drawing made elsewhere (a shared pose, or a part that's still while others move),
   // so the artist sees it everywhere it's used but draws it once.
   for (const p of L.parts) for (const t of L.tags) {
