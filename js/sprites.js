@@ -326,7 +326,7 @@ Sprites.def('backgrounds/level-select', { path: 'backgrounds/level-select', w: W
 // On the art branch every character is the same plain, bordered gray sketch, so the old drawings don't steer the
 // redraw: just the right size and place (head, body, hands on the table...). Every pose looks the same; the pose
 // names and notes say what each one is. (The list of drawings asked for is fixed in js/sprite-layout.js.)
-const PLACEHOLDER_SKETCHES = false;
+const PLACEHOLDER_SKETCHES = true;   // the art branch: plain placeholders (false on main)
 const SKETCH_FILL = [226, 222, 214], SKETCH_INK = [70, 60, 66];
 const SKETCH = {
   'chef/body': (g) => { ellipse(g, 0, 92, 21, 13, SKETCH_FILL); rect(g, -21, 92, 42, 26, SKETCH_FILL); },
