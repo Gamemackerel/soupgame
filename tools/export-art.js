@@ -5,7 +5,10 @@
 // plus art/templates/catalog.json and art/index.html, a page showing every guide by group.
 //
 // Needs Playwright (npm i -D playwright, then npx playwright install chromium), or a system Chrome.
-// Usage: node tools/export-art.js
+// Usage: node tools/export-art.js [--relayout]
+//   --relayout  re-derives which states share a drawing and how many frames each needs from the current drawings,
+//               and rewrites js/sprite-layout.js. Only do this from the detailed drawings (main), never from
+//               placeholder art: the layout is the list of drawings the artist is asked for.
 const fs = require('fs'), path = require('path'), http = require('http');
 const ROOT = path.join(__dirname, '..'), OUT = path.join(ROOT, 'art', 'templates');
 
@@ -30,20 +33,34 @@ const server = http.createServer((req, res) => {
   await page.waitForFunction(() => typeof Sprites !== 'undefined' && Object.keys(Sprites.defs).length);
   await page.evaluate(() => document.fonts.ready);
   // Templates always come from the code drawings, never from finished art.
-  const all = await page.evaluate(() => { Sprites.over = {}; Sprites.cache = {}; return Sprites.exportAll(); });
+  const relayout = process.argv.includes('--relayout');
+  const all = await page.evaluate((relayout) => {
+    Sprites.over = {}; Sprites.cache = {};
+    if (relayout) {
+      window.SPRITE_LAYOUT = undefined;
+      for (const d of Object.values(Sprites.defs)) { d.settled = false; d.rows = d.order.slice(); d.alias = {}; for (const s of d.order) d.states[s].frames = d.frames0[s]; }
+    }
+    return { sheets: Sprites.exportAll(), layout: Sprites.layout() };
+  }, relayout);
+  if (relayout || !fs.existsSync(path.join(ROOT, 'js', 'sprite-layout.js'))) {
+    fs.writeFileSync(path.join(ROOT, 'js', 'sprite-layout.js'), '// Which sprite states share a drawing, and how many frames each has: the list of drawings the artist is asked\n' +
+      '// for. Written by tools/export-art.js --relayout from the detailed drawings; see Sprites.settle.\n' +
+      'var SPRITE_LAYOUT = ' + JSON.stringify(all.layout) + ';\n');
+    console.log('Wrote js/sprite-layout.js.');
+  }
   await browser.close(); server.close();
   if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
 
   fs.rmSync(OUT, { recursive: true, force: true });
   const png = (url) => Buffer.from(url.split(',')[1], 'base64');
-  for (const { meta, sheet, guide } of all) {
+  for (const { meta, sheet, guide } of all.sheets) {
     const base = path.join(OUT, meta.path);
     fs.mkdirSync(path.dirname(base), { recursive: true });
     fs.writeFileSync(base + '.png', png(sheet));
     fs.writeFileSync(base + '.guide.png', png(guide));
     fs.writeFileSync(base + '.json', JSON.stringify(meta, null, 2) + '\n');
   }
-  const metas = all.map((a) => a.meta);
+  const metas = all.sheets.map((a) => a.meta);
   fs.writeFileSync(path.join(OUT, 'catalog.json'), JSON.stringify(metas, null, 2) + '\n');
   fs.writeFileSync(path.join(ROOT, 'art', 'index.html'), catalog(metas));
 

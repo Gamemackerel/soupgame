@@ -17,6 +17,7 @@ const Sprites = {
     d.order = Object.keys(d.states);
     d.rows = d.order.slice(); d.alias = {};   // sheet rows; states that share another state's drawing (see settle)
     for (const k of d.order) d.states[k] = Object.assign({ frames: 1, fps: 8, loop: true }, d.states[k]);
+    d.frames0 = Object.fromEntries(d.order.map((k) => [k, d.states[k].frames]));   // before settling
     this.defs[name] = d; this.byPath[d.path] = d;
   },
 
@@ -84,9 +85,17 @@ const Sprites = {
   // Nobody should draw the same thing twice. A state whose code frames all come out the same is one frame; a state
   // that comes out exactly like an earlier one (a judge's paws in two moods) shares that state's drawing and gets
   // no row of its own. Done before laying out a template or reading finished art, so both agree on the sheet.
+  // The result is frozen in js/sprite-layout.js (tools/export-art.js --relayout writes it from the detailed
+  // drawings), so placeholder art, which may look nothing like the poses, never changes what the artist draws.
   settle(name) {
     const d = this.defs[name];
     if (d.settled) return; d.settled = true;
+    const fixed = typeof SPRITE_LAYOUT !== 'undefined' && SPRITE_LAYOUT[name];
+    if (fixed && d.order.every((s) => fixed.frames[s] !== undefined)) {
+      for (const s of d.order) d.states[s].frames = fixed.frames[s];
+      d.rows = fixed.rows.slice(); d.alias = Object.assign({}, fixed.alias);
+      return;
+    }
     const px = (s, f) => this.canvas(name, s, f).getContext('2d').getImageData(0, 0, d.w, d.h).data.join();
     const look = {};
     for (const s of d.order) {
@@ -157,6 +166,17 @@ const Sprites = {
       }
     });
     return cv;
+  },
+
+  // The settled layout of every sprite, for js/sprite-layout.js.
+  layout() {
+    const out = {};
+    for (const name of Object.keys(this.defs)) {
+      this.settle(name);
+      const d = this.defs[name];
+      out[name] = { rows: d.rows, alias: d.alias, frames: Object.fromEntries(d.order.map((s) => [s, d.states[s].frames])) };
+    }
+    return out;
   },
 
   exportAll() {
@@ -301,5 +321,38 @@ Sprites.def('backgrounds/level-select', { path: 'backgrounds/level-select', w: W
     for (let x = 30; x < W; x += 64) { ellipse(g, x, 3, 10, 3, [90, 70, 60]); g.fillStyle = 'rgba(255,170,80,0.08)'; g.beginPath(); g.moveTo(x - 8, 4); g.lineTo(x + 8, 4); g.lineTo(x + 30, 30); g.lineTo(x - 30, 30); g.fill(); }
     rect(g, 0, 22, W, 2, [96, 100, 114]);
   } });
+
+// ======================= Placeholder sketches =======================
+// On the art branch every character is the same plain, bordered gray sketch, so the old drawings don't steer the
+// redraw: just the right size and place (head, body, hands on the table...). Every pose looks the same; the pose
+// names and notes say what each one is. (The list of drawings asked for is fixed in js/sprite-layout.js.)
+const PLACEHOLDER_SKETCHES = false;
+const SKETCH_FILL = [226, 222, 214], SKETCH_INK = [70, 60, 66];
+const SKETCH = {
+  'chef/body': (g) => { ellipse(g, 0, 92, 21, 13, SKETCH_FILL); rect(g, -21, 92, 42, 26, SKETCH_FILL); },
+  'chef/head': (g) => { ellipse(g, 0, 0, 13, 13, SKETCH_FILL); ellipse(g, 0, -20, 12, 9, SKETCH_FILL); },
+  'chef/face': (g) => { rect(g, -5, -1, 2, 2, SKETCH_INK); rect(g, 4, -1, 2, 2, SKETCH_INK); rect(g, -3, 7, 6, 1, SKETCH_INK); },
+  judge: (g) => {
+    ellipse(g, 0, 108, 26, 22, SKETCH_FILL); rect(g, -6, 72, 12, 16, SKETCH_FILL); ellipse(g, 0, 60, 16, 16, SKETCH_FILL);
+    rect(g, -6, 58, 2, 2, SKETCH_INK); rect(g, 4, 58, 2, 2, SKETCH_INK);
+  },
+  'judge-front': (g) => { ellipse(g, -18, 120, 6, 3, SKETCH_FILL); ellipse(g, 18, 120, 6, 3, SKETCH_FILL); },
+  'story/dom': (g) => {
+    ellipse(g, 0, 110, 34, 22, SKETCH_FILL); rect(g, -10, 68, 20, 24, SKETCH_FILL); ellipse(g, 0, 58, 17, 18, SKETCH_FILL);
+    rect(g, -7, 58, 3, 2, SKETCH_INK); rect(g, 5, 58, 3, 2, SKETCH_INK);
+  },
+  'story/dom-mouth': (g, state) => { if (state === 'talk') ellipse(g, 0, 70, 3, 2, SKETCH_INK); else rect(g, -4, 70, 8, 1, SKETCH_INK); },
+  'extras/rat': (g) => { ellipse(g, 0, 0, 6, 3, SKETCH_FILL); ellipse(g, 6, -1, 3, 3, SKETCH_FILL); rect(g, -15, 0, 9, 1, SKETCH_INK); },
+  'extras/customer': (g) => { rect(g, -4, 182, 8, 14, SKETCH_FILL); rect(g, -3, 196, 2, 4, SKETCH_FILL); rect(g, 1, 196, 2, 4, SKETCH_FILL); ellipse(g, 0, 177, 4, 4, SKETCH_FILL); },
+};
+if (PLACEHOLDER_SKETCHES) {
+  for (const d of Object.values(Sprites.defs)) {
+    const kind = d.name.startsWith('judges/') ? (d.name.endsWith('-front') ? 'judge-front' : 'judge') : d.name;
+    if (!SKETCH[kind]) continue;
+    d.render = (g, state) => SKETCH[kind](g, state);
+    d.static = true;
+    d.post = kind === 'chef/face' || kind === 'story/dom-mouth' ? null : (cv) => outlineCanvas(cv, SKETCH_INK);   // features sit on a face: no border
+  }
+}
 
 Sprites.load();
