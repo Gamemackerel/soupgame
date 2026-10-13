@@ -195,7 +195,7 @@ const Title = {
   },
   draw(g) {
     // The kitchen, dimmed, with the pot as a backdrop.
-    g.drawImage(Sprites.canvas('backgrounds/kitchen', 'default', 0), 0, 0);
+    g.drawImage(Sprites.canvas('backgrounds/studio-kitchen', 'default', 0), 0, 0);
     Art.drawPotBack(g); Art.drawPotFront(g, 0);
     rect(g, 0, 0, W, H, 'rgba(20,12,18,0.62)');
     for (const b of this.buttons()) button(g, b, this.hover === b, b.danger);

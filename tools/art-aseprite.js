@@ -64,8 +64,8 @@ function documents() {
   const dishIds = fs.readdirSync(path.join(TPL, 'ingredients', 'dishes')).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5));
   docs.push({ file: 'dishes', kind: 'items', group: 'dish', items: dishIds.map((id) => ({ sprite: 'ingredients/dishes/' + id, state: 'default', tag: id })) });
 
-  for (const bg of ['kitchen', 'pizza-shop', 'studio-kitchen', 'shop-night', 'shop-day', 'level-select']) {
-    const potLines = ['kitchen', 'pizza-shop', 'studio-kitchen'].includes(bg) ? [{ guide: '_guides (pot area)', draw: (img) => { const POT = { l: 78, r: 242, t: 106, b: 206 }; for (let x = POT.l; x <= POT.r; x += 2) { img.data.set(BLUE, (POT.t * img.w + x) * 4); img.data.set(BLUE, (POT.b * img.w + x) * 4); } } }] : [];
+  for (const bg of ['pizza-shop', 'studio-kitchen', 'shop-night', 'shop-day', 'level-select']) {
+    const potLines = ['pizza-shop', 'studio-kitchen'].includes(bg) ? [{ guide: '_guides (pot area)', draw: (img) => { const POT = { l: 78, r: 242, t: 106, b: 206 }; for (let x = POT.l; x <= POT.r; x += 2) { img.data.set(BLUE, (POT.t * img.w + x) * 4); img.data.set(BLUE, (POT.b * img.w + x) * 4); } } }] : [];
     docs.push({ file: 'backgrounds/' + bg, kind: 'parts', parts: { background: { sprite: 'backgrounds/' + bg, at: [0, 0] } }, layers: [{ part: 'background' }, ...potLines] });
   }
   // The stage and its table, with the judges between them for reference.

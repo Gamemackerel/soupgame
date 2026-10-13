@@ -2735,50 +2735,6 @@
     "animated": false
   },
   {
-    "name": "backgrounds/kitchen",
-    "path": "backgrounds/kitchen",
-    "group": "backgrounds",
-    "cell": [
-      320,
-      240
-    ],
-    "anchor": [
-      0,
-      0
-    ],
-    "sheet": [
-      320,
-      240
-    ],
-    "states": [
-      {
-        "name": "default",
-        "row": 0,
-        "frames": 1,
-        "fps": null,
-        "loop": null,
-        "also": [],
-        "note": null
-      }
-    ],
-    "shared": {},
-    "order": [
-      "default"
-    ],
-    "notes": "Sandbox kitchen. The pot, flames and everything in it are drawn on top, centered at the bottom.",
-    "guides": [
-      {
-        "y": 106,
-        "label": "pot rim"
-      },
-      {
-        "y": 206,
-        "label": "pot bottom"
-      }
-    ],
-    "animated": false
-  },
-  {
     "name": "backgrounds/pizza-shop",
     "path": "backgrounds/pizza-shop",
     "group": "backgrounds",
@@ -2809,7 +2765,7 @@
     "order": [
       "default"
     ],
-    "notes": "Papa Dom's pizza shop kitchen (Pizza Shop levels). The pot sits in the same place as the kitchen.",
+    "notes": "Papa Dom's pizza shop kitchen (Pizza Shop levels), with an exposed brick wall. It should have a pizza menu on a chalkboard, some kind of pizza advertisement, a pizza oven, and a pizza paddle hung on the wall. The pot, flames and everything in it are drawn on top, centered at the bottom.",
     "guides": [
       {
         "y": 106,
@@ -2853,7 +2809,7 @@
     "order": [
       "default"
     ],
-    "notes": "Souped Up's studio kitchen (First Michelin Star levels), with the faded EVERY SECOND COUNTS sign.",
+    "notes": "Souped Up's studio kitchen (First Michelin Star levels), also used for the sandbox and behind the title screen. It should have a window, a hanging set of tools and pans, and a sign that says EVERY SECOND COUNTS. The pot, flames and everything in it are drawn on top, centered at the bottom.",
     "guides": [
       {
         "y": 106,

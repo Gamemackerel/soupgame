@@ -232,7 +232,8 @@ Art.toolIcon = function (type) {
 // ---------------- Kitchen background (pre-rendered once) ----------------
 
 // theme: 'kitchen' (the default kitchen) or 'pizza' (Papa Dom's pizza shop, for the first tier).
-Art.buildBackground = function (theme = 'kitchen') {
+// plain: just the wall pattern and the stovetop, with none of the props (the art branch's placeholder).
+Art.buildBackground = function (theme = 'kitchen', plain = false) {
   const cv = makeCanvas(W, H), g = cv.getContext('2d');
   const pizza = theme === 'pizza';
   if (pizza) {
@@ -250,6 +251,7 @@ Art.buildBackground = function (theme = 'kitchen') {
   }
   for (let y = 0; y < 150; y += 12) rect(g, 0, y + 11, W, 1, [226, 196, 170]);
   }
+  if (!plain) {
   // We're looking slightly up: a range hood looms overhead, seen from underneath.
   for (let y = 0; y < 13; y++) {
     const inset = 70 + y * 1.5;
@@ -275,7 +277,6 @@ Art.buildBackground = function (theme = 'kitchen') {
     rect(g, 60, 104, 76, 6, [110, 60, 46]); rect(g, 60, 104, 76, 1, [150, 84, 64]);
     // A pizza peel leaning on the wall.
     rect(g, 140, 50, 2, 40, [150, 110, 70]); ellipse(g, 141, 94, 7, 6, [190, 150, 100]);
-    rect(g, 0, 140, W, 10, [120, 60, 46]);
   } else {
   // Window with sky, upper right.
   rect(g, 196, 8, 54, 40, [120, 80, 60]); rect(g, 199, 11, 48, 34, [150, 210, 245]);
@@ -289,9 +290,10 @@ Art.buildBackground = function (theme = 'kitchen') {
   hang(92, 18, (x, y) => ellipse(g, x, y + 2, 3, 2, [180, 186, 200]));
   hang(104, 12, (x, y) => { for (let k = -2; k <= 2; k += 2) rect(g, x + k, y, 1, 6, [180, 186, 200]); });
   hang(150, 16, (x, y) => ellipse(g, x, y + 3, 4, 4, [200, 120, 70]));
-  // Shadowy back counter line.
-  rect(g, 0, 140, W, 10, [200, 170, 150]);
   }
+  }
+  // Shadowy back counter line.
+  rect(g, 0, 140, W, 10, pizza ? [120, 60, 46] : [200, 170, 150]);
   // Counter/stovetop: from a low angle its top is a thin sliver, so mostly we see the back wall.
   rect(g, 0, 150, W, 50, [214, 186, 164]);
   for (let x = 0; x < W; x += 12) rect(g, x, 150, 1, 50, [200, 172, 150]);
@@ -301,7 +303,7 @@ Art.buildBackground = function (theme = 'kitchen') {
   }
   rect(g, 10, 200, W - 20, 1, [190, 196, 210]);
   // Stove front panel.
-  if (theme === 'show') {
+  if (theme === 'show' && !plain) {
     // Souped Up's studio kitchen: a poster to keep the contestants moving.
     // An easter egg: a small, faded paper sign tacked to the wall.
     rect(g, 64, 50, 28, 22, [214, 200, 178]); rect(g, 65, 51, 26, 20, [236, 226, 206]);

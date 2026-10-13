@@ -464,8 +464,8 @@ function draw() {
     Judging.draw(g);
   } else {
     const t = Sim.frame;
-    // The default kitchen, Papa Dom's pizza shop for the first tier, Souped Up's studio after that.
-    g.drawImage(Sprites.canvas('backgrounds/' + (!Game.level ? 'kitchen' : Game.level.tier === 0 ? 'pizza-shop' : 'studio-kitchen'), 'default', 0), 0, 0);
+    // Papa Dom's pizza shop for the first tier; Souped Up's studio kitchen otherwise (the sandbox too).
+    g.drawImage(Sprites.canvas('backgrounds/' + (Game.level && Game.level.tier === 0 ? 'pizza-shop' : 'studio-kitchen'), 'default', 0), 0, 0);
     // Soot from a kitchen fire stays on the wall until a fresh pot.
     if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
     Spill.drawWall(g);   // and so does food blasted off the stove
