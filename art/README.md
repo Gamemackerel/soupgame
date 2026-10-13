@@ -17,6 +17,8 @@ You're going to draw the art for Soup Pot. You'll draw on paper first, then turn
 **1. Draw it on paper.**
 Draw a carrot on paper. Keep it simple, with a bold outline and a few colors. Then take a photo of it with your phone and put the photo on your computer.
 
+*Want to use graph paper?* The carrot is **16 × 16 pixels**. Mark out a box 16 squares wide and 16 squares tall, and treat each square as one pixel.
+
 **2. Open the carrot's file.**
 In Aseprite, open `ingredients.aseprite`. It holds every ingredient, one after another.
 
@@ -40,11 +42,20 @@ Done! That's the whole process. 🥕
 
 Same steps, same file. Draw a wine bottle on paper, open `ingredients.aseprite`, click the **wine** tag, bring in your photo, draw on **draw here**, and save.
 
+It's **16 × 16 pixels** too, the same box as the carrot. Every ingredient is.
+
 ## Then: the chef
 
 The chef is a bit bigger, and he comes in pieces:
 
 1. Draw the **whole chef** on paper: chef hat, chef shirt, red scarf.
+
+   *On graph paper,* the whole chef is **48 squares wide and 94 tall**. Count rows from the top:
+   - **Head and hat:** rows 1–52, in the middle 40 columns (leave 4 empty columns on each side).
+   - **Face** (eyes, mustache, mouth): on the head, rows 29–50, in the middle 24 columns.
+   - **Body** (shirt and scarf): rows 49–94, all 48 columns. The neck is where the head and body overlap.
+   - **The pot hides the bottom 9 rows** (86–94), so keep the important stuff above row 86.
+   - **Don't draw arms.** The game draws them from his shoulders.
 2. Open `characters/chef.aseprite`. Now there are three folders: **body**, **head** and **face**.
 3. Bring in your photo, then draw each part in its own folder: his shirt and scarf in **body**, his head and hat in **head**, his eyes, mustache and mouth in **face**.
 4. The tags along the top (**idle**, **happy**, **angry**…) are his moods. The body and head stay the same in every mood, so you only draw them once. Draw a new **face** for each mood.
