@@ -10,7 +10,7 @@ Everything an artist redraws is in three groups:
 
 Everything else (the pot and lid, the chef's arms, flames, steam, food in the pot, buttons, tool icons, text) is drawn by the game and isn't part of this.
 
-To see every sprite with all its poses and frames, open the catalog: https://gamemackerel.github.io/soupgame/art/
+To see every sprite with all its poses and frames, open the catalog: https://gamemackerel.github.io/soupgame/art-branch/
 
 ---
 
