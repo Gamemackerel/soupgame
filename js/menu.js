@@ -163,18 +163,24 @@ const TITLE_BTNS = [
 const SETTINGS_BTNS = [
   { id: 'journal', label: 'JOURNAL', x: 110, y: 84, w: 100, h: 20 },
   { id: 'reset', label: 'RESET PROGRESS', x: 95, y: 122, w: 130, h: 20, danger: true },
-  { id: 'back', label: 'BACK', x: 110, y: 176, w: 100, h: 20 },
+  { id: 'back', label: 'BACK', x: 110, y: 190, w: 100, h: 20 },
 ];
+// Music volume: click or drag along it.
+const MUSIC_SLIDER = { x: 110, y: 168, w: 100, h: 6 };
 
 const Title = {
-  active: false, page: 'root', hover: null, confirmReset: 0, flash: null,
+  active: false, page: 'root', hover: null, confirmReset: 0, flash: null, dragging: false,
   buttons() { return this.page === 'root' ? TITLE_BTNS : SETTINGS_BTNS; },
   update(mx, my) {
     this.hover = this.buttons().find((b) => UI.hit(b, mx, my)) || null;
     if (this.confirmReset > 0) this.confirmReset--;
     if (this.flash && ++this.flash.t > 150) this.flash = null;
   },
+  // Setting the music volume from a point on (or dragged along) the slider.
+  slide(x) { Music.setVolume((x - MUSIC_SLIDER.x) / MUSIC_SLIDER.w); },
   click(x, y) {
+    const s = MUSIC_SLIDER;
+    if (this.page === 'settings' && x >= s.x - 4 && x < s.x + s.w + 4 && y >= s.y - 6 && y < s.y + s.h + 6) { this.dragging = true; this.slide(x); return; }
     const b = this.buttons().find((b) => UI.hit(b, x, y));
     if (!b) return;
     if (b.id === 'story') Game.startStory();
@@ -193,15 +199,23 @@ const Title = {
     Art.drawPotBack(g); Art.drawPotFront(g, 0);
     rect(g, 0, 0, W, H, 'rgba(20,12,18,0.62)');
     for (const b of this.buttons()) button(g, b, this.hover === b, b.danger);
+    if (this.page === 'settings') {
+      // Music volume: a groove, the filled part, and a knob.
+      const s = MUSIC_SLIDER, kx = Math.round(s.x + s.w * Music.volume);
+      rect(g, s.x - 1, s.y - 1, s.w + 2, s.h + 2, [40, 24, 30]); rect(g, s.x, s.y, s.w, s.h, [90, 70, 70]);
+      rect(g, s.x, s.y, kx - s.x, s.h, [250, 210, 90]);
+      rect(g, kx - 3, s.y - 4, 7, s.h + 8, [40, 24, 30]); rect(g, kx - 2, s.y - 3, 5, s.h + 6, [255, 240, 200]);
+    }
   },
   drawText(T) {
     if (this.page === 'root') {
       T.text('SOUP POT', 160, 40, { size: 26, color: '#ffe9c0', align: 'center', shadow: true });
-      T.text('a falling-sand cooking game', 160, 80, { size: 6, color: '#d8c0b0', align: 'center' });
     } else {
       T.text('SETTINGS', 160, 50, { size: 16, color: '#ffe9c0', align: 'center', shadow: true });
       T.text('Every technique you have discovered.', 160, 108, { size: 5, color: '#d8c0b0', align: 'center' });
       T.text('Wipes your scores, badges, journal and story progress.', 160, 146, { size: 5, color: '#d8c0b0', align: 'center' });
+      T.text('MUSIC', MUSIC_SLIDER.x - 8, MUSIC_SLIDER.y - 1, { size: 6, color: '#ffe9c0', align: 'right' });
+      T.text(Math.round(Music.volume * 100) + '%', MUSIC_SLIDER.x + MUSIC_SLIDER.w + 8, MUSIC_SLIDER.y - 1, { size: 6, color: '#d8c0b0' });
     }
     for (const b of this.buttons()) {
       const label = b.id === 'reset' && this.confirmReset > 0 ? 'CLICK AGAIN TO RESET' : b.label;

@@ -41,6 +41,7 @@ function ladleAt(x, y) {
 }
 
 screen.addEventListener('pointerdown', (e) => {
+  Music.unlock();
   const p = toInternal(e);
   input.x = input.px = p.x; input.y = input.py = p.y;
   screen.setPointerCapture(e.pointerId);
@@ -70,6 +71,8 @@ screen.addEventListener('pointerdown', (e) => {
   }
   if (!input.consumed && UI.tool === 'taste' && Chef.spoon && !Chef.spoon.air) {
     const res = Taste.sip((Chef.spoon.x - GX) | 0, (Chef.spoon.y - GY) | 0);   // wherever the spoon is in the pot
+    // In a level, the stars and the chef's comment are about how close it is to the recipe.
+    if (Game.level && !res.empty && !res.unmixed && res.p) { res.score = Levels.match(Game.level, res.p).match; res.line = Levels.tasteLine(Game.level, res.p); }
     UI.showTaste(res);
     if (!res.empty) Chef.sip(res.unmixed ? 0.4 : res.score || 0, res.line);   // unmixed: a puzzled sip
     input.consumed = true;
@@ -79,18 +82,22 @@ screen.addEventListener('pointermove', (e) => {
   const p = toInternal(e);
   input.x = p.x; input.y = p.y;
   if (UI.dragDial) UI.setDial(p.x, p.y);
+  if (Title.dragging) Title.slide(p.x);
 });
-const release = () => { input.down = false; UI.dragDial = false; };
+const release = () => { input.down = false; UI.dragDial = false; Title.dragging = false; };
 screen.addEventListener('pointerup', release);
 screen.addEventListener('pointercancel', release);
 screen.addEventListener('wheel', (e) => {
   e.preventDefault();
   Sim.dial = Math.max(0, Math.min(10, Sim.dial + (e.deltaY < 0 ? 0.5 : -0.5)));
 }, { passive: false });
+// In the kitchen with nothing on top of it (not a menu, a cutscene, judging or the journal).
+function cooking() { return !Story.active && !Title.active && !Menu.active && !Judging.active && !Journal.active && !Tip.active; }
 addEventListener('keydown', (e) => {
+  Music.unlock();
   if (e.key >= '0' && e.key <= '9') Sim.dial = e.key === '0' ? 0 : +e.key + (e.shiftKey ? 1 : 0);
   else if (e.key === ' ') { paused = !paused; e.preventDefault(); }
-  else if (e.key === 'l' || e.key === 'L') Sim.lid = !Sim.lid;
+  else if (cooking() && !e.metaKey && !e.ctrlKey && UI.hotkey(e.key.toLowerCase())) {}   // S, T, L, W (see UI.hotkey)
   else if (e.key === 'j' || e.key === 'J') { if (Journal.active) Journal.close(); else if (!Title.active && !Story.active) Journal.open(); }
   else if (e.key === 'Escape') { if (Story.active) Story.skip(); if (Journal.active) Journal.close(); UI.card = null; }
 });
@@ -493,9 +500,20 @@ function draw() {
   else { UI.drawText(T, input.x, input.y); Chef.drawText(T); }
 }
 
-function loop() {
-  update();
+// Fixed timestep: the game always runs 60 steps a second of real time, whatever the screen's refresh rate (a 144 Hz
+// monitor used to run everything 2.4x fast). Each animation frame runs however many steps have come due, then draws.
+const STEP_MS = 1000 / 60, MAX_STEPS = 5;
+let lastFrame = null, stepDebt = 0;
+function loop(now = performance.now()) {
+  stepDebt += lastFrame === null ? STEP_MS : Math.min(250, now - lastFrame);   // (back from a hidden tab: no fast-forward)
+  lastFrame = now;
+  let steps = 0;
+  // A hair of slack, so a 60 Hz screen's jittery frame times still give exactly one step a frame (the average holds).
+  while (stepDebt > STEP_MS - 1 && steps < MAX_STEPS) { update(); stepDebt -= STEP_MS; steps++; }
+  if (steps === MAX_STEPS) stepDebt = 0;   // a very slow machine runs slower rather than piling up
   draw();
+  // The menu theme in the menus; now and then a short track while cooking; nothing in cutscenes or judging.
+  Music.update(Story.active ? null : Title.active || Menu.active ? 'menu' : Judging.active ? null : 'kitchen');
   requestAnimationFrame(loop);
 }
 
@@ -516,7 +534,7 @@ const Game = {
   judging() { return { level: this.level, panel: this.panel && this.panel.length === 3 ? this.panel : null }; },
 
   tipPot() { Tip.start(); },
-  freshPot() { Tip.active = false; Spill.clear(); Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; Chef.select(SHELF[0]); paused = false; },
+  freshPot() { Tip.active = false; Spill.clear(); Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; UI.confirm = null; Chef.select(SHELF[0]); paused = false; },
   timeLeft() { return this.level ? Levels.timeLimit(this.level) - (Sim.frame - this.levelStart) / 60 : Infinity; },
   startLevel(level) {
     this.level = level; this.panel = null; this.timedOut = false;
@@ -614,4 +632,4 @@ if (DEV.view === 'bread') {
   if (DEV.view === 'verdict') { Judging.k = 3; Judging.next('done'); }
 }
 if (!Game.level && !Menu.active) Chef.say('Bonjour! Let\'s cook!', 120);
-loop();
+if (!window.SOUP_MOBILE) loop();   // (phones get the "desktop only" note in index.html instead)

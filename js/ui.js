@@ -11,6 +11,12 @@ const T = {
     c.fillStyle = o.color || '#fff';
     c.fillText(str, x * s, y * s);
   },
+  // Width of a line of text, in game pixels.
+  measure(str, size = 7) {
+    if (!this.ctx) return str.length * size;
+    this.ctx.font = `${size * this.s}px Silkscreen, monospace`;
+    return Math.ceil(this.ctx.measureText(str).width / this.s);
+  },
   wrap(str, x, y, w, o = {}) {
     const c = this.ctx, s = this.s, size = (o.size || 7);
     c.font = `${size * s}px Silkscreen, monospace`;
@@ -48,25 +54,37 @@ const T = {
 const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SLOT_H = 21, SHELF_COLS = 3;
 // Clicking a pantry item is pouring, so there's no Pour tool: Stir and Taste toggle back to it.
 const TOOLS = [
-  { id: 'ladle', icon: 'ladle', label: 'Stir' },
-  { id: 'taste', icon: 'spoon', label: 'Taste' },
-  { id: 'lid', icon: 'lid', label: 'Lid' },
+  { id: 'ladle', icon: 'ladle', label: 'Stir', key: 'S' },
+  { id: 'taste', icon: 'spoon', label: 'Taste', key: 'T' },
+  { id: 'lid', icon: 'lid', label: 'Lid', key: 'L' },
   { id: 'clear', icon: 'trash', label: 'Empty' },
-  { id: 'journal', icon: 'book', label: 'Journal', sandbox: true },
+  { id: 'journal', icon: 'book', label: 'Journal', sandbox: true, key: 'J' },
+  { id: 'recipe', icon: 'recipe', label: 'Recipe', level: true, key: 'R' },
   { id: 'quit', icon: 'door', label: 'Quit' },
 ];
-// The tools shown right now (the Journal button is a sandbox thing; in story it lives in Settings).
-const tools = () => TOOLS.filter((t) => !t.sandbox || !Game.level);
+// The tools shown right now (the Journal button is a sandbox thing; in story it lives in Settings, and in story
+// the Recipe button brings the order ticket back up).
+const tools = () => TOOLS.filter((t) => (!t.sandbox || !Game.level) && (!t.level || Game.level));
+const BANNER_T = 300;   // a new discovery's banner stays up 5 s, long enough to read
 const TOOL_X = 266, TOOL_Y = 16, TOOL_H = 22;
 const DIAL = { x: 160, y: 227, r: 9 };
 const SERVE = { x: 266, y: 168, w: 50, h: 22 };
 const TITLE_BOX = { x: 96, y: 0, w: 128, h: 12 };
 
 const UI = {
-  tool: 'pour', hover: null, card: null, journal: false, banners: [], toasts: [], confirmClear: 0,
+  tool: 'pour', hover: null, card: null, journal: false, banners: [], toasts: [], confirm: null,   // a tool waiting on a second click ('Sure?'): { id, t }
   dragDial: false,
 
   shelfSlot(n) { return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
+  // Hotkeys while cooking: S stir, T taste (again to put it down), L lid, W water, R the recipe (in story).
+  hotkey(k) {
+    if (k === 's' || k === 't') { const id = k === 's' ? 'ladle' : 'taste'; this.tool = this.tool === id ? 'pour' : id; }
+    else if (k === 'l') Sim.lid = !Sim.lid;
+    else if (k === 'w') { Chef.select(SHELF.find((s) => s.id === 'water')); this.tool = 'pour'; }
+    else if (k === 'r' && Game.level) { if (this.card && this.card.recipe) this.card = null; else this.showRecipe(); }
+    else return false;
+    return true;
+  },
   toolSlot(n) { return { x: TOOL_X, y: TOOL_Y + n * TOOL_H, w: 50, h: TOOL_H - 2 }; },
 
   hit(r, x, y) { return x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h; },
@@ -82,6 +100,7 @@ const UI = {
   },
 
   click(x, y) {
+    const hadRecipe = !!(this.card && this.card.recipe);
     if (this.card && this.card.t > 10) this.card = null;
     const h = this.pick(x, y);
     if (!h) return false;
@@ -89,16 +108,17 @@ const UI = {
     else if (h.type === 'tool') {
       const id = tools()[h.n].id;
       if (id === 'lid') Sim.lid = !Sim.lid;
-      else if (id === 'quit') Game.level ? Game.toMenu() : Game.toTitle();
       else if (id === 'journal') Journal.open();
-      else if (id === 'clear') {
-        if (this.confirmClear > 0) { this.confirmClear = 0; Game.tipPot(); }
-        else { this.confirmClear = 120; }
+      else if (id === 'recipe') { if (!hadRecipe) this.showRecipe(); }   // click again to put it away
+      else if (id === 'clear' || id === 'quit') {
+        // Emptying the pot and quitting both ask "Sure?" first: a second click within two seconds does it.
+        if (this.confirm && this.confirm.id === id) { this.confirm = null; if (id === 'clear') Game.tipPot(); else Game.level ? Game.toMenu() : Game.toTitle(); }
+        else this.confirm = { id, t: 120 };
       }
       else this.tool = this.tool === id ? 'pour' : id;   // click again to put it down
     }
     else if (h.type === 'serve') Game.serve();
-    else if (h.type === 'recipe') this.showRecipe();
+    else if (h.type === 'recipe') { if (!hadRecipe) this.showRecipe(); }
     else if (h.type === 'dial') { this.dragDial = true; this.setDial(x, y); }
     return true;
   },
@@ -110,7 +130,15 @@ const UI = {
     Sim.dial = Math.round(((a + 135) / 270) * 10 * 2) / 2;
   },
 
-  showTaste(res) { this.card = { res, t: 0 }; },
+  // A taste that found nothing (spoon not in the food, an empty pot) is just a quick toast, not the card.
+  showTaste(res) { if (res.empty) { this.card = null; this.toast(res.line); } else this.card = { res, t: 0 }; },
+  // The order ticket and the taste card sit centered over the pot, clear of the chef.
+  cardBox() {
+    const w = this.card.recipe ? 120 : 136;
+    const tex = this.card.res ? this.card.res.tex || [] : [];
+    const h = this.card.recipe ? 80 : tex.length > 3 ? 104 : tex.length ? 96 : 86;
+    return { x: 160 - w / 2, y: Math.round((POT_TOP + POT_BOT) / 2 - h / 2), w, h };
+  },
   // The level's order ticket: just the dish and its description (players work out the method).
   showRecipe() { if (Game.level) this.card = { recipe: Game.level, t: 0 }; },
 
@@ -119,8 +147,8 @@ const UI = {
 
   update() {
     if (this.card) { this.card.t++; if (this.card.t > (this.card.recipe ? 900 : 420)) this.card = null; }
-    if (this.confirmClear > 0) this.confirmClear--;
-    if (this.banners.length) { const b = this.banners[0]; if (++b.t > 150) this.banners.shift(); }
+    if (this.confirm && --this.confirm.t <= 0) this.confirm = null;
+    if (this.banners.length) { const b = this.banners[0]; if (++b.t > BANNER_T) this.banners.shift(); }
     for (const t of this.toasts) t.t++;
     this.toasts = this.toasts.filter((t) => t.t < 130);
   },
@@ -139,7 +167,7 @@ const UI = {
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);
     tools().forEach((tl, n) => {
       const s = this.toolSlot(n);
-      const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (tl.id === 'clear' && this.confirmClear > 0);
+      const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (this.confirm && this.confirm.id === tl.id) || (tl.id === 'recipe' && this.card && this.card.recipe);
       const hov = this.hover && this.hover.type === 'tool' && this.hover.n === n;
       rect(g, s.x, s.y, s.w, s.h, [96, 60, 40]);
       rect(g, s.x + 1, s.y + 1, s.w - 2, s.h - 2, on ? (hov ? [255, 226, 140] : [255, 214, 110]) : hov ? [236, 204, 160] : [214, 176, 130]);
@@ -164,17 +192,19 @@ const UI = {
     // Taste card.
     if (this.card) this.drawCard(g);
     if (this.banners.length) {
-      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (150 - b.t) / 12);
+      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (BANNER_T - b.t) / 12);
       const y = -30 + slide * 34;
       rect(g, 70, y, 180, 28, [40, 24, 30]); rect(g, 71, y + 1, 178, 26, [255, 222, 110]);
       for (let k = 0; k < 6; k++) rect(g, 74 + ((k * 31 + b.t * 2) % 172), y + 3 + (k * 7) % 20, 1, 1, [255, 255, 255]);
     }
     // Toasts slide in at the side of the kitchen, same look, much smaller.
     this.toasts.forEach((t, k) => {
-      const x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * 70), y = 20 + k * 13;
-      rect(g, x, y, 66, 11, [40, 24, 30]); rect(g, x + 1, y + 1, 64, 9, [255, 222, 110]);
+      const w = this.toastW(t), x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * (w + 4)), y = 20 + k * 13;
+      rect(g, x, y, w, 11, [40, 24, 30]); rect(g, x + 1, y + 1, w - 2, 9, [255, 222, 110]);
     });
   },
+
+  toastW(t) { return t.w || (t.w = Math.max(66, T.measure(t.text, 5) + 8)); },
 
   drawThermo(g) {
     const x = 270, y = 196, temps = Taste.gather(0, 0, 0);
@@ -186,30 +216,31 @@ const UI = {
   },
 
   drawCard(g) {
+    const { x, y, h } = this.cardBox();
     if (this.card.recipe) {
       // Order ticket: paper with a clip and a perforated stub.
-      const x = 100, y = 18;
       rect(g, x + 2, y + 2, 120, 80, [30, 20, 26]); rect(g, x, y, 120, 80, [250, 246, 234]);
       for (let k = 3; k < 117; k += 3) rect(g, x + k, y + 12, 1, 1, [190, 180, 160]);
       rect(g, x + 56, y - 3, 9, 6, [170, 174, 188]); rect(g, x + 57, y - 2, 7, 1, [230, 234, 242]);
       return;
     }
-    const x = 92, y = 16, tex = this.card.res.tex || [], h = tex.length > 3 ? 104 : tex.length ? 96 : 86;
     rect(g, x, y, 136, h, [40, 24, 30]); rect(g, x + 1, y + 1, 134, h - 2, [255, 250, 238]);
-    if (this.card.res.empty) return;
     if (this.card.res.unmixed) {
       // Can't tell: question-mark bars.
       TASTE_AXES.forEach((k, n) => { const by = y + 16 + n * 7; rect(g, x + 44, by + 1, 60, 4, [230, 222, 210]); });
       return;
     }
-    const p = this.card.res.p;
+    // In a level: each bar against the recipe's taste, with the band the judges don't mind (green inside it,
+    // red over, amber under). In the sandbox there's no recipe: just the readings.
+    const p = this.card.res.p, target = Levels.target(Game.level);
     TASTE_AXES.forEach((k, n) => {
-      const by = y + 16 + n * 7;
+      const by = y + 16 + n * 7, v = Math.min(1, p[k]);
       rect(g, x + 44, by + 1, 60, 4, [230, 222, 210]);
-      const v = p[k], [ideal, tol] = IDEAL[k];
-      const good = Math.abs(v - ideal) <= tol + 0.05;
-      rect(g, x + 44, by + 1, 60 * v, 4, good ? [110, 190, 90] : v > ideal ? [230, 90, 70] : [240, 180, 70]);
-      rect(g, x + 44 + 60 * ideal, by, 1, 6, [80, 60, 70]);
+      if (!target) { rect(g, x + 44, by + 1, 60 * v, 4, [150, 130, 170]); return; }
+      const want = target.taste[k], lo = Math.max(0, want - LEVEL_FREE), hi = Math.min(1, want + LEVEL_FREE);
+      rect(g, x + 44 + Math.round(60 * lo), by, Math.max(1, Math.round(60 * (hi - lo))), 6, [200, 226, 180]);   // the band
+      rect(g, x + 44, by + 1, 60 * v, 4, v > hi ? [230, 90, 70] : v < lo ? [240, 180, 70] : [110, 190, 90]);
+      rect(g, x + 44 + Math.round(60 * want), by, 1, 6, [80, 60, 70]);   // the recipe
     });
   },
 
@@ -221,8 +252,9 @@ const UI = {
     T.text('TOOLS', 291, 4, { size: 6, color: label, align: 'center' });
     tools().forEach((tl, n) => {
       const s = this.toolSlot(n);
-      const label = tl.id === 'clear' && this.confirmClear ? 'Sure?' : tl.label;
+      const label = this.confirm && this.confirm.id === tl.id ? 'Sure?' : tl.label;
       T.text(label, s.x + 20, s.y + 7, { size: 5, color: '#3a2418' });
+      if (tl.key) T.text(tl.key, s.x + s.w - 3, s.y + 2, { size: 4, color: '#9a7458', align: 'right' });   // its hotkey
     });
     T.text('SERVE', SERVE.x + SERVE.w / 2, SERVE.y + 7, { size: 7, color: '#fff', align: 'center', shadow: true });
     T.text(Math.round(this.potTemp || 20) + '°C', 291, 208, { size: 6, color: '#fff2d8', align: 'center' });
@@ -235,23 +267,24 @@ const UI = {
     }
     if (this.hover && this.hover.type === 'ing') {
       const ing = SHELF[this.hover.n];
-      T.bubble(ing.name, mx, my - 14);   // the bubble's tail points at the cursor
+      T.bubble(ing.name + (ing.id === 'water' ? ' (W)' : ''), mx, my - 14);   // the bubble's tail points at the cursor
     }
     if (this.card) this.drawCardText(T);
     this.toasts.forEach((t, k) => {
-      const x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * 70), y = 20 + k * 13;
-      T.text(t.text, x + 33, y + 3, { size: 5, color: '#3a1a10', align: 'center' });
+      const w = this.toastW(t), x = 62 - Math.round((1 - Math.min(1, t.t / 8, (130 - t.t) / 8)) * (w + 4)), y = 20 + k * 13;
+      T.text(t.text, x + w / 2, y + 3, { size: 5, color: '#3a1a10', align: 'center' });
     });
     if (this.banners.length) {
-      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (150 - b.t) / 12), y = -30 + slide * 34;
+      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (BANNER_T - b.t) / 12), y = -30 + slide * 34;
       T.text('NEW DISCOVERY: ' + b.text, 160, y + 4, { size: 7, color: '#3a1a10', align: 'center' });
       T.wrap(b.sub, 76, y + 14, 168, { size: 5, color: '#6a3a20' });
     }
   },
 
   drawCardText(T) {
+    const { x, y } = this.cardBox();
     if (this.card.recipe) {
-      const x = 100, y = 18, L = this.card.recipe;
+      const L = this.card.recipe;
       T.text('ORDER', x + 4, y + 4, { size: 5, color: '#8a6a50' });
       T.text(LEVEL_TIERS[L.tier].title.toUpperCase(), x + 116, y + 4, { size: 4, color: '#8a6a50', align: 'right' });
       T.wrap(L.title.toUpperCase(), x + 4, y + 16, 112, { size: 7, color: '#2a1820' });
@@ -261,8 +294,7 @@ const UI = {
       T.text('click to close', x + 116, y + 72, { size: 4, color: '#a08870', align: 'right' });
       return;
     }
-    const x = 92, y = 16, r = this.card.res;
-    if (r.empty) { T.text(r.line, x + 68, y + 38, { size: 6, color: '#3a2418', align: 'center' }); return; }
+    const r = this.card.res;
     if (r.unmixed) {
       T.text('TASTE', x + 4, y + 4, { size: 7, color: '#3a2418' });
       if (r.temp) T.text(Math.round(r.temp) + '°C', x + 130, y + 4, { size: 6, color: '#8a5a40', align: 'right' });

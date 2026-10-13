@@ -71,18 +71,18 @@ function reactBroth(S, x, y, i) {
   if (fl[o + F_ALCOHOL] > 0.4 && t > 85 && S.dial >= 9 && !S.lid && y > 0 &&
       S.mat[i - GW] === EMPTY && rnd() < 0.012) flambe(S, x, y, i);
 
-  // Curdling: dairy + acid + heat, or dairy at a hard boil.
-  if (fl[o + F_WHITE] > 0.35 && t > 80 && rnd() < 0.08) {
+  // Curdling: dairy + acid + heat, or dairy at a hard boil. (Only real dairy: cloudy fish stock can't curdle.)
+  if (fl[o + F_DAIRY] > 0.35 && t > 80 && rnd() < 0.08) {
     // The further past the dairy's tolerance the acid goes, the likelier it splits; borderline rarely does.
     // Heat and acid work together: at a boil, dairy tolerates about half the acid it would off the boil.
-    const over = fl[o + F_SOUR] - (0.25 * fl[o + F_WHITE] + 0.1) * (t >= 97 ? 0.5 : 1);
+    const over = fl[o + F_SOUR] - (0.25 * fl[o + F_DAIRY] + 0.1) * (t >= 97 ? 0.5 : 1);
     const acid = over > 0 && rnd() < Math.min(1, over / 0.3);
     if (acid || (t >= 100 && S.dial >= 8 && rnd() < 0.15)) {
       S.discover('curdle'); S.emit('curdle', x, y);
       // Only the cream's protein clumps into curds (about a sixth of it); the rest separates into thin whey
       // that stays in the soup, its creaminess gone, so it can't split again.
       if (rnd() < CURD_SOLIDS) { S.setCell(i, CURD, t); return true; }
-      fl[o + F_RICH] *= 0.5; fl[o + F_WHITE] = Math.min(fl[o + F_WHITE] * 0.2, 0.3);
+      fl[o + F_RICH] *= 0.5; fl[o + F_WHITE] = Math.min(fl[o + F_WHITE] * 0.2, 0.3); fl[o + F_DAIRY] = Math.min(fl[o + F_DAIRY] * 0.2, 0.3);
     }
   }
   return false;
