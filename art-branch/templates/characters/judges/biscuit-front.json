@@ -51,10 +51,12 @@
     "upset"
   ],
   "notes": "Biscuit: an excitable pup. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "spec": "",
   "guides": [
     {
       "y": 118,
       "label": "table top"
     }
-  ]
+  ],
+  "animated": true
 }
