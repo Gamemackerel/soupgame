@@ -329,7 +329,8 @@ Sprites.def('backgrounds/level-select', { path: 'backgrounds/level-select', w: W
 // On the art branch every character is the same plain, bordered gray sketch, so the old drawings don't steer the
 // redraw: just the right size and place (head, body, hands on the table...). Every pose looks the same; the pose
 // names and notes say what each one is. (The list of drawings asked for is fixed in js/sprite-layout.js.)
-const PLACEHOLDER_SKETCHES = false;
+// PLACEHOLDER_SKETCHES is set in js/placeholders.js: false on main, true on the art branch. (Its own file, so merges
+// between the branches never touch it.)
 const SKETCH_FILL = [226, 222, 214], SKETCH_INK = [70, 60, 66], SKETCH_FACE = [0, 0, 0];   // ink: the border; face: eyes and mouths
 const SKETCH = {
   'chef/body': (g) => { ellipse(g, 0, 92, 21, 13, SKETCH_FILL); rect(g, -21, 92, 42, 26, SKETCH_FILL); },
@@ -348,7 +349,7 @@ const SKETCH = {
   'extras/rat': (g) => { ellipse(g, 0, 0, 6, 3, SKETCH_FILL); ellipse(g, 6, -1, 3, 3, SKETCH_FILL); rect(g, -15, 0, 9, 1, SKETCH_INK); },
   'extras/customer': (g) => { rect(g, -4, 182, 8, 14, SKETCH_FILL); rect(g, -3, 196, 2, 4, SKETCH_FILL); rect(g, 1, 196, 2, 4, SKETCH_FILL); ellipse(g, 0, 177, 4, 4, SKETCH_FILL); },
 };
-if (PLACEHOLDER_SKETCHES) {
+if (typeof PLACEHOLDER_SKETCHES !== 'undefined' && PLACEHOLDER_SKETCHES) {
   for (const d of Object.values(Sprites.defs)) {
     const kind = d.name.startsWith('judges/') ? (d.name.endsWith('-front') ? 'judge-front' : 'judge') : d.name;
     if (!SKETCH[kind]) continue;
