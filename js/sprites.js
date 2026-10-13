@@ -277,12 +277,11 @@ for (const lv of LEVELS) {
 // ======================= Backgrounds =======================
 
 const BG_NOTES = {
-  kitchen: 'Sandbox kitchen. The pot, flames and everything in it are drawn on top, centered at the bottom.',
-  'pizza-shop': "Papa Dom's pizza shop kitchen (Pizza Shop levels). The pot sits in the same place as the kitchen.",
-  'studio-kitchen': "Souped Up's studio kitchen (First Michelin Star levels), with the faded EVERY SECOND COUNTS sign.",
+  'pizza-shop': "Papa Dom's pizza shop kitchen (Pizza Shop levels), with an exposed brick wall. It should have a pizza menu on a chalkboard, some kind of pizza advertisement, a pizza oven, and a pizza paddle hung on the wall. The pot, flames and everything in it are drawn on top, centered at the bottom.",
+  'studio-kitchen': "Souped Up's studio kitchen (First Michelin Star levels), also used for the sandbox and behind the title screen. It should have a window, a hanging set of tools and pans, and a sign that says EVERY SECOND COUNTS. The pot, flames and everything in it are drawn on top, centered at the bottom.",
 };
-for (const [name, theme] of [['kitchen', 'kitchen'], ['pizza-shop', 'pizza'], ['studio-kitchen', 'show']]) {
-  Sprites.def('backgrounds/' + name, { path: 'backgrounds/' + name, w: W, h: H, static: true, notes: BG_NOTES[name],
+for (const [name, theme] of [['pizza-shop', 'pizza'], ['studio-kitchen', 'show']]) {
+  Sprites.def('backgrounds/' + name, { path: 'backgrounds/' + name, w: W, h: H, static: true, notes: BG_NOTES[name], theme,
     guides: [{ y: POT_TOP, label: 'pot rim' }, { y: POT_BOT, label: 'pot bottom' }],
     states: { default: {} }, render: (g) => g.drawImage(Art.buildBackground(theme), 0, 0) });
 }
@@ -349,7 +348,19 @@ const SKETCH = {
   'extras/rat': (g) => { ellipse(g, 0, 0, 6, 3, SKETCH_FILL); ellipse(g, 6, -1, 3, 3, SKETCH_FILL); rect(g, -15, 0, 9, 1, SKETCH_INK); },
   'extras/customer': (g) => { rect(g, -4, 182, 8, 14, SKETCH_FILL); rect(g, -3, 196, 2, 4, SKETCH_FILL); rect(g, 1, 196, 2, 4, SKETCH_FILL); ellipse(g, 0, 177, 4, 4, SKETCH_FILL); },
 };
+// Dishes: every soup the same plain bowl in its soup's color; the flatbread and the cake as plain shapes.
+const PLAIN_DISH = { 'tomato-soup': [214, 60, 40], 'creamy-corn': [244, 224, 150], 'fish-stew': [226, 120, 60], minestrone: [204, 96, 50],
+  'french-onion': [170, 110, 60], 'beef-chowder': [236, 216, 180], goulash: [160, 50, 30], chili: [150, 40, 26] };
+function plainDish(g, id) {
+  if (id === 'flatbread') { ellipse(g, 12, 9, 10, 4, [226, 182, 110]); return; }
+  if (id === 'sponge-cake') { rect(g, 4, 5, 16, 8, [240, 200, 120]); return; }
+  ellipse(g, 12, 7, 10, 7, [232, 232, 238], 'bottom'); ellipse(g, 12, 6, 10, 3, [246, 246, 250]); ellipse(g, 12, 6, 8, 2, PLAIN_DISH[id] || [200, 120, 80]);
+}
 if (typeof PLACEHOLDER_SKETCHES !== 'undefined' && PLACEHOLDER_SKETCHES) {
+  for (const d of Object.values(Sprites.defs)) {
+    if (d.name.startsWith('dishes/')) { const id = d.name.slice(7); d.render = (g) => plainDish(g, id); }
+    else if (d.theme) d.render = (g) => g.drawImage(Art.buildBackground(d.theme, true), 0, 0);   // kitchens: wall and stovetop only
+  }
   for (const d of Object.values(Sprites.defs)) {
     const kind = d.name.startsWith('judges/') ? (d.name.endsWith('-front') ? 'judge-front' : 'judge') : d.name;
     if (!SKETCH[kind]) continue;
