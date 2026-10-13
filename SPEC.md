@@ -56,7 +56,7 @@ A falling-sand cooking sandbox. The simulation lives inside a soup pot. Around i
 | Skimmer | Removes foam, scum and floating fat from the surface |
 | Lid toggle | Traps steam: faster boiling, no reduction, keeps aroma. Raises boil-over risk |
 | Spacebar | Pause the simulation |
-| `S` / `T` / `L` / `W` / `J` | Stir (ladle), Taste (spoon), Lid, pick up Water, Journal. Pressing `S` or `T` again puts the tool down. Only while cooking; each tool button shows its key in the corner |
+| `S` / `T` / `L` / `W` / `J` / `R` | Stir (ladle), Taste (spoon), Lid, pick up Water, Journal (sandbox), Recipe (story: the order ticket, also a Recipe button in the tools). Pressing `S` or `T` again puts the tool down. Only while cooking; each tool button shows its key in the corner |
 
 ### Chef Animation States
 - **Idle:** bobbing, blinking, sometimes sniffing the steam.

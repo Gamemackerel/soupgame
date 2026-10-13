@@ -59,10 +59,13 @@ const TOOLS = [
   { id: 'lid', icon: 'lid', label: 'Lid', key: 'L' },
   { id: 'clear', icon: 'trash', label: 'Empty' },
   { id: 'journal', icon: 'book', label: 'Journal', sandbox: true, key: 'J' },
+  { id: 'recipe', icon: 'recipe', label: 'Recipe', level: true, key: 'R' },
   { id: 'quit', icon: 'door', label: 'Quit' },
 ];
-// The tools shown right now (the Journal button is a sandbox thing; in story it lives in Settings).
-const tools = () => TOOLS.filter((t) => !t.sandbox || !Game.level);
+// The tools shown right now (the Journal button is a sandbox thing; in story it lives in Settings, and in story
+// the Recipe button brings the order ticket back up).
+const tools = () => TOOLS.filter((t) => (!t.sandbox || !Game.level) && (!t.level || Game.level));
+const BANNER_T = 300;   // a new discovery's banner stays up 5 s, long enough to read
 const TOOL_X = 266, TOOL_Y = 16, TOOL_H = 22;
 const DIAL = { x: 160, y: 227, r: 9 };
 const SERVE = { x: 266, y: 168, w: 50, h: 22 };
@@ -73,11 +76,12 @@ const UI = {
   dragDial: false,
 
   shelfSlot(n) { return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
-  // Hotkeys while cooking: S stir, T taste (again to put it down), L lid, W water.
+  // Hotkeys while cooking: S stir, T taste (again to put it down), L lid, W water, R the recipe (in story).
   hotkey(k) {
     if (k === 's' || k === 't') { const id = k === 's' ? 'ladle' : 'taste'; this.tool = this.tool === id ? 'pour' : id; }
     else if (k === 'l') Sim.lid = !Sim.lid;
     else if (k === 'w') { Chef.select(SHELF.find((s) => s.id === 'water')); this.tool = 'pour'; }
+    else if (k === 'r' && Game.level) { if (this.card && this.card.recipe) this.card = null; else this.showRecipe(); }
     else return false;
     return true;
   },
@@ -96,6 +100,7 @@ const UI = {
   },
 
   click(x, y) {
+    const hadRecipe = !!(this.card && this.card.recipe);
     if (this.card && this.card.t > 10) this.card = null;
     const h = this.pick(x, y);
     if (!h) return false;
@@ -104,6 +109,7 @@ const UI = {
       const id = tools()[h.n].id;
       if (id === 'lid') Sim.lid = !Sim.lid;
       else if (id === 'journal') Journal.open();
+      else if (id === 'recipe') { if (!hadRecipe) this.showRecipe(); }   // click again to put it away
       else if (id === 'clear' || id === 'quit') {
         // Emptying the pot and quitting both ask "Sure?" first: a second click within two seconds does it.
         if (this.confirm && this.confirm.id === id) { this.confirm = null; if (id === 'clear') Game.tipPot(); else Game.level ? Game.toMenu() : Game.toTitle(); }
@@ -112,7 +118,7 @@ const UI = {
       else this.tool = this.tool === id ? 'pour' : id;   // click again to put it down
     }
     else if (h.type === 'serve') Game.serve();
-    else if (h.type === 'recipe') this.showRecipe();
+    else if (h.type === 'recipe') { if (!hadRecipe) this.showRecipe(); }
     else if (h.type === 'dial') { this.dragDial = true; this.setDial(x, y); }
     return true;
   },
@@ -142,7 +148,7 @@ const UI = {
   update() {
     if (this.card) { this.card.t++; if (this.card.t > (this.card.recipe ? 900 : 420)) this.card = null; }
     if (this.confirm && --this.confirm.t <= 0) this.confirm = null;
-    if (this.banners.length) { const b = this.banners[0]; if (++b.t > 150) this.banners.shift(); }
+    if (this.banners.length) { const b = this.banners[0]; if (++b.t > BANNER_T) this.banners.shift(); }
     for (const t of this.toasts) t.t++;
     this.toasts = this.toasts.filter((t) => t.t < 130);
   },
@@ -161,7 +167,7 @@ const UI = {
     rect(g, 262, 12, 58, 214, [120, 76, 48]); rect(g, 263, 13, 56, 212, [160, 106, 66]);
     tools().forEach((tl, n) => {
       const s = this.toolSlot(n);
-      const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (this.confirm && this.confirm.id === tl.id);
+      const on = this.tool === tl.id || (tl.id === 'lid' && Sim.lid) || (this.confirm && this.confirm.id === tl.id) || (tl.id === 'recipe' && this.card && this.card.recipe);
       const hov = this.hover && this.hover.type === 'tool' && this.hover.n === n;
       rect(g, s.x, s.y, s.w, s.h, [96, 60, 40]);
       rect(g, s.x + 1, s.y + 1, s.w - 2, s.h - 2, on ? (hov ? [255, 226, 140] : [255, 214, 110]) : hov ? [236, 204, 160] : [214, 176, 130]);
@@ -186,7 +192,7 @@ const UI = {
     // Taste card.
     if (this.card) this.drawCard(g);
     if (this.banners.length) {
-      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (150 - b.t) / 12);
+      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (BANNER_T - b.t) / 12);
       const y = -30 + slide * 34;
       rect(g, 70, y, 180, 28, [40, 24, 30]); rect(g, 71, y + 1, 178, 26, [255, 222, 110]);
       for (let k = 0; k < 6; k++) rect(g, 74 + ((k * 31 + b.t * 2) % 172), y + 3 + (k * 7) % 20, 1, 1, [255, 255, 255]);
@@ -269,7 +275,7 @@ const UI = {
       T.text(t.text, x + w / 2, y + 3, { size: 5, color: '#3a1a10', align: 'center' });
     });
     if (this.banners.length) {
-      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (150 - b.t) / 12), y = -30 + slide * 34;
+      const b = this.banners[0], slide = Math.min(1, b.t / 12) * Math.min(1, (BANNER_T - b.t) / 12), y = -30 + slide * 34;
       T.text('NEW DISCOVERY: ' + b.text, 160, y + 4, { size: 7, color: '#3a1a10', align: 'center' });
       T.wrap(b.sub, 76, y + 14, 168, { size: 5, color: '#6a3a20' });
     }
