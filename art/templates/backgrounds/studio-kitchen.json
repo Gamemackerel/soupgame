@@ -21,8 +21,13 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     }
+  ],
+  "shared": {},
+  "order": [
+    "default"
   ],
   "notes": "Souped Up's studio kitchen (First Michelin Star levels), with the faded EVERY SECOND COUNTS sign.",
   "guides": [

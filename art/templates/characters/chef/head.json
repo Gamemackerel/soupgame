@@ -21,8 +21,13 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     }
+  ],
+  "shared": {},
+  "order": [
+    "idle"
   ],
   "notes": "Head, ears and toque, with no face. The anchor is the center of his face; chef/face is laid over it.",
   "guides": []

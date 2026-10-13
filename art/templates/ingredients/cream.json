@@ -21,8 +21,13 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     }
+  ],
+  "shared": {},
+  "order": [
+    "default"
   ],
   "notes": "Cream: on the shelf, and in the chef's hand.",
   "guides": []

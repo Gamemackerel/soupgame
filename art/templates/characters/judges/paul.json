@@ -21,6 +21,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "waiting"
     },
     {
@@ -29,6 +30,7 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "spoon in mouth"
     },
     {
@@ -37,6 +39,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "scored 7+"
     },
     {
@@ -45,6 +48,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "scored 5-6"
     },
     {
@@ -53,6 +57,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "scored under 5"
     },
     {
@@ -61,8 +66,18 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "offering the handshake (9+ on a dish he loves)"
     }
+  ],
+  "shared": {},
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset",
+    "handshake"
   ],
   "notes": "Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
   "guides": [

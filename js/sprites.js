@@ -15,6 +15,7 @@ const Sprites = {
   def(name, d) {
     d.name = name; d.ox = d.ox || 0; d.oy = d.oy || 0;
     d.order = Object.keys(d.states);
+    d.rows = d.order.slice(); d.alias = {};   // sheet rows; states that share another state's drawing (see settle)
     for (const k of d.order) d.states[k] = Object.assign({ frames: 1, fps: 8, loop: true }, d.states[k]);
     this.defs[name] = d; this.byPath[d.path] = d;
   },
@@ -31,13 +32,13 @@ const Sprites = {
   // One cell as a canvas: the finished art if there is any, otherwise the code drawing.
   canvas(name, state = 'default', frame = 0) {
     const d = this.defs[name], ov = this.over[name];
-    if (ov && !d.states[state]) state = d.order[0];
+    if (ov) state = this.row(d, state);
     const key = name + '|' + state + '|' + frame + (ov ? '|art' : '');
     let cv = this.cache[key];
     if (cv) return cv;
     cv = makeCanvas(d.w, d.h);
     const c = cv.getContext('2d');
-    if (ov) c.drawImage(ov, frame * d.w, d.order.indexOf(state) * d.h, d.w, d.h, 0, 0, d.w, d.h);
+    if (ov) c.drawImage(ov, frame * d.w, d.rows.indexOf(state) * d.h, d.w, d.h, 0, 0, d.w, d.h);
     else {
       const st = d.states[state] || d.states[d.order[0]];
       c.save(); c.translate(-d.ox, -d.oy); d.render(c, state, this.tick(st, frame), null); c.restore();
@@ -49,7 +50,7 @@ const Sprites = {
   draw(g, name, state, t, x, y, ctx) {
     const d = this.defs[name];
     if (this.over[name] || d.static) {
-      const s = this.over[name] && !d.states[state] ? d.order[0] : state;
+      const s = this.over[name] ? this.row(d, state) : state;
       g.drawImage(this.canvas(name, s, this.frameAt(d, s, t)), Math.round(x + d.ox), Math.round(y + d.oy));
       return;
     }
@@ -66,7 +67,7 @@ const Sprites = {
         const img = new Image();
         img.onload = () => {
           this.settle(d.name);
-          const w = d.w * Math.max(...d.order.map((k) => d.states[k].frames)), h = d.h * d.order.length;
+          const w = d.w * Math.max(...d.rows.map((k) => d.states[k].frames)), h = d.h * d.rows.length;
           if (img.width !== w || img.height !== h) { console.warn(`art: ${path}.png is ${img.width}x${img.height}, expected ${w}x${h}`); return; }
           this.over[d.name] = img;
         };
@@ -77,31 +78,44 @@ const Sprites = {
 
   // ---- Templates for the artist (tools/export-art.js) ----
 
-  // A state whose code frames all come out the same is really one frame: the artist draws it once.
-  // Done before laying out a template or reading finished art, so both agree on the sheet's shape.
+  // The sheet row a state is drawn in: its own, or the one it shares.
+  row(d, state) { state = d.alias[state] || state; return d.rows.includes(state) ? state : d.rows[0]; },
+
+  // Nobody should draw the same thing twice. A state whose code frames all come out the same is one frame; a state
+  // that comes out exactly like an earlier one (a judge's paws in two moods) shares that state's drawing and gets
+  // no row of its own. Done before laying out a template or reading finished art, so both agree on the sheet.
   settle(name) {
     const d = this.defs[name];
     if (d.settled) return; d.settled = true;
+    const px = (s, f) => this.canvas(name, s, f).getContext('2d').getImageData(0, 0, d.w, d.h).data.join();
+    const look = {};
     for (const s of d.order) {
       const st = d.states[s];
-      if (st.frames === 1) continue;
-      const px = (f) => { const cv = this.canvas(name, s, f); return cv.getContext('2d').getImageData(0, 0, d.w, d.h).data.join(); };
-      const first = px(0);
-      let same = true;
-      for (let f = 1; f < st.frames && same; f++) same = px(f) === first;
-      if (same) st.frames = 1;
+      look[s] = [px(s, 0)];
+      if (st.frames > 1) {
+        for (let f = 1; f < st.frames; f++) look[s].push(px(s, f));
+        if (look[s].every((x) => x === look[s][0])) { st.frames = 1; look[s].length = 1; }
+      }
+    }
+    d.rows = [];
+    for (const s of d.order) {
+      const same = d.rows.find((r) => look[r].length === look[s].length && look[r].every((x, f) => x === look[s][f]));
+      if (same) d.alias[s] = same; else d.rows.push(s);
     }
   },
 
   // The code drawing as a sheet, plus the facts the artist needs.
   template(name) {
     this.settle(name);
-    const d = this.defs[name], cols = Math.max(...d.order.map((k) => d.states[k].frames));
-    const sheet = makeCanvas(d.w * cols, d.h * d.order.length), sg = sheet.getContext('2d');
-    d.order.forEach((s, r) => { for (let f = 0; f < d.states[s].frames; f++) sg.drawImage(this.canvas(name, s, f), f * d.w, r * d.h); });
+    const d = this.defs[name], cols = Math.max(...d.rows.map((k) => d.states[k].frames));
+    const sheet = makeCanvas(d.w * cols, d.h * d.rows.length), sg = sheet.getContext('2d');
+    d.rows.forEach((s, r) => { for (let f = 0; f < d.states[s].frames; f++) sg.drawImage(this.canvas(name, s, f), f * d.w, r * d.h); });
     const meta = {
       name, path: d.path, group: d.path.split('/')[0], cell: [d.w, d.h], anchor: [-d.ox, -d.oy], sheet: [sheet.width, sheet.height],
-      states: d.order.map((s, row) => ({ name: s, row, frames: d.states[s].frames, fps: d.states[s].frames > 1 ? d.states[s].fps : null, loop: d.states[s].frames > 1 ? d.states[s].loop : null, note: d.states[s].note || null })),
+      states: d.rows.map((s, row) => ({ name: s, row, frames: d.states[s].frames, fps: d.states[s].frames > 1 ? d.states[s].fps : null, loop: d.states[s].frames > 1 ? d.states[s].loop : null,
+        also: d.order.filter((o) => d.alias[o] === s), note: d.states[s].note || null })),
+      shared: Object.assign({}, d.alias),   // state → the state whose drawing it uses
+      order: d.order.slice(),               // every state, rows and shared alike
       notes: d.notes || '', guides: d.guides || [],
     };
     return { sheet, meta };
@@ -112,17 +126,18 @@ const Sprites = {
     const { sheet, meta } = this.template(name), d = this.defs[name];
     const z = d.w >= 200 ? 2 : d.h >= 60 ? 4 : 8, labW = 110, head = 34;
     const cols = sheet.width / d.w, cw = d.w * z, ch = d.h * z;
-    const cv = document.createElement('canvas'); cv.width = labW + cols * cw + 1; cv.height = head + d.order.length * ch + 1;
+    const cv = document.createElement('canvas'); cv.width = labW + cols * cw + 1; cv.height = head + d.rows.length * ch + 1;
     const c = cv.getContext('2d'); c.imageSmoothingEnabled = false;
     c.fillStyle = '#1d1b24'; c.fillRect(0, 0, cv.width, cv.height);
     c.font = '13px monospace'; c.fillStyle = '#f2e8d8'; c.textBaseline = 'top';
     c.fillText(`${meta.path}   cell ${d.w}x${d.h}   anchor ${-d.ox},${-d.oy}   x${z}`, 6, 4);
     c.fillStyle = '#9a94a8';
     for (let f = 0; f < cols; f++) c.fillText('frame ' + f, labW + f * cw + 4, 20);
-    d.order.forEach((s, r) => {
-      const y = head + r * ch, st = d.states[s];
+    d.rows.forEach((s, r) => {
+      const y = head + r * ch, st = d.states[s], also = d.order.filter((o) => d.alias[o] === s);
       c.fillStyle = '#f2e8d8'; c.fillText(s, 6, y + 4);
       c.fillStyle = '#9a94a8'; if (st.frames > 1) c.fillText(`${st.frames}f ${st.fps}fps${st.loop ? '' : ' once'}`, 6, y + 20);
+      also.forEach((a, k) => c.fillText((k ? '' : 'also: ') + a, 6, y + 36 + k * 14));
       for (let f = 0; f < cols; f++) {
         const x = labW + f * cw;
         // Checkerboard for transparency, dimmed where the row has no frame.
@@ -203,15 +218,16 @@ for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
     guides: [{ y: 118, label: 'table top' }], states: front, render: render('front') });
 }
 
-// Papa Dom, for the story cutscenes (shown at 2x).
-const DOM_IDLE = { frames: 4, fps: 2 }, DOM_TALK = { frames: 4, fps: 7.5, note: 'mouth flapping while his line types out' };
-Sprites.def('story/dom', { path: 'characters/story/dom', w: 120, h: 130, ox: -60, oy: 0,
-  notes: 'Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Each mood has an idle row and a talking row.',
-  states: { sad: DOM_IDLE, stern: DOM_IDLE, happy: DOM_IDLE, 'sad-talk': DOM_TALK, 'stern-talk': DOM_TALK, 'happy-talk': DOM_TALK },
-  render: (g, state, t, ctx) => {
-    const talking = state.endsWith('-talk'), mood = state.replace('-talk', '');
-    drawDom(g, 0, ctx ? ctx.J : { t }, ctx ? ctx.s : { mood, ft: t, talking, active: talking });
-  } });
+// Papa Dom, for the story cutscenes (shown at 2x): him without a mouth, one drawing per mood, and his mouth on its
+// own (each mood's, plus open for talking: the game flaps it open and shut). His breathing bob is the game's.
+Sprites.def('story/dom', { path: 'characters/story/dom', w: 120, h: 130, ox: -60, oy: 0, static: true,
+  notes: 'Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).',
+  states: { sad: {}, stern: {}, happy: {} },
+  render: (g, state) => drawDom(g, 0, { t: 0 }, { mood: state, ft: 0, noMouth: true }) });
+Sprites.def('story/dom-mouth', { path: 'characters/story/dom-mouth', w: 14, h: 8, ox: -7, oy: 66, static: true,
+  notes: "Papa Dom's mouth, laid over his face (same anchor as story/dom). One per mood, and open for talking: while he speaks, the game alternates the open mouth with his mood's.",
+  states: { sad: {}, stern: {}, happy: {}, talk: { note: 'open, mid-word' } },
+  render: (g, state) => drawDomMouth(g, 0, 70, state, state === 'talk') });
 
 Sprites.def('extras/rat', { path: 'characters/extras/rat', w: 28, h: 12, ox: -17, oy: -6,
   notes: 'Scurries across the pavement outside the shop at night, left to right.',

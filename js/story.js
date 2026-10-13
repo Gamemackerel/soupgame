@@ -32,8 +32,11 @@ function drawDom(g, x, J, s) {
     rect(g, ex - 3, ey - 3 + (tilt > 0 ? 1 : 0), 3, 1, rgb(skin, 0.5)); rect(g, ex, ey - 3 + (tilt < 0 ? 1 : 0), 3, 1, rgb(skin, 0.5));
   }
   rect(g, hx, hy + 3, 2, 5, rgb(skin, 0.75));   // nose
-  const my = hy + 12;
-  if (s.talking && (ft >> 3) & 1) ellipse(g, hx, my, 3, 2, [110, 40, 40]);
+  if (!s.noMouth) drawDomMouth(g, hx, hy + 12, mood, s.talking && (ft >> 3) & 1);
+}
+// His mouth, on its own (so the talking mouth is one small drawing, not a copy of all of him): centered at (hx, my).
+function drawDomMouth(g, hx, my, mood, open) {
+  if (open) ellipse(g, hx, my, 3, 2, [110, 40, 40]);
   else if (mood === 'happy') { rect(g, hx - 5, my - 1, 1, 1, INK); rect(g, hx - 4, my, 9, 1, INK); rect(g, hx + 5, my - 1, 1, 1, INK); rect(g, hx - 3, my + 1, 7, 1, [255, 255, 255]); }
   else if (mood === 'sad') { rect(g, hx - 4, my + 1, 1, 1, INK); rect(g, hx - 3, my, 7, 1, INK); rect(g, hx + 4, my + 1, 1, 1, INK); }
   else rect(g, hx - 4, my, 8, 1, INK);
@@ -200,7 +203,12 @@ const Story = {
     sg.clearRect(0, 0, 120, 130);
     const talking = this.phase === 'show' && this.typed < (s.lines ? s.lines[this.n].length : 0);
     const st = { mood: s.mood, ft: Chef.t, active: talking, tasting: false, talking };
-    if (s.who === 'dom') Sprites.draw(sg, 'story/dom', talking ? s.mood + '-talk' : s.mood, Chef.t, 60, 0, { J: { t: Chef.t }, s: st });
+    if (s.who === 'dom') {
+      // Papa Dom breathes (the game bobs him a pixel) and his mouth flaps while his line types out.
+      const bob = Math.round(Math.sin(Chef.t * 0.05));
+      Sprites.draw(sg, 'story/dom', s.mood, 0, 60, bob);
+      Sprites.draw(sg, 'story/dom-mouth', talking && (Chef.t >> 3) & 1 ? 'talk' : s.mood, 0, 60, bob);
+    }
     else {
       const gs = { ...st, mood: talking && s.mood === 'neutral' ? 'meh' : s.mood }, j = JUDGE_ROSTER.gordo;
       Sprites.draw(sg, 'judges/gordo', judgePose(j, gs), Chef.t, 60, 0, { j, J: { t: Chef.t }, s: gs });

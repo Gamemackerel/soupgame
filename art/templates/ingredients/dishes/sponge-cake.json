@@ -21,8 +21,13 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     }
+  ],
+  "shared": {},
+  "order": [
+    "default"
   ],
   "notes": "Pot-Oven Sponge Cake, finished: its ticket on the level select board.",
   "guides": []

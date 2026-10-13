@@ -44,12 +44,17 @@ Open `characters/chef.aseprite`. You'll see the whole chef on one canvas.
 - **Reference layers**, whose names start with `_`, are locked and never exported:
   - `_old art (reference)`: the current placeholder art, faint, to trace or ignore as you like.
   - `_guides`: helper marks. In the chef file, the **blue line** is the pot rim (everything below it is hidden behind the pot) and the **red dots** are his shoulders (his arms are drawn by the game from there).
-- **Tags (the colored bars above the timeline)** are the moods, poses and animations: `idle`, `happy`, `angry`… Click one to see its frames. Each tag already has exactly the number of frames the game uses.
+- **Tags (the colored bars above the timeline)** are the moods, poses and animations: `idle`, `happy`, `angry`… Click one to see its frames.
 
 ### 3. Draw
 
+**You only have to draw the first frame of each pose.** If a tag has 4 frames, the other 3 are optional animation: leave them empty and the game holds the first frame. Get every character looking right first; animate later if there's time.
+
+Across all the characters that's **70 drawings** in total (the chef is 10: his body, his head and 8 faces). The extra animation frames are a bonus.
+
 - Draw the **whole character** at once, each piece inside its own group. Use as many layers inside a group as you like, for line art, color, shading and so on. Everything visible inside a group becomes that piece in the game.
-- **Some cels are linked:** they share one drawing across several frames (Aseprite shows them joined in the timeline). They're used where a piece doesn't change, such as the chef's body across all his faces, or a judge's paws that stay still in a pose. Draw it once and it fills all of them.
+- **Nothing is drawn twice.** Where poses share a drawing, it lives in the first pose that uses it, and every other place it appears is a **linked cel** pointing back to it. Aseprite shows linked cels joined in the timeline. Examples: the chef's body across all his faces; a judge's paws on the table, which are the same in most moods; Papa Dom, who is one drawing per mood plus a separate small `mouth` (one per mood, and one open for talking, which the game flaps). Draw it in the first pose and it appears everywhere else.
+- Some poses look the same as another one already, such as the chef's *worried* face and his *meh* face. Those get no tag of their own: the game uses the same drawing for both.
 - **Animations:** turn on onion skin (the button left of the frame numbers) to see the frames around the one you're drawing. Loops should loop smoothly.
 - **Don't draw movement through space.** Bobbing, hopping, shaking and sliding are done by the game. Draw the pose, in place.
 
@@ -68,7 +73,7 @@ Just **save** (Ctrl/Cmd+S) in Aseprite; no exporting needed.
 - With GitHub Desktop: write a short note ("chef body and head"), click **Commit to art**, then **Push origin**.
 - Without it: send the `.aseprite` files you changed.
 
-Unfinished pieces are fine. A piece only goes into the game once **every one of its poses** has something drawn, so half-done work never shows up blank.
+Unfinished pieces are fine. A piece only goes into the game once **the first frame of every one of its poses** is drawn, so half-done work never shows up blank.
 
 ### Suggested order
 

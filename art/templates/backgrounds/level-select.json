@@ -21,8 +21,13 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": null
     }
+  ],
+  "shared": {},
+  "order": [
+    "default"
   ],
   "notes": "The wall behind the level select board (a kitchen pass with heat lamps). The tier plates, ticket rails and tickets are drawn on top by code.",
   "guides": []

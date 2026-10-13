@@ -12,7 +12,7 @@
   ],
   "sheet": [
     384,
-    240
+    96
   ],
   "states": [
     {
@@ -21,40 +21,34 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [
+        "tasting",
+        "meh",
+        "upset"
+      ],
       "note": "waiting"
     },
     {
-      "name": "tasting",
-      "row": 1,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "spoon in mouth"
-    },
-    {
       "name": "happy",
-      "row": 2,
+      "row": 1,
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "scored 7+"
-    },
-    {
-      "name": "meh",
-      "row": 3,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored 5-6"
-    },
-    {
-      "name": "upset",
-      "row": 4,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored under 5"
     }
+  ],
+  "shared": {
+    "tasting": "neutral",
+    "meh": "neutral",
+    "upset": "neutral"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset"
   ],
   "notes": "Biscuit: an excitable pup. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
   "guides": [

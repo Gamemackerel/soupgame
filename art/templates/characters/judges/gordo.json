@@ -12,7 +12,7 @@
   ],
   "sheet": [
     384,
-    768
+    640
   ],
   "states": [
     {
@@ -21,6 +21,9 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [
+        "meh"
+      ],
       "note": "waiting"
     },
     {
@@ -29,6 +32,7 @@
       "frames": 1,
       "fps": null,
       "loop": null,
+      "also": [],
       "note": "spoon in mouth"
     },
     {
@@ -37,32 +41,38 @@
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "scored 7+"
     },
     {
-      "name": "meh",
-      "row": 3,
-      "frames": 1,
-      "fps": null,
-      "loop": null,
-      "note": "scored 5-6"
-    },
-    {
       "name": "upset",
-      "row": 4,
+      "row": 3,
       "frames": 4,
       "fps": 4,
       "loop": true,
+      "also": [],
       "note": "scored under 5"
     },
     {
       "name": "rant",
-      "row": 5,
+      "row": 4,
       "frames": 4,
       "fps": 12,
       "loop": true,
+      "also": [],
       "note": "upset and speaking: shaking with rage, jabbing a finger"
     }
+  ],
+  "shared": {
+    "meh": "neutral"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset",
+    "rant"
   ],
   "notes": "Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
   "guides": [

@@ -17,7 +17,7 @@
 <h1>Soup Pot: art templates</h1>
 <p>Everything to redraw, with every state and frame. Paint over each sprite's <b>template</b> at its exact pixel size, keeping the grid of rows (states) and columns (frames). The full instructions are in the <a href="https://github.com/Gamemackerel/soupgame/blob/main/art/README.md">art README</a>.</p>
 <nav><a href="#characters">characters</a><a href="#ingredients">ingredients</a><a href="#backgrounds">backgrounds</a></nav>
-<h2 id="characters">Characters <small>18 sprites, 209 cells</small></h2>
+<h2 id="characters">Characters <small>19 sprites, 156 cells</small></h2>
     <section class="sprite" id="characters/chef/body">
       <h3>characters/chef/body</h3>
       <p class="facts">cell 48×46 · anchor 24,-74 · sheet 48×46 ·
@@ -36,10 +36,10 @@
     </section>
     <section class="sprite" id="characters/chef/face">
       <h3>characters/chef/face</h3>
-      <p class="facts">cell 24×22 · anchor 12,8 · sheet 24×220 ·
+      <p class="facts">cell 24×22 · anchor 12,8 · sheet 24×176 ·
         <a href="templates/characters/chef/face.png">template</a> · <a href="templates/characters/chef/face.json">json</a></p>
       <p>Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).</p>
-      <table><tr><td>0</td><td><b>idle</b></td><td>1 frame</td><td></td></tr><tr><td>1</td><td><b>blink</b></td><td>1 frame</td><td>idle with eyes shut, shown for a few frames now and then</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td></td></tr><tr><td>3</td><td><b>love</b></td><td>1 frame</td><td>after a great taste</td></tr><tr><td>4</td><td><b>meh</b></td><td>1 frame</td><td></td></tr><tr><td>5</td><td><b>worried</b></td><td>1 frame</td><td></td></tr><tr><td>6</td><td><b>gross</b></td><td>1 frame</td><td>burnt food</td></tr><tr><td>7</td><td><b>shock</b></td><td>1 frame</td><td></td></tr><tr><td>8</td><td><b>panic</b></td><td>1 frame</td><td>fire</td></tr><tr><td>9</td><td><b>angry</b></td><td>1 frame</td><td>flipping the pot over</td></tr></table>
+      <table><tr><td>0</td><td><b>idle</b></td><td>1 frame</td><td></td></tr><tr><td>1</td><td><b>blink</b></td><td>1 frame</td><td>idle with eyes shut, shown for a few frames now and then</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td></td></tr><tr><td>3</td><td><b>love</b></td><td>1 frame</td><td>after a great taste</td></tr><tr><td>4</td><td><b>meh</b></td><td>1 frame</td><td></td></tr><tr><td>5</td><td><b>gross</b></td><td>1 frame</td><td>burnt food</td></tr><tr><td>6</td><td><b>shock</b></td><td>1 frame</td><td></td></tr><tr><td>7</td><td><b>angry</b></td><td>1 frame</td><td>flipping the pot over</td></tr></table>
       <img src="templates/characters/chef/face.guide.png" alt="characters/chef/face guide">
     </section>
     <section class="sprite" id="characters/judges/pounce">
@@ -52,10 +52,10 @@
     </section>
     <section class="sprite" id="characters/judges/pounce-front">
       <h3>characters/judges/pounce-front</h3>
-      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×240 ·
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
         <a href="templates/characters/judges/pounce-front.png">template</a> · <a href="templates/characters/judges/pounce-front.json">json</a></p>
       <p>Sir Pounce: a snooty cat. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
-      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 frame</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 frame</td><td>scored under 5</td></tr></table>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr></table>
       <img src="templates/characters/judges/pounce-front.guide.png" alt="characters/judges/pounce-front guide">
     </section>
     <section class="sprite" id="characters/judges/biscuit">
@@ -68,10 +68,10 @@
     </section>
     <section class="sprite" id="characters/judges/biscuit-front">
       <h3>characters/judges/biscuit-front</h3>
-      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 384×240 ·
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 384×96 ·
         <a href="templates/characters/judges/biscuit-front.png">template</a> · <a href="templates/characters/judges/biscuit-front.json">json</a></p>
       <p>Biscuit: an excitable pup. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
-      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>4 frames @ 4 fps, loops</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 frame</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 frame</td><td>scored under 5</td></tr></table>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>happy</b></td><td>4 frames @ 4 fps, loops</td><td>scored 7+</td></tr></table>
       <img src="templates/characters/judges/biscuit-front.guide.png" alt="characters/judges/biscuit-front guide">
     </section>
     <section class="sprite" id="characters/judges/nanny">
@@ -84,10 +84,10 @@
     </section>
     <section class="sprite" id="characters/judges/nanny-front">
       <h3>characters/judges/nanny-front</h3>
-      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 384×240 ·
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 384×48 ·
         <a href="templates/characters/judges/nanny-front.png">template</a> · <a href="templates/characters/judges/nanny-front.json">json</a></p>
       <p>Nanny Mae: a cozy old goat. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
-      <table><tr><td>0</td><td><b>neutral</b></td><td>4 frames @ 4 fps, loops</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>4 frames @ 4 fps, loops</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>4 frames @ 4 fps, loops</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>4 frames @ 4 fps, loops</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>4 frames @ 4 fps, loops</td><td>scored under 5</td></tr></table>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>4 frames @ 4 fps, loops</td><td>waiting</td></tr></table>
       <img src="templates/characters/judges/nanny-front.guide.png" alt="characters/judges/nanny-front guide">
     </section>
     <section class="sprite" id="characters/judges/joe">
@@ -100,26 +100,26 @@
     </section>
     <section class="sprite" id="characters/judges/joe-front">
       <h3>characters/judges/joe-front</h3>
-      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 384×240 ·
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 384×96 ·
         <a href="templates/characters/judges/joe-front.png">template</a> · <a href="templates/characters/judges/joe-front.json">json</a></p>
       <p>Joe: the pizza-shop regular. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
-      <table><tr><td>0</td><td><b>neutral</b></td><td>4 frames @ 4 fps, loops</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 frame</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 frame</td><td>scored under 5</td></tr></table>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>4 frames @ 4 fps, loops</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr></table>
       <img src="templates/characters/judges/joe-front.guide.png" alt="characters/judges/joe-front guide">
     </section>
     <section class="sprite" id="characters/judges/gordo">
       <h3>characters/judges/gordo</h3>
-      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×768 ·
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
         <a href="templates/characters/judges/gordo.png">template</a> · <a href="templates/characters/judges/gordo.json">json</a></p>
       <p>Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
-      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>4 frames @ 4 fps, loops</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 frame</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>4 frames @ 4 fps, loops</td><td>scored under 5</td></tr><tr><td>5</td><td><b>rant</b></td><td>4 frames @ 12 fps, loops</td><td>upset and speaking: shaking with rage, jabbing a finger</td></tr></table>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>4 frames @ 4 fps, loops</td><td>scored 7+</td></tr><tr><td>3</td><td><b>upset</b></td><td>4 frames @ 4 fps, loops</td><td>scored under 5</td></tr><tr><td>4</td><td><b>rant</b></td><td>4 frames @ 12 fps, loops</td><td>upset and speaking: shaking with rage, jabbing a finger</td></tr></table>
       <img src="templates/characters/judges/gordo.guide.png" alt="characters/judges/gordo guide">
     </section>
     <section class="sprite" id="characters/judges/gordo-front">
       <h3>characters/judges/gordo-front</h3>
-      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×288 ·
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×144 ·
         <a href="templates/characters/judges/gordo-front.png">template</a> · <a href="templates/characters/judges/gordo-front.json">json</a></p>
       <p>Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
-      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 frame</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 frame</td><td>scored under 5</td></tr><tr><td>5</td><td><b>rant</b></td><td>1 frame</td><td>upset and speaking: shaking with rage, jabbing a finger</td></tr></table>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>happy</b></td><td>1 frame</td><td>scored 7+</td></tr><tr><td>2</td><td><b>rant</b></td><td>1 frame</td><td>upset and speaking: shaking with rage, jabbing a finger</td></tr></table>
       <img src="templates/characters/judges/gordo-front.guide.png" alt="characters/judges/gordo-front guide">
     </section>
     <section class="sprite" id="characters/judges/paul">
@@ -132,19 +132,27 @@
     </section>
     <section class="sprite" id="characters/judges/paul-front">
       <h3>characters/judges/paul-front</h3>
-      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 576×288 ·
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 576×96 ·
         <a href="templates/characters/judges/paul-front.png">template</a> · <a href="templates/characters/judges/paul-front.json">json</a></p>
       <p>Paul Bollywood: the silver-haired baker (looks like Paul Hollywood). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
-      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 frame</td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 frame</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 frame</td><td>scored under 5</td></tr><tr><td>5</td><td><b>handshake</b></td><td>6 frames @ 12 fps, plays once</td><td>his arm reaches across the table, then holds (plays once)</td></tr></table>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 frame</td><td>waiting</td></tr><tr><td>1</td><td><b>handshake</b></td><td>6 frames @ 12 fps, plays once</td><td>his arm reaches across the table, then holds (plays once)</td></tr></table>
       <img src="templates/characters/judges/paul-front.guide.png" alt="characters/judges/paul-front guide">
     </section>
     <section class="sprite" id="characters/story/dom">
       <h3>characters/story/dom</h3>
-      <p class="facts">cell 120×130 · anchor 60,0 · sheet 480×780 ·
+      <p class="facts">cell 120×130 · anchor 60,0 · sheet 120×390 ·
         <a href="templates/characters/story/dom.png">template</a> · <a href="templates/characters/story/dom.json">json</a></p>
-      <p>Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Each mood has an idle row and a talking row.</p>
-      <table><tr><td>0</td><td><b>sad</b></td><td>4 frames @ 2 fps, loops</td><td></td></tr><tr><td>1</td><td><b>stern</b></td><td>4 frames @ 2 fps, loops</td><td></td></tr><tr><td>2</td><td><b>happy</b></td><td>4 frames @ 2 fps, loops</td><td></td></tr><tr><td>3</td><td><b>sad-talk</b></td><td>4 frames @ 7.5 fps, loops</td><td>mouth flapping while his line types out</td></tr><tr><td>4</td><td><b>stern-talk</b></td><td>4 frames @ 7.5 fps, loops</td><td>mouth flapping while his line types out</td></tr><tr><td>5</td><td><b>happy-talk</b></td><td>4 frames @ 7.5 fps, loops</td><td>mouth flapping while his line types out</td></tr></table>
+      <p>Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).</p>
+      <table><tr><td>0</td><td><b>sad</b></td><td>1 frame</td><td></td></tr><tr><td>1</td><td><b>stern</b></td><td>1 frame</td><td></td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td></td></tr></table>
       <img src="templates/characters/story/dom.guide.png" alt="characters/story/dom guide">
+    </section>
+    <section class="sprite" id="characters/story/dom-mouth">
+      <h3>characters/story/dom-mouth</h3>
+      <p class="facts">cell 14×8 · anchor 7,-66 · sheet 14×32 ·
+        <a href="templates/characters/story/dom-mouth.png">template</a> · <a href="templates/characters/story/dom-mouth.json">json</a></p>
+      <p>Papa Dom's mouth, laid over his face (same anchor as story/dom). One per mood, and open for talking: while he speaks, the game alternates the open mouth with his mood's.</p>
+      <table><tr><td>0</td><td><b>sad</b></td><td>1 frame</td><td></td></tr><tr><td>1</td><td><b>stern</b></td><td>1 frame</td><td></td></tr><tr><td>2</td><td><b>happy</b></td><td>1 frame</td><td></td></tr><tr><td>3</td><td><b>talk</b></td><td>1 frame</td><td>open, mid-word</td></tr></table>
+      <img src="templates/characters/story/dom-mouth.guide.png" alt="characters/story/dom-mouth guide">
     </section>
     <section class="sprite" id="characters/extras/rat">
       <h3>characters/extras/rat</h3>
