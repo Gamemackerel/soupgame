@@ -85,7 +85,6 @@ function catalog(metas) {
       <h3>${esc(m.path)}</h3>
       <p class="facts">cell ${m.cell[0]}×${m.cell[1]} · anchor ${m.anchor[0]},${m.anchor[1]} · sheet ${m.sheet[0]}×${m.sheet[1]} ·
         <a href="templates/${esc(m.path)}.png">template</a> · <a href="templates/${esc(m.path)}.json">json</a></p>
-      ${m.spec ? `<p class="spec"><b>Spec:</b> ${esc(m.spec)}</p>` : ''}
       <p>${esc(m.notes)}</p>
       <table>${m.states.map((s) => `<tr><td>${s.row}</td><td><b>${esc(s.name)}</b>${s.also && s.also.length ? `<br><small>also used for ${esc(s.also.join(', '))}</small>` : ''}</td><td>1 drawing${s.frames > 1 ? ` <small>+ ${s.frames - 1} optional animation frame${s.frames > 2 ? 's' : ''} (${s.fps} fps${s.loop ? ', loops' : ', plays once'})</small>` : ''}</td><td>${esc(s.note || '')}</td></tr>`).join('')}</table>
       <img src="templates/${esc(m.path)}.guide.png" alt="${esc(m.path)} guide">
@@ -108,7 +107,6 @@ function catalog(metas) {
   .sprite h3 { margin: 0; font-family: ui-monospace, monospace; } .facts { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
   table { border-collapse: collapse; font-size: 13px; margin-bottom: 10px; } td { padding: 2px 10px 2px 0; vertical-align: top; }
   img { image-rendering: pixelated; max-width: 100%; display: block; }
-  .spec { background: var(--bg); border-left: 3px solid var(--accent); padding: 6px 10px; margin: 8px 0; }
   details { margin-top: 10px; } summary { cursor: pointer; color: var(--accent); }
   a { color: var(--accent); }
 </style></head><body><main>

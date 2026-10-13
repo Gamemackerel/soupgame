@@ -125,7 +125,7 @@ const Sprites = {
         also: d.order.filter((o) => d.alias[o] === s), note: d.states[s].note || null })),
       shared: Object.assign({}, d.alias),   // state → the state whose drawing it uses
       order: d.order.slice(),               // every state, rows and shared alike
-      notes: d.notes || '', spec: d.spec || '', guides: d.guides || [],
+      notes: d.notes || '', guides: d.guides || [],
     };
     return { sheet, meta };
   },
@@ -196,12 +196,10 @@ const IDLE = { frames: 4, fps: 4 };
 // The chef: body, head and face are separate, so a new mood is just a new face. Bobbing, hopping, shaking and
 // the sip are the whole sprite moving (code), and his arms are drawn by code to reach the cursor.
 Sprites.def('chef/body', { path: 'characters/chef/body', w: 48, h: 46, ox: -24, oy: 74, static: true,
-  spec: 'The chef must be wearing a traditional chef shirt and a red scarf.',
-  notes: 'His torso and coat above the pot rim. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.',
+  notes: 'His torso above the pot rim: he must be wearing a traditional chef shirt and a red scarf. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.',
   states: { idle: {} }, render: (g) => Chef.drawBody(g) });
 Sprites.def('chef/head', { path: 'characters/chef/head', w: 40, h: 52, ox: -20, oy: -36, static: true,
-  spec: 'The chef must be wearing a chef hat, and otherwise be dressed in traditional chef attire.',
-  notes: 'Head, ears and toque, with no face. The anchor is the center of his face; chef/face is laid over it.',
+  notes: 'Head and ears, with no face. He must be wearing a chef hat, and otherwise be dressed in traditional chef attire. The anchor is the center of his face; chef/face is laid over it.',
   states: { idle: {} }, render: (g) => Chef.drawHead(g) });
 Sprites.def('chef/face', { path: 'characters/chef/face', w: 24, h: 22, ox: -12, oy: -8, static: true,
   notes: 'Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).',
@@ -221,11 +219,9 @@ function judgeCtx(id, pose, t) {
   const mood = { tasting: 'neutral', rant: 'upset', handshake: 'happy' }[pose] || pose;
   return { j: JUDGE_ROSTER[id], J: { t, typed: 0 }, s: { mood, ft: t, active: pose === 'tasting' || pose === 'rant', tasting: pose === 'tasting', handshake: pose === 'handshake' } };
 }
-// The artist's brief for each judge, where there is one.
-const JUDGE_SPECS = { gordo: 'He should look like Gordon Ramsay.' };
 const JUDGE_NOTES = {
   pounce: 'Sir Pounce: a snooty cat.', biscuit: 'Biscuit: an excitable pup.', nanny: 'Nanny Mae: a cozy old goat.',
-  joe: 'Joe: the pizza-shop regular.', gordo: 'Gordo Hamsie: the shouty head chef (a caricature). Also used, larger, in story cutscenes.',
+  joe: 'Joe: the pizza-shop regular.', gordo: 'Gordo Hamsie: the shouty head chef (a caricature): he should look like Gordon Ramsay. Also used, larger, in story cutscenes.',
   paul: 'Paul Bollywood: the silver-haired baker (looks like Paul Hollywood).',
 };
 for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
@@ -238,7 +234,6 @@ for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
   };
   Sprites.def('judges/' + id, { path: 'characters/judges/' + id, w: 96, h: 128, ox: -48, oy: 0,
     notes: JUDGE_NOTES[id] + ' Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.',
-    spec: JUDGE_SPECS[id] || '',
     guides: [{ y: 118, label: 'table top' }], states: poses, render: render('body') });
   Sprites.def('judges/' + id + '-front', { path: 'characters/judges/' + id + '-front', w: 96, h: 48, ox: -48, oy: 96,
     notes: JUDGE_NOTES[id] + ' What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.',
@@ -248,8 +243,7 @@ for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
 // Papa Dom, for the story cutscenes (shown at 2x): him without a mouth, one drawing per mood, and his mouth on its
 // own (each mood's, plus open for talking: the game flaps it open and shut). His breathing bob is the game's.
 Sprites.def('story/dom', { path: 'characters/story/dom', w: 120, h: 130, ox: -60, oy: 0, static: true,
-  spec: 'He should be wearing a pizza chef apron and have big muscles showing.',
-  notes: 'Papa Dom, the pizza shop owner (a Vin Diesel lookalike). Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).',
+  notes: 'Papa Dom, the pizza shop owner (a Vin Diesel lookalike): he should be wearing a pizza chef apron and have big muscles showing. Cutscene portrait, displayed at 2x. Everything but his mouth, which is its own sprite (story/dom-mouth).',
   states: { sad: {}, stern: {}, happy: {} },
   render: (g, state) => drawDom(g, 0, { t: 0 }, { mood: state, ft: 0, noMouth: true }) });
 Sprites.def('story/dom-mouth', { path: 'characters/story/dom-mouth', w: 14, h: 8, ox: -7, oy: 66, static: true,
