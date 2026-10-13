@@ -25,9 +25,15 @@ Some frames are **linked**: one drawing used in several poses. Draw it once and 
 - Keep each piece where the old art is.
 - Transparent background, hard pixels (use the Pencil). Soft transparency is fine for glows.
 
-## Suggested order
+## Workflow
 
-Ingredients → dishes → the chef → judges → Papa Dom and extras → backgrounds.
+1. **Draw it on paper first.** Draw a whole character, a set like the ingredients, or a whole screen like the level select, as one drawing. Start with three: **the chef, the carrot, and the wine bottle.**
+2. **Turn the drawing into pixel art, split into its pieces.** For the chef, that means his body, his head and his faces. Two ways to do it:
+   - **Draw over it.** Open the template (e.g. `characters/chef.aseprite`) and bring a photo of your drawing in as a reference layer (*Layer → New → New Reference Layer from File*). Scale it to fit the old art outline, then draw each piece in its group on top of it.
+   - **Pixelate it, then clean it up.** Run a photo of your drawing through a pixelation tool to get it to the right size, then clean it up by hand and copy each part into its group.
+3. **Then the rest:** ingredients → dishes → judges → Papa Dom and extras → backgrounds.
+
+**A note on AI:** the point of all this is that the game's art is drawn by you, not generated. If you use AI at all, keep it to narrow, mechanical help, such as splitting your finished drawing into the separate pieces. Never use it to create, redraw or "improve" the art itself.
 
 ## Sending it back
 
