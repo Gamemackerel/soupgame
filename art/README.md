@@ -42,7 +42,7 @@ Open `characters/chef.aseprite`. You'll see the whole chef on one canvas.
 
 - **Layers panel (left of the timeline):** one **group** per piece the game needs: `body`, `head`, `face`. Each has an empty layer called **`draw here`**.
 - **Reference layers**, whose names start with `_`, are locked and never exported:
-  - **`_SPEC …`**: the brief for a piece, where it has one. For example, the chef's head must wear a chef hat, and Papa Dom wears a pizza chef apron with big muscles showing. The catalog shows these too.
+  - **`_about …`**: what each piece is and what it must show, the same description as on the catalog (the chef's head must wear a chef hat; Papa Dom wears a pizza chef apron with big muscles showing). Hover the layer or open its properties to read it all.
   - `_old art (reference)`: the current placeholder art, faint, to trace or ignore as you like.
   - `_guides`: helper marks. In the chef file, the **blue line** is the pot rim (everything below it is hidden behind the pot) and the **red dots** are his shoulders (his arms are drawn by the game from there).
 - **Tags (the colored bars above the timeline)** are the moods, poses and animations: `idle`, `happy`, `angry`… Click one to see its frames.
