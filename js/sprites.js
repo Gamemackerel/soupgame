@@ -360,6 +360,7 @@ const SKETCH = {
 // Dishes: every soup the same plain bowl in its soup's color; the flatbread and the cake as plain shapes.
 const PLAIN_DISH = { 'tomato-soup': [214, 60, 40], 'creamy-corn': [244, 224, 150], 'fish-stew': [226, 120, 60], minestrone: [204, 96, 50],
   'french-onion': [170, 110, 60], 'beef-chowder': [236, 216, 180], goulash: [160, 50, 30], chili: [150, 40, 26],
+  'clam-chowder': [240, 232, 214], avgolemono: [246, 226, 150], bouillabaisse: [226, 130, 40],
   'chicken-noodle': [234, 196, 100], 'tonkotsu-ramen': [244, 236, 220], 'marinara-meatballs': [200, 50, 36], 'hot-sour': [160, 96, 50], 'primordial-soup': [90, 140, 70] };
 function plainDish(g, id) {
   if (id === 'flatbread') { ellipse(g, 12, 9, 10, 4, [226, 182, 110]); return; }

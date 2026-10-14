@@ -2438,6 +2438,41 @@
     "animated": false
   },
   {
+    "name": "ingredients/lemon",
+    "path": "ingredients/lemon",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Lemon Juice: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
     "name": "ingredients/soy",
     "path": "ingredients/soy",
     "group": "ingredients",
@@ -2609,6 +2644,76 @@
       "default"
     ],
     "notes": "Chili Flakes: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "ingredients/paprika",
+    "path": "ingredients/paprika",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Paprika: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "ingredients/saffron",
+    "path": "ingredients/saffron",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Saffron: on the shelf, and in the chef's hand.",
     "guides": [],
     "animated": false
   },
@@ -2819,6 +2924,41 @@
       "default"
     ],
     "notes": "Onion: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "ingredients/ginger",
+    "path": "ingredients/ginger",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Ginger: on the shelf, and in the chef's hand.",
     "guides": [],
     "animated": false
   },
@@ -3323,6 +3463,76 @@
     "animated": false
   },
   {
+    "name": "ingredients/cheese",
+    "path": "ingredients/cheese",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Cheese: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "ingredients/clams",
+    "path": "ingredients/clams",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Clams: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
     "name": "ingredients/pork",
     "path": "ingredients/pork",
     "group": "ingredients",
@@ -3533,8 +3743,8 @@
     "animated": false
   },
   {
-    "name": "dishes/beef-chowder",
-    "path": "ingredients/dishes/beef-chowder",
+    "name": "dishes/chicken-noodle",
+    "path": "ingredients/dishes/chicken-noodle",
     "group": "ingredients",
     "cell": [
       24,
@@ -3563,7 +3773,42 @@
     "order": [
       "default"
     ],
-    "notes": "Beef Chowder, finished: its ticket on the level select board.",
+    "notes": "Chicken Noodle Soup, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/clam-chowder",
+    "path": "ingredients/dishes/clam-chowder",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "New England Clam Chowder, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },
@@ -3603,8 +3848,8 @@
     "animated": false
   },
   {
-    "name": "dishes/chicken-noodle",
-    "path": "ingredients/dishes/chicken-noodle",
+    "name": "dishes/avgolemono",
+    "path": "ingredients/dishes/avgolemono",
     "group": "ingredients",
     "cell": [
       24,
@@ -3633,42 +3878,7 @@
     "order": [
       "default"
     ],
-    "notes": "Chicken Noodle Soup, finished: its ticket on the level select board.",
-    "guides": [],
-    "animated": false
-  },
-  {
-    "name": "dishes/chili",
-    "path": "ingredients/dishes/chili",
-    "group": "ingredients",
-    "cell": [
-      24,
-      16
-    ],
-    "anchor": [
-      0,
-      0
-    ],
-    "sheet": [
-      24,
-      16
-    ],
-    "states": [
-      {
-        "name": "default",
-        "row": 0,
-        "frames": 1,
-        "fps": null,
-        "loop": null,
-        "also": [],
-        "note": null
-      }
-    ],
-    "shared": {},
-    "order": [
-      "default"
-    ],
-    "notes": "Chili con Carne, finished: its ticket on the level select board.",
+    "notes": "Avgolemono, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },
@@ -3704,6 +3914,41 @@
       "default"
     ],
     "notes": "Minestrone, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/chili",
+    "path": "ingredients/dishes/chili",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Chili con Carne, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },
@@ -3778,8 +4023,8 @@
     "animated": false
   },
   {
-    "name": "dishes/hot-sour",
-    "path": "ingredients/dishes/hot-sour",
+    "name": "dishes/bouillabaisse",
+    "path": "ingredients/dishes/bouillabaisse",
     "group": "ingredients",
     "cell": [
       24,
@@ -3808,7 +4053,7 @@
     "order": [
       "default"
     ],
-    "notes": "Hot & Sour Soup, finished: its ticket on the level select board.",
+    "notes": "Bouillabaisse, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },

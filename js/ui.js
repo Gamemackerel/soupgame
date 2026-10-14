@@ -52,7 +52,9 @@ const T = {
   },
 };
 
-const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SHELF_COLS = 3;
+const SHELF_X = 2, SHELF_Y = 14;
+// Three columns of 18 px, or four slightly narrower ones once the shelf holds more than 33 (it must clear the pot's handle).
+const shelfCols = () => (shelf().length > 33 ? 4 : 3), slotW = () => (shelfCols() === 4 ? 17 : 18);
 // What's on the shelf: everything unlocked so far in the story (see Levels.shelf), or all of it. Re-checked every few
 // frames, since passing a dish can unlock more.
 let shelfCache = { t: -1, level: undefined, list: SHELF };
@@ -63,7 +65,7 @@ function shelf() {
   }
   return shelfCache.list;
 }
-const slotH = () => (shelf().length > 30 ? 19 : 21);   // a full shelf packs a little tighter
+const slotH = () => (shelf().length > 30 && shelf().length <= 33 ? 19 : 21);   // three full columns pack a little tighter
 // Clicking a pantry item is pouring, so there's no Pour tool: Stir and Taste toggle back to it.
 const TOOLS = [
   { id: 'ladle', icon: 'ladle', label: 'Stir', key: 'S' },
@@ -87,7 +89,7 @@ const UI = {
   tool: 'pour', hover: null, card: null, journal: false, banners: [], toasts: [], confirm: null,   // a tool waiting on a second click ('Sure?'): { id, t }
   dragDial: false,
 
-  shelfSlot(n) { const h = slotH(); return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * h, w: SLOT_W - 1, h: h - 1 }; },
+  shelfSlot(n) { const h = slotH(), w = slotW(), c = shelfCols(), x0 = c === 4 ? 1 : SHELF_X; return { x: x0 + (n % c) * w, y: SHELF_Y + ((n / c) | 0) * h, w: w - 1, h: h - 1 }; },
   // Hotkeys while cooking: S stir, T taste (again to put it down), L lid, W water, R the recipe (in story).
   hotkey(k) {
     if (k === 's' || k === 't') { const id = k === 's' ? 'ladle' : 'taste'; this.tool = this.tool === id ? 'pour' : id; }
@@ -167,7 +169,8 @@ const UI = {
 
   draw(g, mx, my) {
     // Shelf: wooden board.
-    rect(g, 0, 12, 58, 214, [120, 76, 48]); rect(g, 1, 13, 56, 212, [160, 106, 66]);
+    const pw = shelfCols() === 4 ? 70 : 58;
+    rect(g, 0, 12, pw, 214, [120, 76, 48]); rect(g, 1, 13, pw - 2, 212, [160, 106, 66]);
     shelf().forEach((ing, n) => {
       const s = this.shelfSlot(n), sel = Chef.held === ing, hov = this.hover && this.hover.type === 'ing' && this.hover.n === n;
       rect(g, s.x + 1, s.y + 1, s.w - 1, s.h - 1, sel ? [255, 214, 110] : hov ? [196, 140, 92] : [176, 120, 76]);

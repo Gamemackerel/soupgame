@@ -824,14 +824,15 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 
 | Tier | Judges | Dishes | Bonus recipe (after The Deal) |
 |---|---|---|---|
-| Pizza Shop | Biscuit, Sir Pounce, Joe | Tomato Soup, French Onion Soup, Fish Stew | Pan Flatbread |
-| First Michelin Star | Gordo Hamsie, Paul Bollywood, Sir Pounce | Creamy Corn Soup, Beef Chowder, Goulash | Pot-Oven Sponge Cake |
-| Second Michelin Star | Mister Dude-Guy, Chef Signore, Chef Seonbae | Chicken Noodle Soup, Chili con Carne, Minestrone | Focaccia |
-| Third Michelin Star | Chef Monsieur, Marty Stew, President Obama | Tonkotsu Ramen, Marinara Pasta & Meatballs (pork, noodles), Hot & Sour Soup | Irish Soda Bread |
+| Pizza Shop | Biscuit, Sir Pounce, Joe | Tomato Soup, French Onion Soup (with cheese), Fish Stew (onion poached in wine) | Pan Flatbread |
+| First Michelin Star | Gordo Hamsie, Paul Bollywood, Sir Pounce | Creamy Corn Soup, Chicken Noodle Soup, New England Clam Chowder | Pot-Oven Sponge Cake |
+| Second Michelin Star | Mister Dude-Guy, Chef Signore, Chef Seonbae | Goulash (paprika), Avgolemono, Minestrone | Focaccia |
+| Third Michelin Star | Chef Monsieur, Marty Stew, President Obama | Chili con Carne, Tonkotsu Ramen (ginger), Marinara Pasta & Meatballs (pork, noodles, cheese), Bouillabaisse (saffron) | Irish Soda Bread |
 | The Deal | The Ram (alone) | Primordial Soup | |
 
-- **The shelf follows the story.** It holds every ingredient the opened tiers need, plus water and the extinguisher (`Levels.shelf`), so replaying an earlier dish you have all your newer ingredients, and the sandbox shows only what you've unlocked. Once The Deal is open, that's everything. In the Pizza Shop only Fish Stew requires herbs; they're a flourish elsewhere.
-- **New ingredients:** **pork** (sears and builds fond like beef; a long hard boil makes a rich, cloudy-white broth) and **noodles** (cook like pasta; their starch thickens what they cook in). **Pork Bone Broth** is a technique: pork at a hard boil (heat 8+) for about 150 s.
+- **The shelf follows the story.** It holds every ingredient the opened tiers need, plus what's always there (water, the extinguisher, vinegar, sugar, chili flakes, black pepper: `SHELF_ALWAYS`) (`Levels.shelf`), so replaying an earlier dish you have all your newer ingredients, and the sandbox shows only what you've unlocked. Once The Deal is open, that's everything. In the Pizza Shop only Fish Stew requires herbs; they're a flourish elsewhere.
+- **New ingredients:** **pork** (sears and builds fond like beef, and renders fat when seared hot; beef renders a little too, but only seared in a dry pan; a long hard boil makes a rich, cloudy-white broth), **noodles** (cook like pasta; their starch thickens what they cook in), **cheese** (shreds that melt into hot soup: rich, salty, savory), **paprika** and **saffron** (spices that bloom in oil; paprika sweet and red, saffron perfumed and golden), **ginger** (an aromatic), **clams** (must cook through; a briny, savory liquor) and **lemon juice**. Baking powder, baking soda and yeast come with The Deal. With more than 33 on the shelf the pantry goes to four narrower columns.
+- **New techniques:** **Pork Bone Broth** (pork at a hard boil, heat 8+, for about 150 s), **Egg Liaison** (loose egg stirred into broth that's off the boil, 45–80 °C with the flame at 3 or less, melts in and thickens it silky; avgolemono) and **Melted Cheese**.
 - **Bonus recipes** (`bonus: true`) appear marked NEW RECIPE once Primordial Soup is passed. They don't count toward unlocking tiers.
 - **New judges** have their own palates (taste capped at 30% of their blend) and voices, and are drawn as placeholder sketches with one telltale feature each. Every pose is its own drawing for the artist (`distinct`). The sandbox's random panel excludes The Ram (`storyOnly`).
 - **Story:** after the Second Michelin Star, Gordo warns you to throw the next one. After the Third, he snaps and transforms (a shaking, reddening, horn-sprouting animation and a white flash) into The Ram, who speaks in a demonic typeface (Pirata One, red on black) and offers the deal. After The Deal, The Ram stands aside, and new recipes appear.

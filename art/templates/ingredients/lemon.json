@@ -1,9 +1,9 @@
 {
-  "name": "dishes/beef-chowder",
-  "path": "ingredients/dishes/beef-chowder",
+  "name": "ingredients/lemon",
+  "path": "ingredients/lemon",
   "group": "ingredients",
   "cell": [
-    24,
+    16,
     16
   ],
   "anchor": [
@@ -11,7 +11,7 @@
     0
   ],
   "sheet": [
-    24,
+    16,
     16
   ],
   "states": [
@@ -29,7 +29,7 @@
   "order": [
     "default"
   ],
-  "notes": "Beef Chowder, finished: its ticket on the level select board.",
+  "notes": "Lemon Juice: on the shelf, and in the chef's hand.",
   "guides": [],
   "animated": false
 }

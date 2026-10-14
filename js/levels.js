@@ -15,6 +15,9 @@ const LEVEL_TIERS = [
 // The shelf grows with the story: a tier's kitchen has every ingredient its dishes, and the tiers before it, need
 // (plus water and the fire extinguisher). The finale and the sandbox have everything.
 
+// On the shelf from the very start, whatever the tier. (Baking powder, baking soda and yeast come with The Deal.)
+const SHELF_ALWAYS = ['water', 'extinguisher', 'vinegar', 'sugar', 'chili', 'pepper'];
+
 const LEVELS = [
   // ---- Pizza Shop ----
   {
@@ -35,37 +38,38 @@ const LEVELS = [
     flourishes: [
       { name: 'fresh herbs', insertAfter: { 'heat 0': ['add herbs 2'] } },
     ],
-  },  {
+  },
+  {
     id: 'french-onion', short: 'French Onion', tier: 0, title: 'French Onion Soup', teaches: 'patience',
-    blurb: 'Caramelize a mountain of onions low and slow, deglaze with wine, and simmer into a deep broth.',
+    blurb: 'Caramelize a mountain of onions low and slow, deglaze with wine, simmer into a deep broth, and melt cheese over the top.',
     hint: 'The onions take longer than you think. Much longer.',
     essential: ['onion'],   // without these it isn't the dish at all
-    ingredients: ['oil', 'onion', 'wine', 'water', 'salt'],
-    techniques: ['caramelize', 'deglaze'],
+    ingredients: ['oil', 'onion', 'wine', 'water', 'salt', 'cheese'],
+    techniques: ['caramelize', 'deglaze', 'melt'],
     forbid: ['burnt'],
     par: ['pour oil 1.5s', 'add onion 10', 'heat 5', 'wait 120s', 'stir 2s', 'wait 60s', 'pour wine 1.5s', 'wait 5s', 'pour water 8s',
-          'pour salt 1s', 'heat 4', 'wait 60s', 'wait 5s', 'serve'],
+          'pour salt 1s', 'heat 4', 'wait 60s', 'add cheese 1', 'wait 20s', 'serve'],
     mistakes: [
       { name: 'rushed onions', replace: { 'wait 120s': 'wait 10s', 'wait 60s': 'wait 5s' } },
       { name: 'boiled onions', steps: ['pour water 8s', 'add onion 10', 'heat 7', 'wait 180s', 'pour salt 1s', 'stir 3s', 'serve'] },
     ],
-  },  {
+  },
+  {
     id: 'fish-stew', short: 'Fish Stew', tier: 0, title: 'Fish Stew', teaches: 'layering and timing',
-    blurb: 'Build a tomato and wine base, simmer the potatoes, then add the fish late so it just flakes.',
+    blurb: 'Simmer onion in white wine, add potatoes and water, then poach the fish late so it just flakes. Finish with fresh herbs.',
     hint: 'Fish needs a minute, not an hour.',
     essential: ['fish'],   // without these it isn't the dish at all
-    ingredients: ['oil', 'onion', 'garlic', 'wine', 'tomato', 'potato', 'water', 'salt', 'fish', 'herbs'],
-    techniques: ['sweat', 'tomato', 'flake'],
+    ingredients: ['onion', 'wine', 'potato', 'water', 'salt', 'fish', 'herbs'],
+    techniques: ['flake'],
     forbid: ['burnt', 'raw'],
-    par: ['pour oil 1s', 'add onion 4', 'add garlic 2', 'heat 5', 'wait 40s', 'pour wine 1.5s', 'wait 15s', 'add tomato 8',
-          'add potato 4', 'wait 20s', 'pour water 9s', 'pour salt 1.2s', 'wait 90s', 'throw fish 1', 'heat 4', 'wait 60s',
-          'heat 0', 'add herbs 2', 'serve'],
+    par: ['pour wine 1.5s', 'add onion 4', 'heat 5', 'wait 30s', 'add potato 4', 'pour water 9s', 'pour salt 1.2s', 'heat 6', 'wait 90s',
+          'throw fish 1', 'heat 4', 'wait 60s', 'heat 0', 'add herbs 2', 'serve'],
     mistakes: [
       { name: 'no fish', remove: ['throw fish 1'] },
-      { name: 'no base', steps: ['pour water 9s', 'add potato 4', 'heat 5', 'pour salt 1.2s', 'wait 90s', 'throw fish 1', 'heat 4', 'wait 60s', 'serve'] },
       { name: 'fish raw', replace: { 'wait 60s': 'wait 5s' } },
     ],
   },
+
   // ---- First Michelin Star ----
   {
     id: 'creamy-corn', short: 'Creamy Corn', tier: 1, title: 'Creamy Corn Soup', teaches: 'thickening and gentle dairy',
@@ -81,40 +85,9 @@ const LEVELS = [
       { name: 'rushed potato', replace: { 'wait 150s': 'wait 40s' } },
       { name: 'no cream', remove: ['pour cream 3s +stir'] },
     ],
-  },  {
-    id: 'beef-chowder', short: 'Beef Chowder', tier: 1, title: 'Beef Chowder', teaches: 'roux, starch and dairy together',
-    blurb: 'Sear the beef, sweat the vegetables, make a roux in the fat, add potatoes, and finish with cream.',
-    hint: 'Flour into hot fat, not into water.',
-    essential: ['meat', 'potato', 'cream'],   // without these it isn't the dish at all
-    ingredients: ['oil', 'meat', 'onion', 'carrot', 'celery', 'flour', 'water', 'potato', 'cream', 'salt'],
-    techniques: ['fond', 'roux', 'thicken'],
-    forbid: ['curdled', 'lumps', 'burnt'],
-    par: ['pour oil 1.5s', 'add meat 5', 'heat 7', 'wait 40s', 'add onion 3', 'add carrot 3', 'add celery 3', 'heat 5', 'wait 40s',
-          'pour flour 1.6s', 'stir 3s', 'wait 15s', 'pour water 6s +stir', 'add potato 5', 'heat 5', 'wait 120s', 'heat 3',
-          'pour cream 4s +stir', 'pour salt 1s', 'wait 30s', 'serve'],
-    mistakes: [
-      { name: 'flour in water', remove: ['pour flour 1.6s', 'stir 3s'], insertAfter: { 'pour water 6s +stir': ['pour flour 1.6s'] } },
-      { name: 'cream at a boil', replace: { 'heat 3': 'heat 8' } },
-    ],
-  },  {
-    id: 'goulash', short: 'Goulash', tier: 1, title: 'Goulash', teaches: 'browning and blooming spice',
-    blurb: 'Slow-cook the onions, brown the beef, bloom the spices in the fat, then simmer with tomato.',
-    hint: 'Spices wake up in hot fat, not in water.',
-    essential: ['meat', 'chili'],   // without these it isn't the dish at all
-    ingredients: ['oil', 'onion', 'meat', 'chili', 'cumin', 'tomato', 'water', 'salt'],
-    techniques: ['caramelize', 'fond', 'bloom'],
-    forbid: ['burnt'],
-    par: ['pour oil 1.5s', 'add onion 8', 'heat 5', 'wait 120s', 'add meat 6', 'heat 7', 'wait 40s', 'heat 5', 'wait 12s',
-          'pour chili 0.4s', 'pour cumin 0.3s', 'stir 2s', 'wait 6s', 'add tomato 6', 'pour water 9s', 'pour salt 1s', 'heat 4',
-          'wait 150s', 'serve'],
-    mistakes: [
-      { name: 'spices in water', remove: ['pour chili 0.4s', 'pour cumin 0.3s'], insertAfter: { 'pour water 9s': ['pour chili 0.4s', 'pour cumin 0.3s'] } },
-      { name: 'boiled beef', steps: ['pour water 9s', 'add meat 6', 'add onion 8', 'heat 5', 'pour chili 0.4s', 'pour cumin 0.3s', 'add tomato 6', 'pour salt 1s', 'wait 200s', 'serve'] },
-    ],
   },
-  // ---- Second Michelin Star: pasta and spice ----
   {
-    id: 'chicken-noodle', short: 'Chicken Noodle', tier: 2, title: 'Chicken Noodle Soup', teaches: 'poaching and timing pasta',
+    id: 'chicken-noodle', short: 'Chicken Noodle', tier: 1, title: 'Chicken Noodle Soup', teaches: 'poaching and timing pasta',
     blurb: 'Sweat the onion, carrot and celery, poach the chicken in the broth, then add the pasta at the end.',
     hint: 'The chicken needs time to cook through. The pasta needs very little.',
     essential: ['chicken', 'pasta'],
@@ -129,21 +102,55 @@ const LEVELS = [
     ],
   },
   {
-    id: 'chili', short: 'Chili', tier: 2, title: 'Chili con Carne', teaches: 'heat, spice and a long simmer',
-    blurb: 'Brown the beef, soften onion and garlic, bloom chili and cumin, then simmer with tomato and beans.',
-    hint: 'Bloom the spices in the fat before any liquid goes in.',
-    essential: ['meat', 'chili'],   // without these it isn't the dish at all
-    ingredients: ['oil', 'meat', 'onion', 'garlic', 'chili', 'cumin', 'tomato', 'beans', 'water', 'salt'],
-    techniques: ['fond', 'bloom', 'tomato'],
+    id: 'clam-chowder', short: 'Clam Chowder', tier: 1, title: 'New England Clam Chowder', teaches: 'rendering fat into a roux',
+    blurb: 'Render the salt pork, soften onion and celery in its fat, stir in flour for a roux, then simmer potatoes and clams and finish with cream.',
+    hint: 'The pork gives you the fat for the roux. Cream goes in off the boil.',
+    essential: ['clams', 'cream'],
+    ingredients: ['clams', 'pork', 'onion', 'celery', 'potato', 'flour', 'cream', 'water', 'salt', 'pepper'],
+    techniques: ['roux', 'thicken'],
+    forbid: ['curdled', 'lumps', 'raw', 'burnt'],
+    par: ['add pork 3', 'heat 7', 'wait 50s', 'add onion 3', 'add celery 3', 'heat 5', 'wait 40s', 'pour flour 1.2s', 'stir 3s', 'wait 15s',
+          'pour water 7s +stir', 'add potato 5', 'add clams 2', 'heat 5', 'wait 100s', 'heat 3', 'pour cream 4s +stir', 'pour salt 0.8s',
+          'pour pepper 0.2s', 'wait 30s', 'serve'],
+    mistakes: [
+      { name: 'flour in water', remove: ['pour flour 1.2s', 'stir 3s'], insertAfter: { 'pour water 7s +stir': ['pour flour 1.2s'] } },
+      { name: 'cream at a boil', replace: { 'heat 3': 'heat 8' } },
+    ],
+  },
+
+  // ---- Second Michelin Star ----
+  {
+    id: 'goulash', short: 'Goulash', tier: 2, title: 'Goulash', teaches: 'browning and blooming spice',
+    blurb: 'Slow-cook the onions, brown the beef, bloom plenty of paprika and a little chili in the fat, then simmer with tomato.',
+    hint: 'Spices wake up in hot fat, not in water.',
+    essential: ['meat', 'paprika'],   // without these it isn't the dish at all
+    ingredients: ['oil', 'onion', 'meat', 'paprika', 'chili', 'tomato', 'water', 'salt'],
+    techniques: ['caramelize', 'fond', 'bloom'],
     forbid: ['burnt'],
-    par: ['pour oil 1.5s', 'add meat 8', 'heat 7', 'wait 50s', 'add onion 4', 'add garlic 2', 'heat 5', 'wait 30s', 'pour chili 0.6s',
-          'pour cumin 0.5s', 'stir 2s', 'wait 8s', 'add tomato 10', 'add beans 2', 'pour water 5s', 'pour salt 1.2s', 'heat 4',
+    par: ['pour oil 1.5s', 'add onion 8', 'heat 5', 'wait 120s', 'add meat 6', 'heat 7', 'wait 40s', 'heat 5', 'wait 12s',
+          'pour paprika 0.6s', 'pour chili 0.12s', 'stir 2s', 'wait 6s', 'add tomato 6', 'pour water 9s', 'pour salt 1s', 'heat 4',
           'wait 150s', 'serve'],
     mistakes: [
-      { name: 'too much chili', replace: { 'pour chili 0.6s': 'pour chili 2.5s' } },
-      { name: 'all in the water', steps: ['pour water 5s', 'add meat 8', 'add onion 4', 'add garlic 2', 'heat 5', 'pour chili 0.6s', 'pour cumin 0.5s', 'add tomato 10', 'add beans 2', 'pour salt 1.2s', 'heat 4', 'wait 200s', 'serve'] },
+      { name: 'spices in water', remove: ['pour paprika 0.6s', 'pour chili 0.12s'], insertAfter: { 'pour water 9s': ['pour paprika 0.6s', 'pour chili 0.12s'] } },
+      { name: 'boiled beef', steps: ['pour water 9s', 'add meat 6', 'add onion 8', 'heat 5', 'pour paprika 0.6s', 'pour chili 0.12s', 'add tomato 6', 'pour salt 1s', 'wait 200s', 'serve'] },
     ],
-  },  {
+  },
+  {
+    id: 'avgolemono', short: 'Avgolemono', tier: 2, title: 'Avgolemono', teaches: 'tempering egg',
+    blurb: 'Poach chicken in broth with a little pasta, then take it off the boil and stir in egg and lemon until it turns silky.',
+    hint: 'Let it cool off the boil first. Too hot and the egg scrambles; stir as it goes in.',
+    essential: ['egg', 'lemon', 'chicken'],
+    ingredients: ['chicken', 'water', 'salt', 'pasta', 'egg', 'lemon', 'herbs'],
+    techniques: ['liaison'],
+    forbid: ['scrambled', 'raw', 'mushy'],
+    par: ['add chicken 5', 'pour water 12s', 'pour salt 1.2s', 'heat 6', 'wait 120s', 'add pasta 2', 'wait 45s', 'heat 0', 'wait 10s',
+          'crack egg 2', 'pour lemon 1s', 'stir 8s', 'add herbs 1', 'serve'],
+    mistakes: [
+      { name: 'egg at a boil', replace: { 'heat 0': 'heat 8', 'wait 10s': 'wait 2s' } },
+      { name: 'no lemon', remove: ['pour lemon 1s'] },
+    ],
+  },
+  {
     id: 'minestrone', short: 'Minestrone', tier: 2, title: 'Minestrone', teaches: 'timing many ingredients',
     blurb: 'Soften the vegetables, build the tomato broth, then add beans and pasta so everything finishes together.',
     hint: 'Pasta goes in near the end. Too long and it turns to mush.',
@@ -159,16 +166,33 @@ const LEVELS = [
       { name: 'pasta raw', replace: { 'wait 45s': 'wait 8s' } },
     ],
   },
-  // ---- Third Michelin Star: pork ----
+
+  // ---- Third Michelin Star ----
+  {
+    id: 'chili', short: 'Chili', tier: 3, title: 'Chili con Carne', teaches: 'heat, spice and a long simmer',
+    blurb: 'Brown the beef, soften onion and garlic, bloom chili and cumin, then simmer with tomato and beans.',
+    hint: 'Bloom the spices in the fat before any liquid goes in.',
+    essential: ['meat', 'chili'],   // without these it isn't the dish at all
+    ingredients: ['oil', 'meat', 'onion', 'garlic', 'chili', 'cumin', 'tomato', 'beans', 'water', 'salt'],
+    techniques: ['fond', 'bloom', 'tomato'],
+    forbid: ['burnt'],
+    par: ['pour oil 1.5s', 'add meat 8', 'heat 7', 'wait 50s', 'add onion 4', 'add garlic 2', 'heat 5', 'wait 30s', 'pour chili 0.6s',
+          'pour cumin 0.5s', 'stir 2s', 'wait 8s', 'add tomato 10', 'add beans 2', 'pour water 5s', 'pour salt 1.2s', 'heat 4',
+          'wait 150s', 'serve'],
+    mistakes: [
+      { name: 'too much chili', replace: { 'pour chili 0.6s': 'pour chili 2.5s' } },
+      { name: 'all in the water', steps: ['pour water 5s', 'add meat 8', 'add onion 4', 'add garlic 2', 'heat 5', 'pour chili 0.6s', 'pour cumin 0.5s', 'add tomato 10', 'add beans 2', 'pour salt 1.2s', 'heat 4', 'wait 200s', 'serve'] },
+    ],
+  },
   {
     id: 'tonkotsu-ramen', short: 'Tonkotsu Ramen', tier: 3, title: 'Tonkotsu Ramen', teaches: 'a long, hard boil',
-    blurb: 'Boil the pork hard and long until the broth turns rich and creamy white, season with garlic and soy, then cook the noodles in it and top with an egg.',
+    blurb: 'Boil the pork hard and long until the broth turns rich and creamy white, season with garlic, ginger and soy, then cook the noodles in it and top with an egg.',
     hint: 'Tonkotsu means a rolling boil, for a long time. The noodles go in at the end.',
     essential: ['pork', 'noodles'],
-    ingredients: ['pork', 'water', 'garlic', 'soy', 'salt', 'noodles', 'egg', 'herbs'],
+    ingredients: ['pork', 'water', 'garlic', 'ginger', 'soy', 'salt', 'noodles', 'egg', 'herbs'],
     techniques: ['boil', 'tonkotsu'],
     forbid: ['mushy', 'raw', 'burnt'],
-    par: ['add pork 6', 'pour water 12s', 'heat 9', 'wait 200s', 'add garlic 2', 'pour soy 1s', 'pour salt 0.6s', 'heat 6',
+    par: ['add pork 6', 'pour water 12s', 'heat 9', 'wait 200s', 'add garlic 2', 'add ginger 1', 'pour soy 1s', 'pour salt 0.6s', 'heat 6',
           'add noodles 2', 'wait 40s', 'crack egg 1', 'wait 25s', 'heat 0', 'add herbs 1', 'serve'],
     mistakes: [
       { name: 'short boil', replace: { 'wait 200s': 'wait 30s' } },
@@ -178,32 +202,33 @@ const LEVELS = [
   },
   {
     id: 'marinara-meatballs', short: 'Meatballs', tier: 3, title: 'Marinara Pasta & Meatballs', teaches: 'cooking pasta in its sauce',
-    blurb: 'Brown the pork, soften onion and garlic, melt in the tomatoes, then boil the noodles right in the sauce until it reduces and clings.',
+    blurb: 'Brown the pork, soften onion and garlic, melt in the tomatoes, then boil the noodles right in the sauce until it reduces and clings. Finish with cheese.',
     hint: 'No separate pot: the noodles cook in the sauce, and their starch thickens it.',
     essential: ['pork', 'noodles', 'tomato'],
-    ingredients: ['oil', 'pork', 'onion', 'garlic', 'tomato', 'water', 'salt', 'noodles', 'herbs'],
+    ingredients: ['oil', 'pork', 'onion', 'garlic', 'tomato', 'water', 'salt', 'noodles', 'herbs', 'cheese'],
     techniques: ['fond', 'tomato'],
     forbid: ['mushy', 'raw', 'burnt'],
     par: ['pour oil 1.5s', 'add pork 6', 'heat 7', 'wait 45s', 'add onion 3', 'add garlic 2', 'heat 5', 'wait 25s', 'add tomato 12',
-          'wait 40s', 'pour water 5s', 'pour salt 1.2s', 'heat 7', 'add noodles 3', 'wait 55s', 'heat 0', 'add herbs 1', 'serve'],
+          'wait 40s', 'pour water 5s', 'pour salt 1.2s', 'heat 7', 'add noodles 3', 'wait 55s', 'heat 0', 'add herbs 1', 'add cheese 1', 'wait 10s', 'serve'],
     mistakes: [
       { name: 'boiled pork', remove: ['add pork 6'], insertAfter: { 'pour water 5s': ['add pork 6'] } },
       { name: 'noodles raw', replace: { 'wait 55s': 'wait 8s' } },
     ],
   },
   {
-    id: 'hot-sour', short: 'Hot & Sour', tier: 3, title: 'Hot & Sour Soup', teaches: 'balancing heat and sour',
-    blurb: 'Simmer pork and garlic, season with soy, vinegar, pepper and chili, then drizzle in egg to make ribbons.',
-    hint: 'Pour the egg in slowly while it simmers, and it makes ribbons.',
-    essential: ['vinegar', 'pepper'],
-    ingredients: ['pork', 'garlic', 'water', 'soy', 'vinegar', 'pepper', 'chili', 'egg', 'salt'],
-    techniques: ['eggdrop'],
-    forbid: ['raw', 'burnt', 'scrambled'],
-    par: ['add pork 4', 'add garlic 2', 'pour water 10s', 'heat 7', 'wait 90s', 'pour soy 1s', 'pour vinegar 1s', 'pour pepper 0.3s',
-          'pour chili 0.3s', 'pour salt 0.4s', 'heat 6', 'wait 20s', 'crack egg 2', 'stir 3s', 'wait 20s', 'serve'],
+    id: 'bouillabaisse', short: 'Bouillabaisse', tier: 3, title: 'Bouillabaisse', teaches: 'saffron and spice with fish',
+    blurb: 'Soften onion and garlic, bloom saffron, paprika and a pinch of chili in the oil, build a tomato and wine broth with potatoes, and poach the fish at the end.',
+    hint: 'A pinch of saffron goes a long way. Bloom it in the oil.',
+    essential: ['fish', 'saffron'],
+    ingredients: ['oil', 'onion', 'garlic', 'tomato', 'fish', 'wine', 'water', 'salt', 'herbs', 'saffron', 'chili', 'potato', 'paprika'],
+    techniques: ['sweat', 'bloom', 'tomato', 'flake'],
+    forbid: ['burnt', 'raw'],
+    par: ['pour oil 1.2s', 'add onion 3', 'add garlic 2', 'heat 5', 'wait 40s', 'heat 6', 'pour saffron 0.1s', 'pour paprika 0.2s', 'pour chili 0.08s',
+          'stir 2s', 'wait 8s', 'add tomato 6', 'pour wine 1s', 'add potato 4', 'pour water 9s', 'pour salt 1.2s', 'heat 6', 'wait 90s',
+          'throw fish 1', 'heat 4', 'wait 60s', 'heat 0', 'add herbs 2', 'serve'],
     mistakes: [
-      { name: 'no vinegar', remove: ['pour vinegar 1s'] },
-      { name: 'too much chili', replace: { 'pour chili 0.3s': 'pour chili 4.5s' } },
+      { name: 'no saffron', remove: ['pour saffron 0.1s'] },
+      { name: 'spices in water', remove: ['pour saffron 0.1s', 'pour paprika 0.2s', 'pour chili 0.08s'], insertAfter: { 'pour water 9s': ['pour saffron 0.1s', 'pour paprika 0.2s', 'pour chili 0.08s'] } },
     ],
   },
 
@@ -221,7 +246,8 @@ const LEVELS = [
       { name: 'burnt', replace: { 'heat 6': 'heat 9', 'wait 45s': 'wait 90s' } },
       { name: 'underbaked', replace: { 'wait 45s': 'wait 12s' } },
     ],
-  },  {
+  },
+  {
     id: 'sponge-cake', short: 'Sponge Cake', tier: 1, bonus: true, title: 'Pot-Oven Sponge Cake', teaches: 'baking chemistry',
     blurb: 'Whisk a sweet batter with eggs and baking powder and bake it under the lid until it rises.',
     hint: 'Baking powder makes it rise. A gentle flame keeps it from burning.',
@@ -235,7 +261,8 @@ const LEVELS = [
       { name: 'no baking powder', remove: ['pour powder 0.1s'] },
       { name: 'no lid', remove: ['lid on', 'lid off'] },
     ],
-  },  {
+  },
+  {
     id: 'focaccia', short: 'Focaccia', tier: 2, bonus: true, title: 'Focaccia', teaches: 'yeast and proofing',
     blurb: 'Mix flour, water, oil, salt and yeast into a dough, give it time to rise, then bake it under the lid with herbs.',
     hint: 'Yeast is slow. Let the dough proof in a warm pot before you turn up the heat.',
@@ -276,17 +303,18 @@ const LEVELS = [
     ingredients: SHELF.map((s) => s.id),
     techniques: [],
     forbid: ['burnt'],
-    par: ['pour oil 1.2s', 'add pork 2', 'add meat 2', 'add chicken 2', 'heat 7', 'wait 35s', 'add onion 2', 'add garlic 2', 'add carrot 2',
-          'add celery 2', 'heat 5', 'wait 25s', 'pour chili 0.4s', 'pour cumin 0.15s', 'pour pepper 0.15s', 'pour flour 0.4s', 'stir 3s',
+    par: ['pour oil 1.2s', 'add pork 2', 'add meat 2', 'add chicken 2', 'heat 7', 'wait 35s', 'add onion 2', 'add garlic 2', 'add ginger 1', 'add carrot 2',
+          'add celery 2', 'heat 5', 'wait 25s', 'pour chili 0.4s', 'pour cumin 0.15s', 'pour pepper 0.15s', 'pour paprika 0.15s', 'pour saffron 0.15s', 'pour flour 0.4s', 'stir 3s',
           'wait 8s', 'add tomato 4', 'pour wine 0.8s', 'pour soy 0.5s', 'pour vinegar 0.35s', 'pour water 6s +stir', 'add potato 2', 'add corn 1',
-          'add beans 1', 'pour salt 0.8s', 'pour sugar 0.15s', 'heat 6', 'wait 60s',
-          'add pasta 1', 'add noodles 1', 'throw fish 1', 'crack egg 1', 'wait 35s', 'heat 2', 'wait 10s', 'pour cream 1s +stir',
-          'pour extinguisher 0.2s', 'heat 0', 'pour yeast 0.1s', 'pour powder 0.08s', 'pour soda 0.08s', 'stir 2s', 'add herbs 2', 'serve'],
+          'add beans 1', 'add clams 1', 'pour salt 0.8s', 'pour sugar 0.15s', 'heat 6', 'wait 60s',
+          'add pasta 1', 'add noodles 1', 'throw fish 1', 'crack egg 1', 'wait 35s', 'heat 2', 'wait 10s', 'pour cream 1s +stir', 'pour lemon 0.4s',
+          'pour extinguisher 0.2s', 'heat 0', 'pour yeast 0.1s', 'pour powder 0.08s', 'pour soda 0.08s', 'stir 2s', 'add herbs 2', 'add cheese 1', 'serve'],
     mistakes: [
       { name: 'forgot the yeast', remove: ['pour yeast 0.1s'] },
-      { name: 'burnt it', replace: { 'heat 7': 'heat 10', 'wait 35s': 'wait 200s' } },
+      { name: 'no extinguisher', remove: ['pour extinguisher 0.2s'] },
     ],
-  },
+  }
+
 ];
 
 // ---------- Scoring ----------
@@ -325,7 +353,7 @@ const Levels = {
     let top = 0;
     while (top + 1 < LEVEL_TIERS.length && Progress.unlocked(top + 1)) top++;
     if (LEVEL_TIERS[top].final) return null;
-    const ids = new Set(['water', 'extinguisher']);
+    const ids = new Set(SHELF_ALWAYS);
     for (const l of LEVELS) if (l.tier <= top && !l.bonus) l.ingredients.forEach((i) => ids.add(i));
     return ids;
   },

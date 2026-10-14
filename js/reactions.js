@@ -29,7 +29,7 @@ Sim.react = function (x, y, i, m) {
     case EGG: case YOLK: return reactEgg(this, x, y, i, m);
     case SALT: case SUGAR: return reactSeasoning(this, x, y, i, m);
     case EXTPOWDER: return reactExtinguisher(this, x, y, i);
-    case CHILI: case CUMIN: case PEPPER: return reactSpice(this, x, y, i, m);
+    case CHILI: case CUMIN: case PEPPER: case PAPRIKA: case SAFFRON: return reactSpice(this, x, y, i, m);
     case YEAST: return reactYeast(this, x, y, i);
     case FLOUR: return reactFlourDough(this, x, y, i);
     case DOUGH: return reactDough(this, x, y, i);
@@ -40,8 +40,9 @@ Sim.react = function (x, y, i, m) {
     case TOMATO: return reactChunk(this, x, y, i, m) || reactTomato(this, x, y, i);
     case ONION: case GARLIC: case CARROT: case CELERY: case MEAT: case HERB:
     case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED: case BREAD:
-    case CORN: case POTATO: case BEANS: case PASTA: case CHICKEN: case PORK: case NOODLES:
+    case CORN: case POTATO: case BEANS: case PASTA: case CHICKEN: case PORK: case NOODLES: case GINGER: case CLAMS:
       return reactChunk(this, x, y, i, m);
+    case CHEESE: return reactCheese(this, x, y, i);
   }
   return false;
 };
@@ -174,7 +175,43 @@ function reactOil(S, x, y, i) {
   return false;
 }
 
+// Cheese melts into hot liquid: its richness, salt and savor go into the soup (a little sits on top as a sheen).
+function reactCheese(S, x, y, i) {
+  const t = S.temp[i];
+    const j = S.findNb(x, y, isLiquid);
+  if (t > 60 && j >= 0 && rnd() < 0.03) {
+    S.setCell(i, BROTH, t);
+    const o = i * NF; S.fl[o + F_RICH] += 1.6; S.fl[o + F_SALTY] += 0.7; S.fl[o + F_UMAMI] += 0.8; S.fl[o + F_WHITE] += 1.2; S.fl[o + F_BODY] += 0.4;
+    S.addNote('toasty', 0.002); S.discover('melt');
+    return true;
+  }
+  return reactChunk(S, x, y, i, CHEESE);
+}
+
 function reactEgg(S, x, y, i, m) {
+  // Avgolemono: loose egg stirred into warm (not boiling) broth melts into it and thickens it, instead of setting.
+  // (It's the broth that has to be off the boil: a cold egg warms through that range even in boiling soup.)
+  if (!S.body[i] && S.stirT[i] && S.temp[i] < 80 && S.dial <= 3 && rnd() < 0.08) {   // (and the flame turned down)
+    // A little egg in a lot of broth: only egg mostly surrounded by broth melts in (egg among egg still scrambles).
+    let broth = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const xx = x + dx, yy = y + dy;
+      if ((dx || dy) && xx >= 0 && xx < GW && yy >= 0 && yy < GH && S.mat[yy * GW + xx] === BROTH) broth++;
+    }
+    // ...and a little egg in a lot of soup overall (eggs scrambled with a splash of cream are still scrambled eggs).
+    if (S.flags.dilutionFrame !== S.frame) {
+      S.flags.dilutionFrame = S.frame;
+      let nb = 0, ne = 0;
+      for (let k = 0; k < N; k++) { const mk = S.mat[k]; if (mk === BROTH) nb++; else if (mk === EGG || mk === YOLK) ne++; }
+      S.flags.dilute = nb > ne * 10;
+    }
+    const j = broth >= 5 && S.flags.dilute ? S.findNb(x, y, isBroth) : -1;
+    if (j >= 0 && S.temp[j] >= 45 && S.temp[j] < 80) {
+      const o = j * NF; S.fl[o + F_BODY] += m === YOLK ? 0.9 : 0.6; S.fl[o + F_RICH] += m === YOLK ? 0.6 : 0.2; S.fl[o + F_WHITE] += 0.3; S.fl[o + F_GOLD] += m === YOLK ? 0.4 : 0;
+      S.setCell(i, EMPTY); S.discover('liaison');
+      return true;
+    }
+  }
   if (S.temp[i] < 70 || rnd() > 0.06) return false;
   const t = S.temp[i], b = S.body[i];
   if (b) {
@@ -368,6 +405,15 @@ function burn(S, x, y, i) {
 function reactChunk(S, x, y, i, m) {
   let t = S.temp[i];
   const M = MAT[m];
+  // Searing meat renders fat into the pot: salt pork a lot (a clam chowder's roux is made in it), beef a little.
+  // (Pork gives up to two drops of fat per bit, oil or no oil. Beef gives at most one, and only into a dry pan: sear
+  // it without oil and it makes its own.)
+  if ((m === PORK ? S.life[i] > 140 : m === MEAT && S.life[i] > 200 && S.findNb(x, y, isOil) < 0) && t > 125 && rnd() < (m === PORK ? 0.02 : 0.0004)) {
+    for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0]]) {
+      const xx = x + dx, yy = y + dy, j = yy * GW + xx;
+      if (xx >= 0 && xx < GW && yy >= 0 && isOpen(S.mat[j])) { S.setCell(j, OIL, t); S.life[i] -= m === PORK ? 60 : 100; break; }
+    }
+  }
   // Pork at a hard, rolling boil, for long enough (about two and a half minutes, counted once a frame), makes tonkotsu.
   if (m === PORK && t >= 94 && S.dial >= 8 && S.flags.porkBoilFrame !== S.frame) {   // (pieces lag the boiling water a few degrees)
     S.flags.porkBoilFrame = S.frame;

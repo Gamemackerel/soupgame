@@ -118,6 +118,17 @@ const ICON_DRAW = {
     for (let k = 0; k < 4; k++) rect(g, 4 + k * 2, 2, 1, 1, [214, 190, 140]);   // crimped top
     ball(g, 8, 8, 2, [190, 120, 60], false);
   },
+  ginger(g) {   // a knobbly ginger root
+    ellipse(g, 8, 9, 5, 3, [214, 176, 112]); ellipse(g, 4, 7, 2, 2, [214, 176, 112]); ellipse(g, 12, 7, 2, 3, [214, 176, 112]);
+    ellipse(g, 7, 8, 3, 1, [236, 206, 150]);
+  },
+  cheese(g) {   // a wedge of cheese with holes
+    for (let y = 0; y < 8; y++) rect(g, 3 + Math.max(0, 5 - y), 5 + y, 10 - Math.max(0, 5 - y), 1, [250, 222, 130]);
+    rect(g, 3, 12, 10, 1, [220, 184, 90]); rect(g, 8, 8, 2, 2, [220, 184, 90]); rect(g, 5, 10, 1, 1, [220, 184, 90]);
+  },
+  clams(g) {   // two clam shells
+    for (const [cx, cy] of [[6, 9], [11, 8]]) { ellipse(g, cx, cy, 4, 3, [206, 196, 176]); rect(g, cx - 3, cy, 7, 1, [150, 140, 120]); rect(g, cx - 1, cy - 2, 2, 1, [236, 228, 212]); }
+  },
   pork(g) {   // a pork chop: pink meat with a rim of fat
     ellipse(g, 8, 9, 6, 5, [250, 236, 230]); ellipse(g, 8, 9, 5, 4, [236, 170, 166]); ellipse(g, 7, 8, 3, 2, [244, 190, 184]);
     rect(g, 12, 12, 2, 2, [250, 246, 236]);   // the bone
@@ -261,6 +272,21 @@ const DISH_DRAW = {
     soupBowl(g, [160, 96, 50]);   // dark, peppery broth
     for (let x = 8; x < 16; x += 2) rect(g, x, 5 + (x & 2 ? 1 : 0), 2, 1, [250, 220, 120]);   // egg ribbons
     dots(g, [[10, 7], [15, 6]], [200, 40, 30]); dots(g, [[13, 5]], [90, 160, 70]);
+  },
+  'clam-chowder'(g) {
+    soupBowl(g, [240, 232, 214]);   // creamy chowder
+    rect(g, 8, 5, 2, 2, [206, 196, 176]); rect(g, 14, 6, 2, 2, [206, 196, 176]);   // clams
+    rect(g, 11, 6, 2, 1, [250, 236, 180]); dots(g, [[12, 5], [16, 6]], [60, 54, 52]);   // potato, pepper
+  },
+  'avgolemono'(g) {
+    soupBowl(g, [246, 226, 150]);   // pale lemon-yellow, silky
+    rect(g, 8, 5, 2, 1, [250, 240, 200]); rect(g, 14, 6, 2, 1, [250, 240, 200]); rect(g, 11, 6, 2, 1, [244, 244, 236]);
+    dots(g, [[13, 5]], [90, 160, 70]); rect(g, 16, 5, 2, 2, [250, 230, 70]);   // dill, a lemon wedge
+  },
+  'bouillabaisse'(g) {
+    soupBowl(g, [226, 130, 40]);   // saffron-orange broth
+    rect(g, 8, 5, 3, 2, [250, 246, 236]); rect(g, 14, 6, 2, 1, [250, 236, 180]);   // fish, potato
+    dots(g, [[12, 5], [16, 5]], [200, 40, 30]); dots(g, [[11, 7]], [90, 160, 70]);
   },
   'primordial-soup'(g) {
     // A bubbling, glowing cauldron of everything.
