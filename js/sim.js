@@ -329,7 +329,7 @@ Sim.cellRGB = function (i) {
     const o = i * NF, c = [128, 184, 226];
     lerpC(c, tint(this.fl[o + F_RED], 4) * 0.9, 206, 70, 40);
     lerpC(c, tint(this.fl[o + F_BROWN], 2) * 0.75, 128, 70, 30);
-    lerpC(c, tint(this.fl[o + F_WHITE], 1.5) * 0.85, 246, 240, 226);
+    lerpC(c, tint(this.fl[o + F_WHITE], 1.5) * 0.85 * (1 - 0.65 * tint(this.fl[o + F_RED], 4)), 246, 240, 226);
     return c;
   }
   return M.col.slice();

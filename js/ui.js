@@ -254,7 +254,8 @@ const UI = {
       if (!target) { rect(g, x + 44, by + 1, 60 * v, 4, [150, 130, 170]); return; }
       const want = target.taste[k], lo = Math.max(0, want - LEVEL_FREE), hi = Math.min(1, want + LEVEL_FREE);
       rect(g, x + 44 + Math.round(60 * lo), by, Math.max(1, Math.round(60 * (hi - lo))), 6, [200, 226, 180]);   // the band
-      rect(g, x + 44, by + 1, 60 * v, 4, v > hi ? [230, 90, 70] : v < lo ? [240, 180, 70] : [110, 190, 90]);
+      const over = v > hi && !(Game.level.sauce && k === 'body');   // a sauce can't be too thick
+      rect(g, x + 44, by + 1, 60 * v, 4, over ? [230, 90, 70] : v < lo ? [240, 180, 70] : [110, 190, 90]);
       rect(g, x + 44 + Math.round(60 * want), by, 1, 6, [80, 60, 70]);   // the recipe
     });
   },

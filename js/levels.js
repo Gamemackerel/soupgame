@@ -201,7 +201,7 @@ const LEVELS = [
     ],
   },
   {
-    id: 'marinara-meatballs', short: 'Meatballs', tier: 3, title: 'Marinara Pasta & Meatballs', teaches: 'cooking pasta in its sauce',
+    id: 'marinara-meatballs', short: 'Meatballs', tier: 3, title: 'Marinara Pasta & Meatballs', teaches: 'cooking pasta in its sauce', sauce: true,
     blurb: 'Brown the pork, soften onion and garlic, melt in the tomatoes, then boil the noodles right in the sauce until it reduces and clings. Finish with cheese.',
     hint: 'No separate pot: the noodles cook in the sauce, and their starch thickens it.',
     essential: ['pork', 'noodles', 'tomato'],
@@ -391,7 +391,8 @@ const Levels = {
     let sw = 0, se = 0, worst = null;
     for (const ax of LEVEL_AXES) {
       const want = target.taste[ax], got = p[ax] || 0, w = 1 + 2 * want;
-      const err = Math.max(0, Math.abs(got - want) - LEVEL_FREE);
+      // A sauce (level.sauce) can't be too thick: only thinner than the recipe counts against it.
+      const err = level.sauce && ax === 'body' && got > want ? 0 : Math.max(0, Math.abs(got - want) - LEVEL_FREE);
       sw += w; se += w * err;
       if (!worst || w * err > worst.e) worst = { ax, e: w * err, d: got - want };
     }
