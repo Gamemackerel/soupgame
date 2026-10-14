@@ -1,0 +1,44 @@
+{
+  "name": "backgrounds/hell-kitchen",
+  "path": "backgrounds/hell-kitchen",
+  "group": "backgrounds",
+  "cell": [
+    320,
+    240
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    320,
+    240
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    }
+  ],
+  "shared": {},
+  "order": [
+    "default"
+  ],
+  "notes": "Hell's kitchen, for the finale (Primordial Soup): rock, fire and lava, with the same stovetop. The Ram paces and rampages behind you while you cook.",
+  "guides": [
+    {
+      "y": 106,
+      "label": "pot rim"
+    },
+    {
+      "y": 206,
+      "label": "pot bottom"
+    }
+  ],
+  "animated": false
+}
