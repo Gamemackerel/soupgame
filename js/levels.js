@@ -187,7 +187,7 @@ const LEVELS = [
   {
     id: 'tonkotsu-ramen', short: 'Tonkotsu Ramen', tier: 3, title: 'Tonkotsu Ramen', teaches: 'a long, hard boil',
     blurb: 'Boil the pork hard and long until the broth turns rich and creamy white, season with garlic, ginger and soy, then cook the noodles in it and top with an egg.',
-    hint: 'Tonkotsu means a rolling boil, for a long time. The noodles go in at the end.',
+    hint: 'Tonkotsu means a hard, rolling boil (7 or higher) for a couple of minutes. The noodles go in at the end.',
     essential: ['pork', 'noodles'],
     ingredients: ['pork', 'water', 'garlic', 'ginger', 'soy', 'salt', 'noodles', 'egg', 'herbs'],
     techniques: ['boil', 'tonkotsu'],

@@ -415,10 +415,10 @@ function reactChunk(S, x, y, i, m) {
     }
   }
   // Pork at a hard, rolling boil, for long enough (about two and a half minutes, counted once a frame), makes tonkotsu.
-  if (m === PORK && t >= 94 && S.dial >= 8 && S.flags.porkBoilFrame !== S.frame) {   // (pieces lag the boiling water a few degrees)
+  if (m === PORK && t >= 92 && S.dial >= 7 && S.flags.porkBoilFrame !== S.frame) {   // (pieces lag the boiling water a few degrees)
     S.flags.porkBoilFrame = S.frame;
     S.flags.porkBoil = (S.flags.porkBoil || 0) + 1;
-    if (S.flags.porkBoil > 150 * 60) S.discover('tonkotsu');
+    if (S.flags.porkBoil > 120 * 60) S.discover('tonkotsu');
   }
   // Watery vegetables steam off their water before they can get really hot: they sit near 110°C while
   // moist, and only climb toward the pan's temperature as they brown (dry out). So stirring fresh food
