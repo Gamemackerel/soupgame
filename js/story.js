@@ -152,10 +152,55 @@ const STORY = {
       "Word of advice, though. Be careful out there. Don't go beating chefs you're not supposed to beat.",
       "Embarrass the wrong person, and that's a mistake you don't come back from.",
     ] },
-    { card: true, lines: ['TO BE CONTINUED', 'The next chapter is still cooking.'] },
+  ],
+  // After the Second Michelin Star: Gordo tries to get you to throw the next one. (Placeholder text, to be rewritten.)
+  star2Done: [
+    { who: 'gordo', mood: 'happy', lines: [
+      'Two stars. Two! Congratulations, mate. Genuinely.',
+    ] },
+    { who: 'gordo', mood: 'neutral', fadeOut: 40, lines: [
+      "Now listen. Close the door. There are forces at play here that are well beyond your comprehension.",
+      "Your track record on TV has been too good. Far too good.",
+      "You're not just hurting the community. You're hurting the craft itself.",
+      "And you're embarrassing some very important people. Frankly evil people, with incredible power in the culinary world.",
+      'So you throw the next competition. Burn something. Forget the salt. I don\'t care how.',
+      "Because if you don't, they will make your life hell.",
+      'Literal hell.',
+    ] },
+  ],
+  // After the Third: Gordo snaps, and becomes The Ram.
+  star3Done: [
+    { who: 'gordo', mood: 'upset', lines: [
+      "OK. You've done it, you absolute NIMROD.",
+      'Everyone now thinks you are a better chef than even ME.',
+      "That is NOT acceptable. I don't think you understand what you've done.",
+      'I WARNED YOU.',
+    ] },
+    { transform: true, dur: 240 },
+    { who: 'ram', mood: 'upset', lines: [
+      "YOU'VE LEFT ME NO CHOICE.",
+      'NOBODY can be better at making soup than me. And so I must CRUSH you.',
+      'But before I destroy you, I will give you one chance to make a deal, and save your soul from an eternity of suffering.',
+      'Make me a soup deserving of beings of true power. Angels. Demons. A soup that actually IMPRESSES me.',
+      'Do that, and I will let you be free: the best soup chef of all time. I will stand aside.',
+      'HA. HA HA. HAHAHAHAHAHAHA!',
+    ] },
+    { card: true, demon: true, lines: ['THE DEAL', 'One soup. Everything there is, in one pot. In hell.'] },
+  ],
+  // After The Deal.
+  finaleDone: [
+    { who: 'ram', mood: 'meh', lines: [
+      '...',
+      'It is... impossible. A soup worthy of the pit and the heavens both.',
+      'A deal is a deal. I stand aside.',
+      'You are the greatest soup chef of all time. Enjoy it. Eternity is long.',
+    ] },
+    { card: true, lines: ['THE END?', 'New recipes have appeared in every kitchen.'] },
   ],
 };
-const SPEAKERS = { dom: { name: 'PAPA DOM', theme: [196, 50, 44] }, gordo: { name: 'GORDO HAMSIE', theme: [200, 50, 50] } };
+const SPEAKERS = { dom: { name: 'PAPA DOM', theme: [196, 50, 44] }, gordo: { name: 'GORDO HAMSIE', theme: [200, 50, 50] },
+                   ram: { name: 'THE RAM', theme: [90, 10, 10], font: 'Pirata One', demon: true } };
+const TRANSFORM_T = 240;
 const FADE = 18;
 
 const Story = {
@@ -178,7 +223,7 @@ const Story = {
     if (this.phase === 'in' && this.t >= (s.fadeIn || FADE)) { this.phase = 'show'; this.t = 0; }
     else if (this.phase === 'show') {
       if (s.lines) this.typed = Math.min(s.lines[this.n].length, this.typed + 0.9);
-      if ((s.picture || s.black) && this.t >= s.dur) this.next();
+      if ((s.picture || s.black || s.transform) && this.t >= s.dur) this.next();
     } else if (this.phase === 'out' && this.t >= (s.fadeOut || FADE)) {
       if (++this.k >= STORY[this.id].length) return this.finish();
       this.n = 0; this.typed = 0; this.phase = 'in'; this.t = 0;
@@ -187,7 +232,7 @@ const Story = {
   next() { this.phase = 'out'; this.t = 0; },
   click() {
     const s = this.shot();
-    if (this.phase !== 'show' || s.black) return;   // the dramatic pause can't be clicked through
+    if (this.phase !== 'show' || s.black || s.transform) return;   // the dramatic pause and the transformation can't be clicked through
     if (s.lines && !s.card) {
       if (this.typed < s.lines[this.n].length) { this.typed = s.lines[this.n].length; return; }
       if (this.n + 1 < s.lines.length) { this.n++; this.typed = 0; return; }
@@ -209,6 +254,10 @@ const Story = {
       Sprites.draw(sg, 'story/dom', s.mood, 0, 60, bob);
       Sprites.draw(sg, 'story/dom-mouth', talking && (Chef.t >> 3) & 1 ? 'talk' : s.mood, 0, 60, bob);
     }
+    else if (s.who === 'ram') {
+      const rs = { ...st, mood: s.mood }, j = JUDGE_ROSTER.ram;
+      Sprites.draw(sg, 'judges/ram', judgePose(j, rs), Chef.t, 60, 0, { j, J: { t: Chef.t }, s: rs });
+    }
     else {
       const gs = { ...st, mood: talking && s.mood === 'neutral' ? 'meh' : s.mood }, j = JUDGE_ROSTER.gordo;
       Sprites.draw(sg, 'judges/gordo', judgePose(j, gs), Chef.t, 60, 0, { j, J: { t: Chef.t }, s: gs });
@@ -217,17 +266,48 @@ const Story = {
     g.drawImage(this.sprite, 160 - 120, 196 - 260 + 30, 240, 260);
   },
 
+  // Gordo becomes The Ram: he shakes harder and harder, flushes red, horns push up out of his head, the room
+  // goes red, a white flash, and The Ram stands where he was.
+  transformShot(g) {
+    const u = Math.min(1, this.t / TRANSFORM_T);
+    rect(g, 0, 0, W, H, mix([18, 22, 40], [70, 6, 6], u));
+    const glow = g.createRadialGradient(160, 90, 10, 160, 90, 160);
+    glow.addColorStop(0, `rgba(255,${Math.round(120 - u * 100)},40,${0.25 + u * 0.4})`); glow.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = glow; g.fillRect(0, 0, W, H);
+    if (!this.sprite) this.sprite = makeCanvas(120, 130);
+    const sg = this.sprite.getContext('2d');
+    sg.clearRect(0, 0, 120, 130);
+    const shake = Math.round((Math.random() - 0.5) * 2 * (1 + u * 5));
+    if (u < 0.8) {
+      const j = JUDGE_ROSTER.gordo, gs = { mood: 'upset', ft: Chef.t, active: true, tasting: false };
+      Sprites.draw(sg, 'judges/gordo', 'rant', Chef.t, 60 + shake, 0, { j, J: { t: Chef.t }, s: gs });
+      // Flushing red, from the inside out.
+      sg.globalCompositeOperation = 'source-atop'; sg.fillStyle = `rgba(200,20,10,${u * 0.7})`; sg.fillRect(0, 0, 120, 130); sg.globalCompositeOperation = 'source-over';
+      // Horns pushing up out of his head.
+      const h = Math.round(u / 0.8 * 10);
+      for (const sd of [-1, 1]) for (let k = 0; k < h; k++) rect(sg, 60 + shake + sd * (12 + k), 48 - Math.round(Math.sin(k / 9 * Math.PI) * 9) + (k > 6 ? k - 6 : 0), 3, 3, [60, 40, 36]);
+    } else {
+      const j = JUDGE_ROSTER.ram, rs = { mood: 'upset', ft: Chef.t, active: true, tasting: false };
+      Sprites.draw(sg, 'judges/ram', 'upset', Chef.t, 60 + shake, 0, { j, J: { t: Chef.t }, s: rs });
+    }
+    g.drawImage(this.sprite, 160 - 120, 196 - 260 + 30, 240, 260);
+    const flash = Math.max(0, 1 - Math.abs(u - 0.8) * 12);   // the white flash, right as he changes
+    if (flash > 0) { g.fillStyle = `rgba(255,255,255,${flash})`; g.fillRect(0, 0, W, H); }
+    Sim.shake = Math.max(Sim.shake, Math.round(u * 20));
+  },
+
   draw(g) {
     const s = this.shot();
     if (s.black) { rect(g, 0, 0, W, H, [0, 0, 0]); return; }
+    if (s.transform) { this.transformShot(g); return; }
     if (s.picture) s.picture(g, this.phase === 'show' ? this.t : this.phase === 'out' ? s.dur : 0);
-    else if (s.card) rect(g, 0, 0, W, H, [14, 12, 18]);
+    else if (s.card) rect(g, 0, 0, W, H, s.demon ? [40, 4, 4] : [14, 12, 18]);
     else {
       // Dramatic backdrop: a dark room, a pool of colored light behind the speaker, heavy vignette.
-      const warm = s.who === 'dom';
-      rect(g, 0, 0, W, H, s.silhouette ? [26, 30, 44] : warm ? [40, 22, 20] : [18, 22, 40]);
+      const warm = s.who === 'dom', hell = s.who === 'ram';
+      rect(g, 0, 0, W, H, s.silhouette ? [26, 30, 44] : hell ? [50, 4, 4] : warm ? [40, 22, 20] : [18, 22, 40]);
       const glow = g.createRadialGradient(160, 90, 10, 160, 90, 150);
-      glow.addColorStop(0, s.silhouette ? 'rgba(140,170,230,0.55)' : warm ? 'rgba(255,150,80,0.45)' : 'rgba(90,140,255,0.35)');
+      glow.addColorStop(0, s.silhouette ? 'rgba(140,170,230,0.55)' : hell ? 'rgba(255,80,20,0.55)' : warm ? 'rgba(255,150,80,0.45)' : 'rgba(90,140,255,0.35)');
       glow.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = glow; g.fillRect(0, 0, W, H);
       this.portrait(g, s);
@@ -239,7 +319,7 @@ const Story = {
     rect(g, 0, 0, W, 10, [0, 0, 0]);
     if (s.lines && !s.card) {
       const sp = SPEAKERS[s.who];
-      rect(g, 8, 178, W - 16, 56, [20, 14, 20]); rect(g, 9, 179, W - 18, 54, [252, 246, 232]);
+      rect(g, 8, 178, W - 16, 56, [20, 14, 20]); rect(g, 9, 179, W - 18, 54, sp.demon ? [24, 6, 6] : [252, 246, 232]);
       rect(g, 9, 179, W - 18, 11, s.silhouette ? [60, 60, 80] : sp.theme);
     }
     // Fades.
@@ -260,15 +340,17 @@ const Story = {
       });
     }
     if (s.card) {
-      T.text(s.lines[0], 160, 92, { size: 14, color: '#ffe9c0', align: 'center', shadow: true });
-      T.wrap(s.lines[1], 40, 122, 240, { size: 6, color: '#b8b0c8' });
+      const df = s.demon ? { font: 'Pirata One' } : {};
+      T.text(s.lines[0], 160, 92, { size: 14, color: s.demon ? '#ff4a2a' : '#ffe9c0', align: 'center', shadow: true, ...df });
+      T.wrap(s.lines[1], 40, 122, 240, { size: s.demon ? 9 : 6, color: s.demon ? '#e8b0a0' : '#b8b0c8', ...df });
       if (fade) T.text('click to continue', 160, 214, { size: 5, color: '#8a8098', align: 'center' });
       return;
     }
     if (s.lines) {
       const sp = SPEAKERS[s.who];
-      T.text(s.silhouette ? '???' : sp.name, 14, 181, { size: 6, color: '#fff' });
-      T.wrap(s.lines[this.n].slice(0, this.typed | 0), 14, 195, W - 28, { size: 7, color: '#2a1820' });
+      T.text(s.silhouette ? '???' : sp.name, 14, 181, { size: 6, color: '#fff', font: sp.font });
+      // The Ram speaks in a demonic typeface, red on black.
+      T.wrap(s.lines[this.n].slice(0, this.typed | 0), 14, 193, W - 28, sp.demon ? { size: 10, color: '#ff5a3a', font: sp.font } : { size: 7, color: '#2a1820' });
       if (fade && this.typed >= s.lines[this.n].length && (Chef.t >> 4) & 1) T.text('click >', W - 14, 224, { size: 6, color: '#8a6a70', align: 'right' });
     }
     T.text('Esc: skip', W - 4, 2, { size: 4, color: '#77707f', align: 'right' });

@@ -14,7 +14,7 @@ const LEACH_K = 2; // how strongly chunks flavor the soup
 // Share of split dairy that turns into solid curd (the rest becomes whey).
 const CURD_SOLIDS = 0.16;
 // Foods whose browning counts as a sear (aromatics caramelize, fish crisps, bread gets a crust).
-const SEARABLE = new Set([MEAT, CHICKEN, POTATO, CORN, BEANS, PASTA]);
+const SEARABLE = new Set([MEAT, CHICKEN, PORK, POTATO, CORN, BEANS, PASTA, NOODLES]);
 const BROWN_MAX = 230;
 // Moist vegetables are held near 110°C until they dry (brown) past `dryFrom`; `pass` lets some pan heat through.
 const MOIST_K = { dryFrom: 100, slope: 1.5, pass: 0.6 };
@@ -40,7 +40,7 @@ Sim.react = function (x, y, i, m) {
     case TOMATO: return reactChunk(this, x, y, i, m) || reactTomato(this, x, y, i);
     case ONION: case GARLIC: case CARROT: case CELERY: case MEAT: case HERB:
     case FISH: case FISHFIN: case FISHEYE: case WHITE_COOKED: case YOLK_COOKED: case BREAD:
-    case CORN: case POTATO: case BEANS: case PASTA: case CHICKEN:
+    case CORN: case POTATO: case BEANS: case PASTA: case CHICKEN: case PORK: case NOODLES:
       return reactChunk(this, x, y, i, m);
   }
   return false;
@@ -368,6 +368,12 @@ function burn(S, x, y, i) {
 function reactChunk(S, x, y, i, m) {
   let t = S.temp[i];
   const M = MAT[m];
+  // Pork at a hard, rolling boil, for long enough (about two and a half minutes, counted once a frame), makes tonkotsu.
+  if (m === PORK && t >= 94 && S.dial >= 8 && S.flags.porkBoilFrame !== S.frame) {   // (pieces lag the boiling water a few degrees)
+    S.flags.porkBoilFrame = S.frame;
+    S.flags.porkBoil = (S.flags.porkBoil || 0) + 1;
+    if (S.flags.porkBoil > 150 * 60) S.discover('tonkotsu');
+  }
   // Watery vegetables steam off their water before they can get really hot: they sit near 110°C while
   // moist, and only climb toward the pan's temperature as they brown (dry out). So stirring fresh food
   // down onto the metal cools it, and an unstirred bottom layer is the one that dries out and chars.
@@ -454,8 +460,9 @@ function reactChunk(S, x, y, i, m) {
   if (c >= 170) S.body[i] = 0;   // deeply cooked pieces fall apart
 
   // Searing meat on the dry pot bottom leaves fond; so do deeply caramelized onions, more slowly.
-  if ((m === MEAT || (m === ONION && c >= 150)) && y === GH - 1 && !pieceWet && t > (m === MEAT ? 140 : 115)) {
-    S.fond[x] = Math.min(1, S.fond[x] + (m === MEAT ? 0.004 : 0.0015));
+  const searMeat = m === MEAT || m === PORK;
+  if ((searMeat || (m === ONION && c >= 150)) && y === GH - 1 && !pieceWet && t > (searMeat ? 140 : 115)) {
+    S.fond[x] = Math.min(1, S.fond[x] + (searMeat ? 0.004 : 0.0015));
     S.emit('sizzle', x, y, 50);
     if (S.fond[x] > 0.3) S.discover('fond');
   }

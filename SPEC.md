@@ -819,3 +819,21 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 - Sound starts after the player's first click or key press, as browsers require.
 - While cooking, now and then one of four short tracks (`audio/kitchen-*.mp3`) plays once. Track 5 always starts as soon as you begin cooking (as the menu theme fades out); after that there's 45–110 s of quiet between random tracks, never the same one twice in a row. They stop in menus, judging and cutscenes.
 - A Music volume slider in Settings (click or drag) sets the volume for both; it's saved per browser.
+
+## 26. Story, Part 2 (implemented; text and art are placeholders to rewrite)
+
+| Tier | Judges | Dishes | Bonus recipe (after The Deal) |
+|---|---|---|---|
+| Pizza Shop | Biscuit, Sir Pounce, Joe | Tomato Soup, French Onion Soup, Fish Stew | Pan Flatbread |
+| First Michelin Star | Gordo Hamsie, Paul Bollywood, Sir Pounce | Creamy Corn Soup, Beef Chowder, Goulash | Pot-Oven Sponge Cake |
+| Second Michelin Star | Mister Dude-Guy, Chef Signore, Chef Seonbae | Chicken Noodle Soup, Chili con Carne, Minestrone | Focaccia |
+| Third Michelin Star | Chef Monsieur, Marty Stew, President Obama | Tonkotsu Ramen, Marinara Pasta & Meatballs (pork, noodles), Hot & Sour Soup | Irish Soda Bread |
+| The Deal | The Ram (alone) | Primordial Soup | |
+
+- **The shelf follows the story.** It holds every ingredient the opened tiers need, plus water and the extinguisher (`Levels.shelf`), so replaying an earlier dish you have all your newer ingredients, and the sandbox shows only what you've unlocked. Once The Deal is open, that's everything. In the Pizza Shop only Fish Stew requires herbs; they're a flourish elsewhere.
+- **New ingredients:** **pork** (sears and builds fond like beef; a long hard boil makes a rich, cloudy-white broth) and **noodles** (cook like pasta; their starch thickens what they cook in). **Pork Bone Broth** is a technique: pork at a hard boil (heat 8+) for about 150 s.
+- **Bonus recipes** (`bonus: true`) appear marked NEW RECIPE once Primordial Soup is passed. They don't count toward unlocking tiers.
+- **New judges** have their own palates (taste capped at 30% of their blend) and voices, and are drawn as placeholder sketches with one telltale feature each. Every pose is its own drawing for the artist (`distinct`). The sandbox's random panel excludes The Ram (`storyOnly`).
+- **Story:** after the Second Michelin Star, Gordo warns you to throw the next one. After the Third, he snaps and transforms (a shaking, reddening, horn-sprouting animation and a white flash) into The Ram, who speaks in a demonic typeface (Pirata One, red on black) and offers the deal. After The Deal, The Ram stands aside, and new recipes appear.
+- **Primordial Soup:** its ingredients are the whole shelf, including water and the extinguisher. Each must go in enough to register (liquids 30 cells, powders 8, the spray 15, any chunk, the egg or the fish). Anything missing caps it at 5, and it passes at 8. The Ram judges alone: balance, layers (every flavor note in the pot), depth (umami and richness) and a little fire; the extinguisher's flaw is forgiven, and burning it is not. The time limit is 5:00 (about 1.1× the reference recipe). You cook in hell's kitchen while The Ram paces and stomps behind you.
+- **Fixes found while building:** pouring onto foam now knocks the foam down instead of bouncing off it. Pieces that fall into each other mid-air no longer lock and float: a tangle held up only by itself joins into one piece and falls.

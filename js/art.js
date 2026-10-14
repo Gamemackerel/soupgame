@@ -80,6 +80,8 @@ const ICON_DRAW = {
   carrot(g) { veg(g, 8, 9, 3, 6, [244, 128, 32]); rect(g, 7, 2, 2, 2, [80, 170, 70]); },
   celery(g) { veg(g, 8, 8, 2, 6, [150, 210, 90]); },
   tomato(g) { ball(g, 8, 9, 6, [228, 50, 44], false); rect(g, 6, 3, 5, 1, [70, 150, 60]); rect(g, 8, 2, 1, 2, [70, 150, 60]); },
+  pork(g) { veg(g, 8, 9, 6, 5, [236, 170, 166]); },
+  noodles(g) { for (let k = 0; k < 4; k++) rect(g, 3, 5 + k * 2, 10, 1, [244, 222, 150]); },
 
 
   drumstick(g) { veg(g, 7, 7, 5, 5, [214, 146, 70]); rect(g, 11, 11, 3, 2, [244, 238, 224]); },   // chicken: a lump with a bit of bone
@@ -179,6 +181,34 @@ const DISH_DRAW = {
     rect(g, 14, 6, 7, 7, [200, 160, 96]); rect(g, 14, 9, 7, 1, [252, 246, 236]);   // the cut face
     rect(g, 8, 3, 3, 3, [220, 40, 50]); rect(g, 9, 2, 1, 1, [80, 160, 60]); rect(g, 8, 3, 1, 1, [255, 140, 140]);
   },
+  'chicken-noodle'(g) {
+    soupBowl(g, [234, 196, 100]);   // golden chicken broth
+    rect(g, 8, 5, 2, 1, [250, 236, 180]); rect(g, 14, 6, 2, 1, [250, 236, 180]);   // little pasta
+    rect(g, 11, 6, 2, 1, [244, 244, 236]); dots(g, [[16, 5], [9, 7]], [244, 128, 32]); dots(g, [[13, 5]], [90, 160, 70]);   // chicken, carrot, parsley
+  },
+  'tonkotsu-ramen'(g) {
+    soupBowl(g, [244, 236, 220]);   // creamy white pork broth
+    for (let x = 6; x < 12; x++) rect(g, x, 6 + (x & 1), 1, 1, [240, 214, 140]);   // noodles
+    rect(g, 13, 5, 3, 2, [250, 248, 240]); rect(g, 14, 5, 1, 1, [250, 170, 40]);   // half an egg
+    rect(g, 16, 6, 2, 1, [200, 140, 90]); dots(g, [[9, 5], [12, 7]], [90, 170, 70]);   // pork slice, scallions
+  },
+  'marinara-meatballs'(g) {
+    // A plate of noodles in red sauce with meatballs on top.
+    ellipse(g, 12, 10, 10, 4, [232, 232, 238]); ellipse(g, 12, 9, 7, 3, [240, 214, 140]);
+    ellipse(g, 12, 8, 5, 2, [200, 50, 36]); ball(g, 9, 7, 2, [140, 70, 50], false); ball(g, 15, 7, 2, [140, 70, 50], false);
+    dots(g, [[12, 6]], [90, 160, 70]);
+  },
+  'hot-sour'(g) {
+    soupBowl(g, [160, 96, 50]);   // dark, peppery broth
+    for (let x = 8; x < 16; x += 2) rect(g, x, 5 + (x & 2 ? 1 : 0), 2, 1, [250, 220, 120]);   // egg ribbons
+    dots(g, [[10, 7], [15, 6]], [200, 40, 30]); dots(g, [[13, 5]], [90, 160, 70]);
+  },
+  'primordial-soup'(g) {
+    // A bubbling, glowing cauldron of everything.
+    soupBowl(g, [90, 140, 70]);
+    dots(g, [[7, 5], [10, 6], [13, 5], [16, 6], [9, 7], [15, 7]], [200, 230, 120]);
+    rect(g, 11, 2, 1, 2, [160, 220, 120]); rect(g, 14, 1, 1, 2, [160, 220, 120]);   // wisps rising
+  },
   'chili'(g) {
     soupBowl(g, [150, 40, 26]);
     dots(g, [[8, 5], [10, 7], [14, 5], [16, 7], [12, 6]], [110, 30, 30]);   // beans
@@ -235,8 +265,16 @@ Art.toolIcon = function (type) {
 // plain: just the wall pattern and the stovetop, with none of the props (the art branch's placeholder).
 Art.buildBackground = function (theme = 'kitchen', plain = false) {
   const cv = makeCanvas(W, H), g = cv.getContext('2d');
-  const pizza = theme === 'pizza';
-  if (pizza) {
+  const pizza = theme === 'pizza', hell = theme === 'hell';
+  if (hell) {
+    // Hell's kitchen: black rock split by glowing lava cracks.
+    rect(g, 0, 0, W, 150, [44, 12, 12]);
+    for (let y = 0; y < 150; y += 9) for (let x = ((y / 9) & 1) * 9; x < W; x += 18) rect(g, x, y, 17, 8, [56, 16, 16]);
+    for (let k = 0; k < 9; k++) {
+      let x = 12 + k * 36, y = 0;
+      while (y < 140) { const nx = x + ((k * 7 + y) % 5) - 2; rect(g, Math.min(x, nx), y, Math.abs(nx - x) + 1, 6, [255, 110 + (y % 40), 30]); x = nx; y += 6; }
+    }
+  } else if (pizza) {
     // Exposed brick wall.
     rect(g, 0, 0, W, 150, [160, 78, 60]);
     for (let y = 0; y < 150; y += 7) {
@@ -251,7 +289,7 @@ Art.buildBackground = function (theme = 'kitchen', plain = false) {
   }
   for (let y = 0; y < 150; y += 12) rect(g, 0, y + 11, W, 1, [226, 196, 170]);
   }
-  if (!plain) {
+  if (!plain && !hell) {
   // We're looking slightly up: a range hood looms overhead, seen from underneath.
   for (let y = 0; y < 13; y++) {
     const inset = 70 + y * 1.5;
@@ -293,7 +331,7 @@ Art.buildBackground = function (theme = 'kitchen', plain = false) {
   }
   }
   // Shadowy back counter line.
-  rect(g, 0, 140, W, 10, pizza ? [120, 60, 46] : [200, 170, 150]);
+  rect(g, 0, 140, W, 10, hell ? [30, 8, 8] : pizza ? [120, 60, 46] : [200, 170, 150]);
   // Counter/stovetop: from a low angle its top is a thin sliver, so mostly we see the back wall.
   rect(g, 0, 150, W, 50, [214, 186, 164]);
   for (let x = 0; x < W; x += 12) rect(g, x, 150, 1, 50, [200, 172, 150]);

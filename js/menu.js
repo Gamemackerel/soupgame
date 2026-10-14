@@ -38,12 +38,12 @@ const Progress = {
     const t = LEVEL_TIERS[tier];
     if (!t || t.locked) return false;
     if (tier === 0) return true;
-    return LEVELS.filter((l) => l.tier === tier - 1).every((l) => this.passed(l.id));
+    return Levels.main(tier - 1).every((l) => this.passed(l.id));
   },
 };
 
 // ---------- The pass board ----------
-const BOARD = { rowY: 28, rowH: 44, labelW: 66, ticketX: 74, ticketW: 44, ticketH: 38, gap: 4 };
+const BOARD = { rowY: 25, rowH: 37, labelW: 66, ticketX: 74, ticketW: 44, ticketH: 32, gap: 4 };
 const BACK_BTN = { x: 120, y: 218, w: 80, h: 16 };
 
 const Menu = {
@@ -56,8 +56,9 @@ const Menu = {
   pick(x, y) {
     if (UI.hit(BACK_BTN, x, y)) return { type: 'back' };
     for (const t of LEVEL_TIERS) {
-      const levels = LEVELS.filter((l) => l.tier === t.tier);
-      for (let n = 0; n < 5; n++) if (UI.hit(this.ticket(t.tier, n), x, y)) return { type: 'level', tier: t.tier, level: levels[n] || null };
+      const levels = Levels.inTier(t.tier);
+      const count = Progress.unlocked(t.tier) ? levels.length : Levels.main(t.tier).length;
+      for (let n = 0; n < count; n++) if (UI.hit(this.ticket(t.tier, n), x, y)) return { type: 'level', tier: t.tier, level: levels[n] || null };
     }
     return null;
   },
@@ -82,15 +83,15 @@ const Menu = {
       // Ticket rail.
       rect(g, BOARD.ticketX - 4, y0 + 3, W - BOARD.ticketX + 2, 3, open ? [200, 204, 216] : [110, 112, 124]);
       rect(g, BOARD.ticketX - 4, y0 + 3, W - BOARD.ticketX + 2, 1, open ? [240, 244, 250] : [130, 132, 144]);
-      const levels = LEVELS.filter((l) => l.tier === t.tier);
-      for (let n = 0; n < 5; n++) {
+      const levels = Levels.inTier(t.tier), count = open ? levels.length : Levels.main(t.tier).length;
+      for (let n = 0; n < count; n++) {
         const r = this.ticket(t.tier, n), lv = levels[n];
         const hov = open && lv && this.hover && this.hover.type === 'level' && this.hover.level === lv;
         const y = r.y - (hov ? 2 : 0);
         if (!open || !lv) {
           // Face-down ticket with a padlock.
           rect(g, r.x, y, r.w, r.h, [96, 98, 110]); rect(g, r.x + 1, y + 1, r.w - 2, r.h - 2, [120, 122, 134]);
-          rect(g, r.x + r.w / 2 - 4, y + 17, 9, 7, [70, 72, 84]); rect(g, r.x + r.w / 2 - 2, y + 13, 5, 5, [70, 72, 84]); rect(g, r.x + r.w / 2 - 1, y + 14, 3, 3, [120, 122, 134]);
+          rect(g, r.x + r.w / 2 - 4, y + 14, 9, 7, [70, 72, 84]); rect(g, r.x + r.w / 2 - 2, y + 10, 5, 5, [70, 72, 84]); rect(g, r.x + r.w / 2 - 1, y + 11, 3, 3, [120, 122, 134]);
           continue;
         }
         const best = Progress.best(lv.id);
@@ -100,10 +101,10 @@ const Menu = {
         for (let k = 2; k < r.w - 2; k += 3) rect(g, r.x + k, y + 6, 1, 1, [190, 180, 160]);
         rect(g, r.x + r.w / 2 - 3, y - 3, 7, 5, [170, 174, 188]); rect(g, r.x + r.w / 2 - 2, y - 2, 5, 1, [230, 234, 242]);
         const dish = Art.dishIcon(lv.id);
-        if (dish) g.drawImage(dish, r.x + 2, y + 8);
+        if (dish) g.drawImage(dish, r.x + 2, y + 7);
         // A green check for a plain pass (badges are stamped on in drawText), a little handshake.
-        if (best && best.passed && !best.badge) stamp(g, r.x + r.w - 9, y + 9, null);   // a plain pass: a check
-        if (best && best.handshake) { rect(g, r.x + r.w - 10, y + 20, 4, 3, [176, 120, 84]); rect(g, r.x + r.w - 7, y + 21, 4, 3, [236, 196, 160]); }
+        if (best && best.passed && !best.badge) stamp(g, r.x + r.w - 9, y + 8, null);   // a plain pass: a check
+        if (best && best.handshake) { rect(g, r.x + r.w - 10, y + 17, 4, 3, [176, 120, 84]); rect(g, r.x + r.w - 7, y + 18, 4, 3, [236, 196, 160]); }
       }
     }
     button(g, BACK_BTN, this.hover && this.hover.type === 'back');
@@ -113,27 +114,27 @@ const Menu = {
     T.text('LEVEL SELECT', 160, 9, { size: 9, color: '#ffe9c0', align: 'center', shadow: true });
     for (const t of LEVEL_TIERS) {
       const open = Progress.unlocked(t.tier), y0 = BOARD.rowY + t.tier * BOARD.rowH;
-      const levels = LEVELS.filter((l) => l.tier === t.tier);
-      const done = levels.filter((l) => Progress.passed(l.id)).length;
-      T.wrap(t.title.toUpperCase(), 8, y0 + 10, BOARD.labelW - 10, { size: 5, color: open ? '#3a2014' : '#b0b2c0' });
-      const sub = t.locked ? 'Coming soon' : !open ? 'Pass the row above' : `${done} / ${levels.length} passed`;
-      T.wrap(sub, 8, y0 + 30, BOARD.labelW - 10, { size: 4, color: open ? '#5a3424' : '#9a9cac' });
+      const levels = Levels.inTier(t.tier), main = Levels.main(t.tier);
+      const done = main.filter((l) => Progress.passed(l.id)).length;
+      T.wrap(t.title.toUpperCase(), 8, y0 + 9, BOARD.labelW - 10, { size: 5, color: open ? '#3a2014' : '#b0b2c0' });
+      const sub = t.locked ? 'Coming soon' : !open ? 'Pass the row above' : `${done} / ${main.length} passed`;
+      T.wrap(sub, 8, y0 + 27, BOARD.labelW - 10, { size: 4, color: open ? '#5a3424' : '#9a9cac' });
       if (!open) continue;
       levels.forEach((lv, n) => {
         const r = this.ticket(t.tier, n), best = Progress.best(lv.id);
         const hov = this.hover && this.hover.type === 'level' && this.hover.level === lv, y = r.y - (hov ? 2 : 0);
-        T.wrap(lv.short.toUpperCase(), r.x + 3, y + 26, r.w - 4, { size: 4, color: '#2a1820' });
-        T.text(best ? best.score.toFixed(1) : 'NEW', r.x + r.w - 3, y + 1, { size: 4, color: best ? (best.passed ? '#2a7a3a' : '#a03a2a') : '#8a6a50', align: 'right' });
+        T.wrap(lv.short.toUpperCase(), r.x + 3, y + 24, r.w - 4, { size: 4, color: '#2a1820' });
+        T.text(best ? best.score.toFixed(1) : lv.bonus ? 'NEW RECIPE' : 'NEW', r.x + r.w - 3, y + 1, { size: 4, color: best ? (best.passed ? '#2a7a3a' : '#a03a2a') : lv.bonus ? '#c4242a' : '#8a6a50', align: 'right' });
         // Earned a badge: stamped right across the ticket.
-        if (best && best.badge === 'good') T.stamp('GOOD SOUP', r.x + r.w / 2, y + 20, { size: 5, color: 'rgba(196,36,36,0.97)' });
-        if (best && best.badge === 'perfect') T.stamp('PERFECT', r.x + r.w / 2, y + 20, { size: 6, color: 'rgba(212,150,20,0.97)' });
+        if (best && best.badge === 'good') T.stamp('GOOD SOUP', r.x + r.w / 2, y + 17, { size: 5, color: 'rgba(196,36,36,0.97)' });
+        if (best && best.badge === 'perfect') T.stamp('PERFECT', r.x + r.w / 2, y + 17, { size: 6, color: 'rgba(212,150,20,0.97)' });
       });
     }
     T.text('BACK', 160, BACK_BTN.y + 5, { size: 6, color: '#3a2020', align: 'center' });
     // Hovered dish: its blurb along the bottom.
     const h = this.hover;
-    if (h && h.type === 'level' && h.level && Progress.unlocked(h.tier)) T.wrap(h.level.title + ': ' + h.level.blurb, 8, 208, 104, { size: 4, color: '#c8cad8' });
-    else if (h && h.type === 'level' && !Progress.unlocked(h.tier)) T.text(LEVEL_TIERS[h.tier].locked ? 'Coming soon.' : 'Pass every dish in the tier above to open this one.', 8, 210, { size: 4, color: '#c8cad8' });
+    if (h && h.type === 'level' && h.level && Progress.unlocked(h.tier)) T.wrap(h.level.title + ': ' + h.level.blurb, 6, 214, 110, { size: 4, color: '#c8cad8' });
+    else if (h && h.type === 'level' && !Progress.unlocked(h.tier)) T.wrap(LEVEL_TIERS[h.tier].locked ? 'Coming soon.' : 'Pass every dish in the tier above to open this one.', 6, 216, 110, { size: 4, color: '#c8cad8' });
     if (this.flash) T.text(this.flash.text, 240, 222, { size: 5, color: '#ffd860', align: 'center', shadow: true });
   },
 };

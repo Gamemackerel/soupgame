@@ -3,9 +3,10 @@
 // Crisp text drawn on the full-res screen canvas, positioned in internal pixel coords.
 const T = {
   ctx: null, s: 3,
+  // o.font: another typeface (The Ram speaks in a demonic one); Silkscreen otherwise.
   text(str, x, y, o = {}) {
     const c = this.ctx, s = this.s, size = (o.size || 7) * s;
-    c.font = `${size}px Silkscreen, monospace`;
+    c.font = `${size}px ${o.font || 'Silkscreen'}, monospace`;
     c.textAlign = o.align || 'left'; c.textBaseline = 'top';
     if (o.shadow) { c.fillStyle = '#1b1018'; c.fillText(str, x * s + s, y * s + s); }
     c.fillStyle = o.color || '#fff';
@@ -19,7 +20,7 @@ const T = {
   },
   wrap(str, x, y, w, o = {}) {
     const c = this.ctx, s = this.s, size = (o.size || 7);
-    c.font = `${size * s}px Silkscreen, monospace`;
+    c.font = `${size * s}px ${o.font || 'Silkscreen'}, monospace`;
     let line = '', yy = y;
     for (const word of str.split(' ')) {
       const test = line ? line + ' ' + word : word;
@@ -51,7 +52,18 @@ const T = {
   },
 };
 
-const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SLOT_H = 21, SHELF_COLS = 3;
+const SHELF_X = 2, SHELF_Y = 14, SLOT_W = 18, SHELF_COLS = 3;
+// What's on the shelf: everything unlocked so far in the story (see Levels.shelf), or all of it. Re-checked every few
+// frames, since passing a dish can unlock more.
+let shelfCache = { t: -1, level: undefined, list: SHELF };
+function shelf() {
+  if (shelfCache.level !== Game.level || Math.abs(Chef.t - shelfCache.t) > 30) {
+    const ids = Levels.shelf(Game.level);
+    shelfCache = { t: Chef.t, level: Game.level, list: ids ? SHELF.filter((s) => ids.has(s.id)) : SHELF };
+  }
+  return shelfCache.list;
+}
+const slotH = () => (shelf().length > 30 ? 19 : 21);   // a full shelf packs a little tighter
 // Clicking a pantry item is pouring, so there's no Pour tool: Stir and Taste toggle back to it.
 const TOOLS = [
   { id: 'ladle', icon: 'ladle', label: 'Stir', key: 'S' },
@@ -75,7 +87,7 @@ const UI = {
   tool: 'pour', hover: null, card: null, journal: false, banners: [], toasts: [], confirm: null,   // a tool waiting on a second click ('Sure?'): { id, t }
   dragDial: false,
 
-  shelfSlot(n) { return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * SLOT_H, w: SLOT_W - 1, h: SLOT_H - 1 }; },
+  shelfSlot(n) { const h = slotH(); return { x: SHELF_X + (n % SHELF_COLS) * SLOT_W, y: SHELF_Y + ((n / SHELF_COLS) | 0) * h, w: SLOT_W - 1, h: h - 1 }; },
   // Hotkeys while cooking: S stir, T taste (again to put it down), L lid, W water, R the recipe (in story).
   hotkey(k) {
     if (k === 's' || k === 't') { const id = k === 's' ? 'ladle' : 'taste'; this.tool = this.tool === id ? 'pour' : id; }
@@ -91,7 +103,7 @@ const UI = {
 
   // Returns what's under the cursor.
   pick(x, y) {
-    for (let n = 0; n < SHELF.length; n++) if (this.hit(this.shelfSlot(n), x, y)) return { type: 'ing', n };
+    for (let n = 0; n < shelf().length; n++) if (this.hit(this.shelfSlot(n), x, y)) return { type: 'ing', n };
     for (let n = 0; n < tools().length; n++) if (this.hit(this.toolSlot(n), x, y)) return { type: 'tool', n };
     if (this.hit(SERVE, x, y)) return { type: 'serve' };
     if (Game.level && this.hit(TITLE_BOX, x, y)) return { type: 'recipe' };
@@ -104,7 +116,7 @@ const UI = {
     if (this.card && this.card.t > 10) this.card = null;
     const h = this.pick(x, y);
     if (!h) return false;
-    if (h.type === 'ing') { Chef.select(SHELF[h.n]); this.tool = 'pour'; }
+    if (h.type === 'ing') { Chef.select(shelf()[h.n]); this.tool = 'pour'; }
     else if (h.type === 'tool') {
       const id = tools()[h.n].id;
       if (id === 'lid') Sim.lid = !Sim.lid;
@@ -156,7 +168,7 @@ const UI = {
   draw(g, mx, my) {
     // Shelf: wooden board.
     rect(g, 0, 12, 58, 214, [120, 76, 48]); rect(g, 1, 13, 56, 212, [160, 106, 66]);
-    SHELF.forEach((ing, n) => {
+    shelf().forEach((ing, n) => {
       const s = this.shelfSlot(n), sel = Chef.held === ing, hov = this.hover && this.hover.type === 'ing' && this.hover.n === n;
       rect(g, s.x + 1, s.y + 1, s.w - 1, s.h - 1, sel ? [255, 214, 110] : hov ? [196, 140, 92] : [176, 120, 76]);
       rect(g, s.x + 1, s.y + s.h - 2, s.w - 1, 2, [120, 76, 48]);
@@ -266,7 +278,7 @@ const UI = {
       T.text(label, mx + 6, my + 6, { size: 5, color: '#fff', shadow: true });
     }
     if (this.hover && this.hover.type === 'ing') {
-      const ing = SHELF[this.hover.n];
+      const ing = shelf()[this.hover.n];
       T.bubble(ing.name + (ing.id === 'water' ? ' (W)' : ''), mx, my - 14);   // the bubble's tail points at the cursor
     }
     if (this.card) this.drawCardText(T);

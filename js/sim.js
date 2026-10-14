@@ -39,7 +39,7 @@ Sim.newBody = function (kind = BK_FIRM) {
 Sim.reset = function () {
   this.mat.fill(0); this.temp.fill(20); this.cook.fill(0); this.life.fill(0);
   this.stirT.fill(0); this.fl.fill(0); this.fond.fill(0); this.body.fill(0); this.bodyVel.clear(); this.bodyShape.clear(); this.bodyPart.fill(0);
-  this.panT = 20; this.notes = {}; this.particles = []; this.flags = {}; this.happened = new Set(); this.used = new Set();
+  this.panT = 20; this.notes = {}; this.particles = []; this.flags = {}; this.happened = new Set(); this.used = new Set(); this.usedAmt = {};
   this.fire = 0; this.fireBig = 0; this.fuel = []; this.disaster = false; this.soot = 0; this.shake = 0; this.smother = 0; this.inverted = false;
   this.turb = 0; this.swirl = 0; this.surface = GH;
 };
@@ -514,6 +514,30 @@ Sim.moveBodies = function () {
     }
     if (moved || Math.hypot(v.vx, v.vy) > 0.4) continue;
 
+    // Two pieces that fell into each other mid-air can lock together, each holding the other up, and hang there
+    // forever. If nothing but other pieces holds this one up, and they're held up by nothing but pieces too, the
+    // tangle is floating: join them into one piece, which then falls as one.
+    if (!wet && !swimming) {
+      const support = (cs, id) => {
+        const others = new Set();
+        for (const i of cs) {
+          if (i >= (GH - 1) * GW) return null;   // on the pot floor
+          const j = i + GW, bj = body[j];
+          if (bj === id) continue;
+          if (bj) others.add(bj); else if (!isOpen(mat[j])) return null;   // on something solid
+        }
+        return others;
+      };
+      const mine = support(cells, b);
+      // (Only a real deadlock: each other piece is itself resting on pieces, not just falling past, and not moving.)
+      const stuck = (o) => { const oc = groups.get(o), ov = vel.get(o), s2 = oc && support(oc, o);
+                             return s2 && s2.size > 0 && (!ov || Math.hypot(ov.vx, ov.vy) < 0.4) && [...s2].every((x) => x === b || mine.has(x)); };
+      if (mine && mine.size && [...mine].every(stuck)) {
+        for (const o of mine) { for (const i of groups.get(o) || []) body[i] = b; groups.delete(o); }   // (safe mid-loop: it just won't be visited)
+        continue;
+      }
+    }
+
     if (!wet && !swimming) {
       // Resting in a dry pot: slide off piles.
       if (rnd() < 0.3) { const dx = rnd() < 0.5 ? -1 : 1; tryBody(this, cells, b, dx, 1); }
@@ -703,9 +727,9 @@ const FISH_ROWS = [
   '   BBBBBBB    F ',
   '      FF        '];
 
-Sim.throwEgg = function (x) { this.used.add('egg'); return this.spawnShape(EGG_WHOLE, { S: SHELL, W: EGG, Y: YOLK }, x, 2.5, BK_SHELL); };
-Sim.dropCrackedEgg = function (x) { this.used.add('egg'); return this.spawnShape(EGG_OPEN, { W: EGG, Y: YOLK }, x, 0.5, BK_SOFT); };
-Sim.throwFish = function (x) { this.used.add('fish'); return this.spawnShape(FISH_ROWS, { B: FISH, F: FISHFIN, E: FISHEYE }, x, 2.5, BK_FISH); };
+Sim.throwEgg = function (x) { this.used.add('egg'); this.usedAmt.egg = (this.usedAmt.egg || 0) + 40; return this.spawnShape(EGG_WHOLE, { S: SHELL, W: EGG, Y: YOLK }, x, 2.5, BK_SHELL); };
+Sim.dropCrackedEgg = function (x) { this.used.add('egg'); this.usedAmt.egg = (this.usedAmt.egg || 0) + 40; return this.spawnShape(EGG_OPEN, { W: EGG, Y: YOLK }, x, 0.5, BK_SOFT); };
+Sim.throwFish = function (x) { this.used.add('fish'); this.usedAmt.fish = (this.usedAmt.fish || 0) + 40; return this.spawnShape(FISH_ROWS, { B: FISH, F: FISHFIN, E: FISHEYE }, x, 2.5, BK_FISH); };
 
 // A whole egg hit the bottom hard: shell shatters into loose bits, the inside becomes a blob.
 Sim.crackEgg = function (b, cells, v) {
@@ -1207,6 +1231,9 @@ Sim.updateParticles = function () {
 
 // ---------------- Player actions ----------------
 
+// Can something poured in land here? Empty space, steam or smoke, or foam (poured food knocks the foam down).
+Sim.open = function (i) { const c = CLS[this.mat[i]]; return this.mat[i] === EMPTY || c === C_GAS || c === C_FOAM; };
+
 // Pour `amount` cells of an ingredient near grid column x.
 Sim.pour = function (ing, x, amount) {
   this.used.add(ing.id);
@@ -1219,7 +1246,7 @@ Sim.pour = function (ing, x, amount) {
       const b = pw * ph > 1 ? this.newBody() : 0;
       for (let yy = 0; yy < ph; yy++) for (let xx = 0; xx < pw; xx++) {
         const i = (y0 + yy) * GW + x0 + xx;
-        if (this.mat[i] === EMPTY || CLS[this.mat[i]] === C_GAS) { this.setCell(i, ing.mat); this.body[i] = b; placed++; }
+        if (this.open(i)) { this.setCell(i, ing.mat); this.body[i] = b; placed++; }
       }
     }
   } else if (ing.kind === 'chunk') {
@@ -1227,7 +1254,7 @@ Sim.pour = function (ing, x, amount) {
     const w = 3 + rint(3), h = 3 + rint(2), x0 = Math.max(0, Math.min(GW - w, (x - w / 2) | 0));
     for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
       const i = yy * GW + x0 + xx;
-      if (this.mat[i] === EMPTY || CLS[this.mat[i]] === C_GAS) { this.setCell(i, ing.mat); this.body[i] = this.nextBody; placed++; }
+      if (this.open(i)) { this.setCell(i, ing.mat); this.body[i] = this.nextBody; placed++; }
     }
   } else {
     const spread = ing.kind === 'powder' ? 3 : ing.kind === 'spray' ? 9 : 1 + amount / 4;   // a heavy pour is a wider stream
@@ -1235,7 +1262,7 @@ Sim.pour = function (ing, x, amount) {
       const px = Math.max(0, Math.min(GW - 1, Math.round(x + (rnd() * 2 - 1) * spread)));
       const py = rint(3), i = py * GW + px;
       if (py === 0 && this.surface <= 1 && CLS[this.mat[i]] === C_LIQUID) this.spill(i);   // brim-full: it goes over the side
-      if (this.mat[i] !== EMPTY && CLS[this.mat[i]] !== C_GAS) continue;
+      if (!this.open(i)) continue;
       this.setCell(i, ing.mat, 20);
       if (ing.flavor) this.addFlavor(i, ing.flavor);
       placed++;
@@ -1243,6 +1270,7 @@ Sim.pour = function (ing, x, amount) {
   }
   if (ing.note && placed) this.addNote(ing.note, 0.004 * placed);
   if (!placed) this.emit('full', x, 0, 90);
+  this.usedAmt[ing.id] = (this.usedAmt[ing.id] || 0) + placed;   // how much went in (Primordial Soup checks it)
   return placed;
 };
 

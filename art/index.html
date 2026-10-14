@@ -19,7 +19,7 @@
 <p>Everything to redraw. You'll draw in the ready-made Aseprite files: <a href="soup-pot-aseprite.zip"><b>download them here (zip)</b></a>. This page shows what each piece is, where it sits and which poses it needs. The full instructions are in the <a href="https://github.com/Gamemackerel/soupgame/blob/main/art/README.md">art README</a>.</p>
 <p><b>Only the first frame of each pose is required.</b> Extra frames are optional animation: left empty, the game holds the first frame. Poses marked "also used for" share one drawing, so it's drawn once.</p>
 <nav><a href="#characters">characters</a><a href="#ingredients">ingredients</a><a href="#backgrounds">backgrounds</a></nav>
-<h2 id="characters">Characters <small>70 drawings + 86 optional animation frames</small></h2>
+<h2 id="characters">Characters <small>112 drawings + 107 optional animation frames</small></h2>
     <section class="sprite" id="characters/chef/body">
       <h3>characters/chef/body</h3>
       <p class="facts">cell 48×46 · anchor 24,-74 · sheet 48×46 ·
@@ -155,6 +155,132 @@
       <img src="templates/characters/judges/paul-front.guide.png" alt="characters/judges/paul-front guide">
       <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/paul-front.frames.png" alt="characters/judges/paul-front animation frames" loading="lazy"></details>
     </section>
+    <section class="sprite" id="characters/judges/dudeguy">
+      <h3>characters/judges/dudeguy</h3>
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
+        <a href="templates/characters/judges/dudeguy.png">template</a> · <a href="templates/characters/judges/dudeguy.json">json</a></p>
+      <p>Mister Dude-Guy: the loud, flame-shirted flavor king (a Guy Fieri caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 drawing</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 drawing <small>+ 3 optional animation frames (4 fps, loops)</small></td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 drawing</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 drawing</td><td>scored under 5</td></tr></table>
+      <img src="templates/characters/judges/dudeguy.guide.png" alt="characters/judges/dudeguy guide">
+      <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/dudeguy.frames.png" alt="characters/judges/dudeguy animation frames" loading="lazy"></details>
+    </section>
+    <section class="sprite" id="characters/judges/dudeguy-front">
+      <h3>characters/judges/dudeguy-front</h3>
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
+        <a href="templates/characters/judges/dudeguy-front.png">template</a> · <a href="templates/characters/judges/dudeguy-front.json">json</a></p>
+      <p>Mister Dude-Guy: the loud, flame-shirted flavor king (a Guy Fieri caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
+      <table><tr><td>0</td><td><b>neutral</b><br><small>also used for tasting, happy, meh, upset</small></td><td>1 drawing</td><td>waiting</td></tr></table>
+      <img src="templates/characters/judges/dudeguy-front.guide.png" alt="characters/judges/dudeguy-front guide">
+      
+    </section>
+    <section class="sprite" id="characters/judges/signore">
+      <h3>characters/judges/signore</h3>
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
+        <a href="templates/characters/judges/signore.png">template</a> · <a href="templates/characters/judges/signore.json">json</a></p>
+      <p>Chef Signore: the Italian chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 drawing</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 drawing <small>+ 3 optional animation frames (4 fps, loops)</small></td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 drawing</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 drawing</td><td>scored under 5</td></tr></table>
+      <img src="templates/characters/judges/signore.guide.png" alt="characters/judges/signore guide">
+      <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/signore.frames.png" alt="characters/judges/signore animation frames" loading="lazy"></details>
+    </section>
+    <section class="sprite" id="characters/judges/signore-front">
+      <h3>characters/judges/signore-front</h3>
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
+        <a href="templates/characters/judges/signore-front.png">template</a> · <a href="templates/characters/judges/signore-front.json">json</a></p>
+      <p>Chef Signore: the Italian chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
+      <table><tr><td>0</td><td><b>neutral</b><br><small>also used for tasting, happy, meh, upset</small></td><td>1 drawing</td><td>waiting</td></tr></table>
+      <img src="templates/characters/judges/signore-front.guide.png" alt="characters/judges/signore-front guide">
+      
+    </section>
+    <section class="sprite" id="characters/judges/seonbae">
+      <h3>characters/judges/seonbae</h3>
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
+        <a href="templates/characters/judges/seonbae.png">template</a> · <a href="templates/characters/judges/seonbae.json">json</a></p>
+      <p>Chef Seonbae: the Korean chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 drawing</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 drawing <small>+ 3 optional animation frames (4 fps, loops)</small></td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 drawing</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 drawing</td><td>scored under 5</td></tr></table>
+      <img src="templates/characters/judges/seonbae.guide.png" alt="characters/judges/seonbae guide">
+      <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/seonbae.frames.png" alt="characters/judges/seonbae animation frames" loading="lazy"></details>
+    </section>
+    <section class="sprite" id="characters/judges/seonbae-front">
+      <h3>characters/judges/seonbae-front</h3>
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
+        <a href="templates/characters/judges/seonbae-front.png">template</a> · <a href="templates/characters/judges/seonbae-front.json">json</a></p>
+      <p>Chef Seonbae: the Korean chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
+      <table><tr><td>0</td><td><b>neutral</b><br><small>also used for tasting, happy, meh, upset</small></td><td>1 drawing</td><td>waiting</td></tr></table>
+      <img src="templates/characters/judges/seonbae-front.guide.png" alt="characters/judges/seonbae-front guide">
+      
+    </section>
+    <section class="sprite" id="characters/judges/monsieur">
+      <h3>characters/judges/monsieur</h3>
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
+        <a href="templates/characters/judges/monsieur.png">template</a> · <a href="templates/characters/judges/monsieur.json">json</a></p>
+      <p>Chef Monsieur: the French chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 drawing</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 drawing <small>+ 3 optional animation frames (4 fps, loops)</small></td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 drawing</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 drawing</td><td>scored under 5</td></tr></table>
+      <img src="templates/characters/judges/monsieur.guide.png" alt="characters/judges/monsieur guide">
+      <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/monsieur.frames.png" alt="characters/judges/monsieur animation frames" loading="lazy"></details>
+    </section>
+    <section class="sprite" id="characters/judges/monsieur-front">
+      <h3>characters/judges/monsieur-front</h3>
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
+        <a href="templates/characters/judges/monsieur-front.png">template</a> · <a href="templates/characters/judges/monsieur-front.json">json</a></p>
+      <p>Chef Monsieur: the French chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
+      <table><tr><td>0</td><td><b>neutral</b><br><small>also used for tasting, happy, meh, upset</small></td><td>1 drawing</td><td>waiting</td></tr></table>
+      <img src="templates/characters/judges/monsieur-front.guide.png" alt="characters/judges/monsieur-front guide">
+      
+    </section>
+    <section class="sprite" id="characters/judges/marty">
+      <h3>characters/judges/marty</h3>
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
+        <a href="templates/characters/judges/marty.png">template</a> · <a href="templates/characters/judges/marty.json">json</a></p>
+      <p>Marty Stew: the queen of home entertaining (a Martha Stewart caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 drawing</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 drawing <small>+ 3 optional animation frames (4 fps, loops)</small></td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 drawing</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 drawing</td><td>scored under 5</td></tr></table>
+      <img src="templates/characters/judges/marty.guide.png" alt="characters/judges/marty guide">
+      <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/marty.frames.png" alt="characters/judges/marty animation frames" loading="lazy"></details>
+    </section>
+    <section class="sprite" id="characters/judges/marty-front">
+      <h3>characters/judges/marty-front</h3>
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
+        <a href="templates/characters/judges/marty-front.png">template</a> · <a href="templates/characters/judges/marty-front.json">json</a></p>
+      <p>Marty Stew: the queen of home entertaining (a Martha Stewart caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
+      <table><tr><td>0</td><td><b>neutral</b><br><small>also used for tasting, happy, meh, upset</small></td><td>1 drawing</td><td>waiting</td></tr></table>
+      <img src="templates/characters/judges/marty-front.guide.png" alt="characters/judges/marty-front guide">
+      
+    </section>
+    <section class="sprite" id="characters/judges/obama">
+      <h3>characters/judges/obama</h3>
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
+        <a href="templates/characters/judges/obama.png">template</a> · <a href="templates/characters/judges/obama.json">json</a></p>
+      <p>President Barack Hussein Obama. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 drawing</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 drawing <small>+ 3 optional animation frames (4 fps, loops)</small></td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 drawing</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 drawing</td><td>scored under 5</td></tr></table>
+      <img src="templates/characters/judges/obama.guide.png" alt="characters/judges/obama guide">
+      <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/obama.frames.png" alt="characters/judges/obama animation frames" loading="lazy"></details>
+    </section>
+    <section class="sprite" id="characters/judges/obama-front">
+      <h3>characters/judges/obama-front</h3>
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
+        <a href="templates/characters/judges/obama-front.png">template</a> · <a href="templates/characters/judges/obama-front.json">json</a></p>
+      <p>President Barack Hussein Obama. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
+      <table><tr><td>0</td><td><b>neutral</b><br><small>also used for tasting, happy, meh, upset</small></td><td>1 drawing</td><td>waiting</td></tr></table>
+      <img src="templates/characters/judges/obama-front.guide.png" alt="characters/judges/obama-front guide">
+      
+    </section>
+    <section class="sprite" id="characters/judges/ram">
+      <h3>characters/judges/ram</h3>
+      <p class="facts">cell 96×128 · anchor 48,0 · sheet 384×640 ·
+        <a href="templates/characters/judges/ram.png">template</a> · <a href="templates/characters/judges/ram.json">json</a></p>
+      <p>The Ram: Gordo Hamsie transformed into a devil, with ram's horns and true fury in his eyes. Judges Primordial Soup alone, in the middle seat; also used, larger, in the story. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.</p>
+      <table><tr><td>0</td><td><b>neutral</b></td><td>1 drawing</td><td>waiting</td></tr><tr><td>1</td><td><b>tasting</b></td><td>1 drawing <small>+ 3 optional animation frames (4 fps, loops)</small></td><td>spoon in mouth</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td>scored 7+</td></tr><tr><td>3</td><td><b>meh</b></td><td>1 drawing</td><td>scored 5-6</td></tr><tr><td>4</td><td><b>upset</b></td><td>1 drawing</td><td>scored under 5</td></tr></table>
+      <img src="templates/characters/judges/ram.guide.png" alt="characters/judges/ram guide">
+      <details><summary>Show the optional animation frames</summary><img src="templates/characters/judges/ram.frames.png" alt="characters/judges/ram animation frames" loading="lazy"></details>
+    </section>
+    <section class="sprite" id="characters/judges/ram-front">
+      <h3>characters/judges/ram-front</h3>
+      <p class="facts">cell 96×48 · anchor 48,-96 · sheet 96×48 ·
+        <a href="templates/characters/judges/ram-front.png">template</a> · <a href="templates/characters/judges/ram-front.json">json</a></p>
+      <p>The Ram: Gordo Hamsie transformed into a devil, with ram's horns and true fury in his eyes. Judges Primordial Soup alone, in the middle seat; also used, larger, in the story. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.</p>
+      <table><tr><td>0</td><td><b>neutral</b><br><small>also used for tasting, happy, meh, upset</small></td><td>1 drawing</td><td>waiting</td></tr></table>
+      <img src="templates/characters/judges/ram-front.guide.png" alt="characters/judges/ram-front guide">
+      
+    </section>
     <section class="sprite" id="characters/story/dom">
       <h3>characters/story/dom</h3>
       <p class="facts">cell 120×130 · anchor 60,0 · sheet 120×390 ·
@@ -191,7 +317,7 @@
       <img src="templates/characters/extras/customer.guide.png" alt="characters/extras/customer guide">
       
     </section>
-<h2 id="ingredients">Ingredients <small>41 drawings</small></h2>
+<h2 id="ingredients">Ingredients <small>48 drawings</small></h2>
     <section class="sprite" id="ingredients/water">
       <h3>ingredients/water</h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
@@ -453,6 +579,24 @@
       <img src="templates/ingredients/pasta.guide.png" alt="ingredients/pasta guide">
       
     </section>
+    <section class="sprite" id="ingredients/noodles">
+      <h3>ingredients/noodles</h3>
+      <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
+        <a href="templates/ingredients/noodles.png">template</a> · <a href="templates/ingredients/noodles.json">json</a></p>
+      <p>Noodles: on the shelf, and in the chef's hand.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/noodles.guide.png" alt="ingredients/noodles guide">
+      
+    </section>
+    <section class="sprite" id="ingredients/pork">
+      <h3>ingredients/pork</h3>
+      <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
+        <a href="templates/ingredients/pork.png">template</a> · <a href="templates/ingredients/pork.json">json</a></p>
+      <p>Pork: on the shelf, and in the chef's hand.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/pork.guide.png" alt="ingredients/pork guide">
+      
+    </section>
     <section class="sprite" id="ingredients/extinguisher">
       <h3>ingredients/extinguisher</h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
@@ -471,22 +615,13 @@
       <img src="templates/ingredients/dishes/tomato-soup.guide.png" alt="ingredients/dishes/tomato-soup guide">
       
     </section>
-    <section class="sprite" id="ingredients/dishes/creamy-corn">
-      <h3>ingredients/dishes/creamy-corn</h3>
+    <section class="sprite" id="ingredients/dishes/french-onion">
+      <h3>ingredients/dishes/french-onion</h3>
       <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
-        <a href="templates/ingredients/dishes/creamy-corn.png">template</a> · <a href="templates/ingredients/dishes/creamy-corn.json">json</a></p>
-      <p>Creamy Corn Soup, finished: its ticket on the level select board.</p>
+        <a href="templates/ingredients/dishes/french-onion.png">template</a> · <a href="templates/ingredients/dishes/french-onion.json">json</a></p>
+      <p>French Onion Soup, finished: its ticket on the level select board.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/dishes/creamy-corn.guide.png" alt="ingredients/dishes/creamy-corn guide">
-      
-    </section>
-    <section class="sprite" id="ingredients/dishes/flatbread">
-      <h3>ingredients/dishes/flatbread</h3>
-      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
-        <a href="templates/ingredients/dishes/flatbread.png">template</a> · <a href="templates/ingredients/dishes/flatbread.json">json</a></p>
-      <p>Pan Flatbread, finished: its ticket on the level select board.</p>
-      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/dishes/flatbread.guide.png" alt="ingredients/dishes/flatbread guide">
+      <img src="templates/ingredients/dishes/french-onion.guide.png" alt="ingredients/dishes/french-onion guide">
       
     </section>
     <section class="sprite" id="ingredients/dishes/fish-stew">
@@ -498,22 +633,13 @@
       <img src="templates/ingredients/dishes/fish-stew.guide.png" alt="ingredients/dishes/fish-stew guide">
       
     </section>
-    <section class="sprite" id="ingredients/dishes/minestrone">
-      <h3>ingredients/dishes/minestrone</h3>
+    <section class="sprite" id="ingredients/dishes/creamy-corn">
+      <h3>ingredients/dishes/creamy-corn</h3>
       <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
-        <a href="templates/ingredients/dishes/minestrone.png">template</a> · <a href="templates/ingredients/dishes/minestrone.json">json</a></p>
-      <p>Minestrone, finished: its ticket on the level select board.</p>
+        <a href="templates/ingredients/dishes/creamy-corn.png">template</a> · <a href="templates/ingredients/dishes/creamy-corn.json">json</a></p>
+      <p>Creamy Corn Soup, finished: its ticket on the level select board.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/dishes/minestrone.guide.png" alt="ingredients/dishes/minestrone guide">
-      
-    </section>
-    <section class="sprite" id="ingredients/dishes/french-onion">
-      <h3>ingredients/dishes/french-onion</h3>
-      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
-        <a href="templates/ingredients/dishes/french-onion.png">template</a> · <a href="templates/ingredients/dishes/french-onion.json">json</a></p>
-      <p>French Onion Soup, finished: its ticket on the level select board.</p>
-      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/dishes/french-onion.guide.png" alt="ingredients/dishes/french-onion guide">
+      <img src="templates/ingredients/dishes/creamy-corn.guide.png" alt="ingredients/dishes/creamy-corn guide">
       
     </section>
     <section class="sprite" id="ingredients/dishes/beef-chowder">
@@ -534,13 +660,13 @@
       <img src="templates/ingredients/dishes/goulash.guide.png" alt="ingredients/dishes/goulash guide">
       
     </section>
-    <section class="sprite" id="ingredients/dishes/sponge-cake">
-      <h3>ingredients/dishes/sponge-cake</h3>
+    <section class="sprite" id="ingredients/dishes/chicken-noodle">
+      <h3>ingredients/dishes/chicken-noodle</h3>
       <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
-        <a href="templates/ingredients/dishes/sponge-cake.png">template</a> · <a href="templates/ingredients/dishes/sponge-cake.json">json</a></p>
-      <p>Pot-Oven Sponge Cake, finished: its ticket on the level select board.</p>
+        <a href="templates/ingredients/dishes/chicken-noodle.png">template</a> · <a href="templates/ingredients/dishes/chicken-noodle.json">json</a></p>
+      <p>Chicken Noodle Soup, finished: its ticket on the level select board.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/dishes/sponge-cake.guide.png" alt="ingredients/dishes/sponge-cake guide">
+      <img src="templates/ingredients/dishes/chicken-noodle.guide.png" alt="ingredients/dishes/chicken-noodle guide">
       
     </section>
     <section class="sprite" id="ingredients/dishes/chili">
@@ -552,7 +678,70 @@
       <img src="templates/ingredients/dishes/chili.guide.png" alt="ingredients/dishes/chili guide">
       
     </section>
-<h2 id="backgrounds">Backgrounds <small>7 drawings</small></h2>
+    <section class="sprite" id="ingredients/dishes/minestrone">
+      <h3>ingredients/dishes/minestrone</h3>
+      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
+        <a href="templates/ingredients/dishes/minestrone.png">template</a> · <a href="templates/ingredients/dishes/minestrone.json">json</a></p>
+      <p>Minestrone, finished: its ticket on the level select board.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/dishes/minestrone.guide.png" alt="ingredients/dishes/minestrone guide">
+      
+    </section>
+    <section class="sprite" id="ingredients/dishes/tonkotsu-ramen">
+      <h3>ingredients/dishes/tonkotsu-ramen</h3>
+      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
+        <a href="templates/ingredients/dishes/tonkotsu-ramen.png">template</a> · <a href="templates/ingredients/dishes/tonkotsu-ramen.json">json</a></p>
+      <p>Tonkotsu Ramen, finished: its ticket on the level select board.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/dishes/tonkotsu-ramen.guide.png" alt="ingredients/dishes/tonkotsu-ramen guide">
+      
+    </section>
+    <section class="sprite" id="ingredients/dishes/marinara-meatballs">
+      <h3>ingredients/dishes/marinara-meatballs</h3>
+      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
+        <a href="templates/ingredients/dishes/marinara-meatballs.png">template</a> · <a href="templates/ingredients/dishes/marinara-meatballs.json">json</a></p>
+      <p>Marinara Pasta &amp; Meatballs, finished: its ticket on the level select board.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/dishes/marinara-meatballs.guide.png" alt="ingredients/dishes/marinara-meatballs guide">
+      
+    </section>
+    <section class="sprite" id="ingredients/dishes/hot-sour">
+      <h3>ingredients/dishes/hot-sour</h3>
+      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
+        <a href="templates/ingredients/dishes/hot-sour.png">template</a> · <a href="templates/ingredients/dishes/hot-sour.json">json</a></p>
+      <p>Hot &amp; Sour Soup, finished: its ticket on the level select board.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/dishes/hot-sour.guide.png" alt="ingredients/dishes/hot-sour guide">
+      
+    </section>
+    <section class="sprite" id="ingredients/dishes/flatbread">
+      <h3>ingredients/dishes/flatbread</h3>
+      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
+        <a href="templates/ingredients/dishes/flatbread.png">template</a> · <a href="templates/ingredients/dishes/flatbread.json">json</a></p>
+      <p>Pan Flatbread, finished: its ticket on the level select board.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/dishes/flatbread.guide.png" alt="ingredients/dishes/flatbread guide">
+      
+    </section>
+    <section class="sprite" id="ingredients/dishes/sponge-cake">
+      <h3>ingredients/dishes/sponge-cake</h3>
+      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
+        <a href="templates/ingredients/dishes/sponge-cake.png">template</a> · <a href="templates/ingredients/dishes/sponge-cake.json">json</a></p>
+      <p>Pot-Oven Sponge Cake, finished: its ticket on the level select board.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/dishes/sponge-cake.guide.png" alt="ingredients/dishes/sponge-cake guide">
+      
+    </section>
+    <section class="sprite" id="ingredients/dishes/primordial-soup">
+      <h3>ingredients/dishes/primordial-soup</h3>
+      <p class="facts">cell 24×16 · anchor 0,0 · sheet 24×16 ·
+        <a href="templates/ingredients/dishes/primordial-soup.png">template</a> · <a href="templates/ingredients/dishes/primordial-soup.json">json</a></p>
+      <p>Primordial Soup, finished: its ticket on the level select board.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/ingredients/dishes/primordial-soup.guide.png" alt="ingredients/dishes/primordial-soup guide">
+      
+    </section>
+<h2 id="backgrounds">Backgrounds <small>8 drawings</small></h2>
     <section class="sprite" id="backgrounds/pizza-shop">
       <h3>backgrounds/pizza-shop</h3>
       <p class="facts">cell 320×240 · anchor 0,0 · sheet 320×240 ·
@@ -569,6 +758,15 @@
       <p>Souped Up's studio kitchen (First Michelin Star levels), also used for the sandbox and behind the title screen. It should have a window, a hanging set of tools and pans, and a sign that says EVERY SECOND COUNTS. The pot, flames and everything in it are drawn on top, centered at the bottom.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
       <img src="templates/backgrounds/studio-kitchen.guide.png" alt="backgrounds/studio-kitchen guide">
+      
+    </section>
+    <section class="sprite" id="backgrounds/hell-kitchen">
+      <h3>backgrounds/hell-kitchen</h3>
+      <p class="facts">cell 320×240 · anchor 0,0 · sheet 320×240 ·
+        <a href="templates/backgrounds/hell-kitchen.png">template</a> · <a href="templates/backgrounds/hell-kitchen.json">json</a></p>
+      <p>Hell's kitchen, for the finale (Primordial Soup): rock, fire and lava, with the same stovetop. The Ram paces and rampages behind you while you cook.</p>
+      <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
+      <img src="templates/backgrounds/hell-kitchen.guide.png" alt="backgrounds/hell-kitchen guide">
       
     </section>
     <section class="sprite" id="backgrounds/stage">

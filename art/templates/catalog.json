@@ -1045,6 +1045,944 @@
     "animated": true
   },
   {
+    "name": "judges/dudeguy",
+    "path": "characters/judges/dudeguy",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Mister Dude-Guy: the loud, flame-shirted flavor king (a Guy Fieri caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": true
+  },
+  {
+    "name": "judges/dudeguy-front",
+    "path": "characters/judges/dudeguy-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Mister Dude-Guy: the loud, flame-shirted flavor king (a Guy Fieri caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": false
+  },
+  {
+    "name": "judges/signore",
+    "path": "characters/judges/signore",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Chef Signore: the Italian chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": true
+  },
+  {
+    "name": "judges/signore-front",
+    "path": "characters/judges/signore-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Chef Signore: the Italian chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": false
+  },
+  {
+    "name": "judges/seonbae",
+    "path": "characters/judges/seonbae",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Chef Seonbae: the Korean chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": true
+  },
+  {
+    "name": "judges/seonbae-front",
+    "path": "characters/judges/seonbae-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Chef Seonbae: the Korean chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": false
+  },
+  {
+    "name": "judges/monsieur",
+    "path": "characters/judges/monsieur",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Chef Monsieur: the French chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": true
+  },
+  {
+    "name": "judges/monsieur-front",
+    "path": "characters/judges/monsieur-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Chef Monsieur: the French chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": false
+  },
+  {
+    "name": "judges/marty",
+    "path": "characters/judges/marty",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Marty Stew: the queen of home entertaining (a Martha Stewart caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": true
+  },
+  {
+    "name": "judges/marty-front",
+    "path": "characters/judges/marty-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "Marty Stew: the queen of home entertaining (a Martha Stewart caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": false
+  },
+  {
+    "name": "judges/obama",
+    "path": "characters/judges/obama",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "President Barack Hussein Obama. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": true
+  },
+  {
+    "name": "judges/obama-front",
+    "path": "characters/judges/obama-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "President Barack Hussein Obama. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": false
+  },
+  {
+    "name": "judges/ram",
+    "path": "characters/judges/ram",
+    "group": "characters",
+    "cell": [
+      96,
+      128
+    ],
+    "anchor": [
+      48,
+      0
+    ],
+    "sheet": [
+      384,
+      640
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "waiting"
+      },
+      {
+        "name": "tasting",
+        "row": 1,
+        "frames": 4,
+        "fps": 4,
+        "loop": true,
+        "also": [],
+        "note": "spoon in mouth"
+      },
+      {
+        "name": "happy",
+        "row": 2,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 7+"
+      },
+      {
+        "name": "meh",
+        "row": 3,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored 5-6"
+      },
+      {
+        "name": "upset",
+        "row": 4,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": "scored under 5"
+      }
+    ],
+    "shared": {},
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "The Ram: Gordo Hamsie transformed into a devil, with ram's horns and true fury in his eyes. Judges Primordial Soup alone, in the middle seat; also used, larger, in the story. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": true
+  },
+  {
+    "name": "judges/ram-front",
+    "path": "characters/judges/ram-front",
+    "group": "characters",
+    "cell": [
+      96,
+      48
+    ],
+    "anchor": [
+      48,
+      -96
+    ],
+    "sheet": [
+      96,
+      48
+    ],
+    "states": [
+      {
+        "name": "neutral",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [
+          "tasting",
+          "happy",
+          "meh",
+          "upset"
+        ],
+        "note": "waiting"
+      }
+    ],
+    "shared": {
+      "tasting": "neutral",
+      "happy": "neutral",
+      "meh": "neutral",
+      "upset": "neutral"
+    },
+    "order": [
+      "neutral",
+      "tasting",
+      "happy",
+      "meh",
+      "upset"
+    ],
+    "notes": "The Ram: Gordo Hamsie transformed into a devil, with ram's horns and true fury in his eyes. Judges Primordial Soup alone, in the middle seat; also used, larger, in the story. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "guides": [
+      {
+        "y": 118,
+        "label": "table top"
+      }
+    ],
+    "animated": false
+  },
+  {
     "name": "story/dom",
     "path": "characters/story/dom",
     "group": "characters",
@@ -2350,6 +3288,76 @@
     "animated": false
   },
   {
+    "name": "ingredients/noodles",
+    "path": "ingredients/noodles",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Noodles: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "ingredients/pork",
+    "path": "ingredients/pork",
+    "group": "ingredients",
+    "cell": [
+      16,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      16,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Pork: on the shelf, and in the chef's hand.",
+    "guides": [],
+    "animated": false
+  },
+  {
     "name": "ingredients/extinguisher",
     "path": "ingredients/extinguisher",
     "group": "ingredients",
@@ -2420,8 +3428,8 @@
     "animated": false
   },
   {
-    "name": "dishes/creamy-corn",
-    "path": "ingredients/dishes/creamy-corn",
+    "name": "dishes/french-onion",
+    "path": "ingredients/dishes/french-onion",
     "group": "ingredients",
     "cell": [
       24,
@@ -2450,42 +3458,7 @@
     "order": [
       "default"
     ],
-    "notes": "Creamy Corn Soup, finished: its ticket on the level select board.",
-    "guides": [],
-    "animated": false
-  },
-  {
-    "name": "dishes/flatbread",
-    "path": "ingredients/dishes/flatbread",
-    "group": "ingredients",
-    "cell": [
-      24,
-      16
-    ],
-    "anchor": [
-      0,
-      0
-    ],
-    "sheet": [
-      24,
-      16
-    ],
-    "states": [
-      {
-        "name": "default",
-        "row": 0,
-        "frames": 1,
-        "fps": null,
-        "loop": null,
-        "also": [],
-        "note": null
-      }
-    ],
-    "shared": {},
-    "order": [
-      "default"
-    ],
-    "notes": "Pan Flatbread, finished: its ticket on the level select board.",
+    "notes": "French Onion Soup, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },
@@ -2525,8 +3498,8 @@
     "animated": false
   },
   {
-    "name": "dishes/minestrone",
-    "path": "ingredients/dishes/minestrone",
+    "name": "dishes/creamy-corn",
+    "path": "ingredients/dishes/creamy-corn",
     "group": "ingredients",
     "cell": [
       24,
@@ -2555,42 +3528,7 @@
     "order": [
       "default"
     ],
-    "notes": "Minestrone, finished: its ticket on the level select board.",
-    "guides": [],
-    "animated": false
-  },
-  {
-    "name": "dishes/french-onion",
-    "path": "ingredients/dishes/french-onion",
-    "group": "ingredients",
-    "cell": [
-      24,
-      16
-    ],
-    "anchor": [
-      0,
-      0
-    ],
-    "sheet": [
-      24,
-      16
-    ],
-    "states": [
-      {
-        "name": "default",
-        "row": 0,
-        "frames": 1,
-        "fps": null,
-        "loop": null,
-        "also": [],
-        "note": null
-      }
-    ],
-    "shared": {},
-    "order": [
-      "default"
-    ],
-    "notes": "French Onion Soup, finished: its ticket on the level select board.",
+    "notes": "Creamy Corn Soup, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },
@@ -2665,8 +3603,8 @@
     "animated": false
   },
   {
-    "name": "dishes/sponge-cake",
-    "path": "ingredients/dishes/sponge-cake",
+    "name": "dishes/chicken-noodle",
+    "path": "ingredients/dishes/chicken-noodle",
     "group": "ingredients",
     "cell": [
       24,
@@ -2695,7 +3633,7 @@
     "order": [
       "default"
     ],
-    "notes": "Pot-Oven Sponge Cake, finished: its ticket on the level select board.",
+    "notes": "Chicken Noodle Soup, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },
@@ -2731,6 +3669,251 @@
       "default"
     ],
     "notes": "Chili con Carne, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/minestrone",
+    "path": "ingredients/dishes/minestrone",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Minestrone, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/tonkotsu-ramen",
+    "path": "ingredients/dishes/tonkotsu-ramen",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Tonkotsu Ramen, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/marinara-meatballs",
+    "path": "ingredients/dishes/marinara-meatballs",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Marinara Pasta & Meatballs, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/hot-sour",
+    "path": "ingredients/dishes/hot-sour",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Hot & Sour Soup, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/flatbread",
+    "path": "ingredients/dishes/flatbread",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Pan Flatbread, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/sponge-cake",
+    "path": "ingredients/dishes/sponge-cake",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Pot-Oven Sponge Cake, finished: its ticket on the level select board.",
+    "guides": [],
+    "animated": false
+  },
+  {
+    "name": "dishes/primordial-soup",
+    "path": "ingredients/dishes/primordial-soup",
+    "group": "ingredients",
+    "cell": [
+      24,
+      16
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      24,
+      16
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Primordial Soup, finished: its ticket on the level select board.",
     "guides": [],
     "animated": false
   },
@@ -2810,6 +3993,50 @@
       "default"
     ],
     "notes": "Souped Up's studio kitchen (First Michelin Star levels), also used for the sandbox and behind the title screen. It should have a window, a hanging set of tools and pans, and a sign that says EVERY SECOND COUNTS. The pot, flames and everything in it are drawn on top, centered at the bottom.",
+    "guides": [
+      {
+        "y": 106,
+        "label": "pot rim"
+      },
+      {
+        "y": 206,
+        "label": "pot bottom"
+      }
+    ],
+    "animated": false
+  },
+  {
+    "name": "backgrounds/hell-kitchen",
+    "path": "backgrounds/hell-kitchen",
+    "group": "backgrounds",
+    "cell": [
+      320,
+      240
+    ],
+    "anchor": [
+      0,
+      0
+    ],
+    "sheet": [
+      320,
+      240
+    ],
+    "states": [
+      {
+        "name": "default",
+        "row": 0,
+        "frames": 1,
+        "fps": null,
+        "loop": null,
+        "also": [],
+        "note": null
+      }
+    ],
+    "shared": {},
+    "order": [
+      "default"
+    ],
+    "notes": "Hell's kitchen, for the finale (Primordial Soup): rock, fire and lava, with the same stovetop. The Ram paces and rampages behind you while you cook.",
     "guides": [
       {
         "y": 106,
