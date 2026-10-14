@@ -3,28 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Soup Pot Tier Planner</title>
+<title>Soup Pot Menu Planner</title>
 <style>
-  :root { --bg: #f6f1e7; --fg: #2a1d24; --muted: #7a6c70; --card: #fffaf0; --line: #e3d8c6; --accent: #c4242a; --new: #2f8f4e; --have: #c8bfb0; --missing: #d9822b; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #1d1b24; --fg: #f2e8d8; --muted: #a59bb0; --card: #26232f; --line: #3a3644; --accent: #ff6b6b; --new: #5fd08a; --have: #5a5466; --missing: #f0a050; } }
+  :root { --bg: #f6f1e7; --fg: #2a1d24; --muted: #7a6c70; --card: #fffaf0; --line: #e3d8c6; --accent: #c4242a; --new: #2f8f4e; --have: #c8bfb0; --missing: #d9822b; --edit: #6a4fc0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1d1b24; --fg: #f2e8d8; --muted: #a59bb0; --card: #26232f; --line: #3a3644; --accent: #ff6b6b; --new: #5fd08a; --have: #5a5466; --missing: #f0a050; --edit: #a88cff; } }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
-  main { padding: 16px; max-width: 1400px; margin: 0 auto; }
-  h1 { margin: 0 0 4px; font-size: 22px; } .sub { color: var(--muted); margin: 0 0 14px; }
-  .bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  main { padding: 16px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 22px; } .sub { color: var(--muted); margin: 0 0 12px; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; align-items: start; }
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; align-items: start; }
   .tier { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-height: 120px; }
   .tier.over { outline: 2px dashed var(--accent); }
   .tier h2 { margin: 0; font-size: 15px; } .tier .judges { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
-  .count { font-size: 12px; } .count.bad { color: var(--accent); font-weight: 600; }
+  .count { font-size: 12px; font-weight: 400; color: var(--muted); }
   .dish { border: 1px solid var(--line); border-radius: 8px; padding: 7px 8px; margin: 6px 0; background: var(--bg); cursor: grab; }
-  .dish b { font-size: 13px; } .dish .tag { font-size: 10px; color: var(--muted); margin-left: 4px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
-  .chip { font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--have); color: var(--fg); }
+  .dish.edited { border-color: var(--edit); }
+  .dish .head { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+  .dish b { font-size: 13px; } .tag { font-size: 10px; color: var(--muted); } .tag.ed { color: var(--edit); font-weight: 600; }
+  .note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .reset { font-size: 10px; color: var(--edit); cursor: pointer; text-decoration: underline; margin-left: auto; }
+  .chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; align-items: center; }
+  .chip { font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--have); color: var(--fg); cursor: pointer; user-select: none; }
+  .chip:hover { text-decoration: line-through; }
   .chip.new { background: var(--new); color: #fff; } .chip.missing { background: var(--missing); color: #fff; }
+  .unlock .chip, .legend .chip, .never .chip { cursor: default; } .unlock .chip:hover, .legend .chip:hover, .never .chip:hover { text-decoration: none; }
+  .add { font-size: 11px; padding: 0 6px; border-radius: 999px; border: 1px dashed var(--muted); background: none; color: var(--muted); cursor: pointer; }
+  select.adder { font-size: 11px; max-width: 150px; }
   .unlock { margin-top: 8px; font-size: 12px; border-top: 1px solid var(--line); padding-top: 6px; }
-  .unlock .chips { margin-top: 3px; }
   .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
   .legend .chip { margin-right: 4px; }
   h3 { margin: 22px 0 8px; }
@@ -32,131 +39,186 @@
   table { border-collapse: collapse; font-size: 12px; }
   th, td { padding: 3px 6px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
   th.ing, td.ing { text-align: left; position: sticky; left: 0; background: var(--card); }
-  th.d { writing-mode: vertical-rl; transform: rotate(180deg); height: 120px; font-weight: 500; }
-  th.tierhead { font-weight: 700; }
-  td.dot { color: var(--muted); } td.first { color: var(--new); font-weight: 700; } td.tsep, th.tsep { border-left: 2px solid var(--line); }
-  textarea { width: 100%; height: 110px; font: 12px ui-monospace, monospace; background: var(--card); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; }
+  th.d { writing-mode: vertical-rl; transform: rotate(180deg); height: 130px; font-weight: 500; }
+  td.first { color: var(--new); font-weight: 700; } td.dot { color: var(--muted); } td.tsep, th.tsep { border-left: 2px solid var(--line); }
+  td.one { color: var(--accent); font-weight: 600; }
+  textarea { width: 100%; height: 160px; font: 12px ui-monospace, monospace; background: var(--card); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Soup Pot tier planner</h1>
-  <p class="sub">Drag dishes between tiers. Each tier's shelf is everything unlocked so far; the planner shows what each tier adds and where recipes overlap. Your arrangement is saved in this browser.</p>
+  <h1>Soup Pot menu planner</h1>
+  <p class="sub">Drag soups between tiers. <b>Click an ingredient to remove it</b>; <b>+</b> adds one (or type a new one). Each tier's shelf is everything unlocked so far. Everything is saved in this browser.</p>
   <div class="bar">
-    <button class="primary" id="copy">Copy arrangement (to send to Claude)</button>
-    <button id="reset">Reset to the proposal</button>
+    <button class="primary" id="copy">Copy menu (to send to Claude)</button>
+    <button id="reset">Reset everything</button>
   </div>
   <div class="legend">
     <span><span class="chip">grey</span>already on the shelf from an earlier tier</span>
     <span><span class="chip new">green</span>unlocked by this tier</span>
-    <span><span class="chip missing">orange</span>not in the game yet (new ingredient)</span>
+    <span><span class="chip missing">orange</span>not in the game yet</span>
+    <span style="color:var(--edit)">purple border: you edited the ingredients</span>
   </div>
   <div class="tiers" id="tiers"></div>
   <h3>Ingredient overlap</h3>
-  <p class="sub">Rows are ingredients, columns are dishes in tier order. <b style="color:var(--new)">●</b> marks the first dish that needs an ingredient (where it unlocks); · marks later dishes that reuse it.</p>
+  <p class="sub">Every ingredient against every placed soup, in tier order. <b style="color:var(--new)">●</b> first needed (unlocks here) · later reuse. <span style="color:var(--accent)">Red counts</span> are ingredients only one soup uses: candidates to simplify away.</p>
   <div class="grid-wrap"><table id="grid"></table></div>
-  <h3>Arrangement</h3>
+  <h3>Menu</h3>
   <textarea id="out" readonly></textarea>
 </main>
-<!-- The game's real data: the shelf and the current recipes. -->
 <script src="../js/materials.js"></script>
 <script src="../js/levels.js"></script>
 <script>
-// Draft dishes not in the game yet (ingredient lists only, to plan with).
-const DRAFTS = [
-  { id: 'chicken-noodle', title: 'Chicken Noodle Soup', ingredients: ['oil', 'onion', 'carrot', 'celery', 'chicken', 'water', 'salt', 'noodles', 'herbs'] },
-  { id: 'tonkotsu-ramen', title: 'Tonkotsu Ramen', ingredients: ['pork', 'water', 'garlic', 'soy', 'salt', 'noodles', 'egg', 'herbs'] },
-  { id: 'marinara-meatballs', title: 'Marinara Pasta & Meatballs', ingredients: ['oil', 'garlic', 'onion', 'tomato', 'meatballs', 'pasta', 'water', 'salt', 'herbs'] },
-  { id: 'hot-sour', title: 'Hot & Sour Soup', ingredients: ['pork', 'water', 'soy', 'vinegar', 'pepper', 'egg', 'flour', 'chili', 'garlic'] },
-  { id: 'focaccia', title: 'Focaccia', ingredients: ['flour', 'yeast', 'water', 'oil', 'salt', 'herbs'] },
-];
-const NEW_INGREDIENTS = { pork: 'Pork', noodles: 'Noodles', meatballs: 'Meatballs' };
-const TIERS = [
-  { id: 'pizza', title: 'Pizza Shop', judges: 'Biscuit, Sir Pounce, Joe', size: 3 },
-  { id: 'star1', title: 'Michelin ★1', judges: 'Gordo Hamsie, Paul Bollywood, Sir Pounce', size: 4 },
-  { id: 'star2', title: 'Michelin ★2', judges: 'Mister Dude-Guy, Chef Signore, Chef Seonbae', size: 4 },
-  { id: 'star3', title: 'Michelin ★3', judges: 'Chef Monsieur, Marty Stew, President Obama', size: 4 },
-  { id: 'pool', title: 'Not placed', judges: 'Drag dishes here to take them out', size: 0 },
-];
-const PROPOSAL = {
-  pizza: ['tomato-soup', 'flatbread', 'fish-stew'],
-  star1: ['creamy-corn', 'french-onion', 'beef-chowder', 'sponge-cake'],
-  star2: ['minestrone', 'chicken-noodle', 'goulash', 'chili'],
-  star3: ['tonkotsu-ramen', 'marinara-meatballs', 'hot-sour', 'focaccia'],
-  pool: [],
+// Soups beyond the game's current levels, and agreed changes to the current ones (drafts: ingredient lists only).
+const CHANGES = {
+  'french-onion': { add: ['cheese'], note: 'cheese added' },
+  'marinara-meatballs': { add: ['cheese'], note: 'cheese added (parmesan)' },
+  goulash: { add: ['paprika'], remove: ['chili', 'cumin'], note: 'paprika replaces chili and cumin' },
+  'hot-sour': { add: ['oil', 'flour', 'ginger'], note: 'thickened with a roux (oil + flour first); ginger added' },
+  'tonkotsu-ramen': { add: ['ginger'], note: 'ginger added' },
 };
-const DISHES = {};
-for (const l of LEVELS) DISHES[l.id] = { id: l.id, title: l.title, ingredients: l.ingredients };
-for (const d of DRAFTS) DISHES[d.id] = { ...d, draft: true };
-const NAME = (i) => (SHELF.find((s) => s.id === i) || { name: NEW_INGREDIENTS[i] || i }).name;
-const SHELF_ORDER = [...SHELF.map((s) => s.id), ...Object.keys(NEW_INGREDIENTS)];
+const NEW_SOUPS = [
+  { id: 'bouillabaisse', title: 'Bouillabaisse', ingredients: ['oil', 'onion', 'garlic', 'tomato', 'fish', 'wine', 'water', 'salt', 'herbs', 'saffron'], note: 'Provençal fish stew; close cousin of Fish Stew' },
+  { id: 'gumbo', title: 'Gumbo', ingredients: ['oil', 'flour', 'onion', 'celery', 'bellpepper', 'garlic', 'chicken', 'sausage', 'okra', 'chili', 'water', 'salt'], note: 'dark roux, the "holy trinity"' },
+  { id: 'avgolemono', title: 'Avgolemono', ingredients: ['chicken', 'water', 'salt', 'pasta', 'egg', 'lemon', 'herbs'], note: 'Greek egg-lemon chicken soup (orzo = small pasta)' },
+  { id: 'kimchi-jjigae', title: 'Kimchi Jjigae', ingredients: ['oil', 'pork', 'kimchi', 'tofu', 'onion', 'garlic', 'chili', 'soy', 'water', 'herbs'], note: 'Korean kimchi stew' },
+  { id: 'pozole', title: 'Pozole', ingredients: ['pork', 'hominy', 'onion', 'garlic', 'chili', 'herbs', 'water', 'salt', 'lime'], note: 'Mexican pork and hominy (red)' },
+  { id: 'tom-yum', title: 'Tom Yum', ingredients: ['shrimp', 'lemongrass', 'ginger', 'lime', 'chili', 'fishsauce', 'mushrooms', 'water', 'herbs'], note: 'Thai hot and sour (galangal = ginger)' },
+  { id: 'pho', title: 'Pho', ingredients: ['meat', 'noodles', 'onion', 'ginger', 'staranise', 'fishsauce', 'sugar', 'water', 'salt', 'herbs', 'lime'], note: 'Vietnamese beef noodle soup' },
+  { id: 'clam-chowder', title: 'New England Clam Chowder', ingredients: ['clams', 'pork', 'onion', 'celery', 'potato', 'flour', 'cream', 'water', 'salt', 'pepper'], note: 'pork = salt pork' },
+];
+const NEW_NAMES = { cheese: 'Cheese', paprika: 'Paprika', ginger: 'Ginger', saffron: 'Saffron', bellpepper: 'Bell Pepper', sausage: 'Sausage', okra: 'Okra',
+  lemon: 'Lemon', lime: 'Lime', kimchi: 'Kimchi', tofu: 'Tofu', hominy: 'Hominy', shrimp: 'Shrimp', lemongrass: 'Lemongrass', fishsauce: 'Fish Sauce',
+  mushrooms: 'Mushrooms', staranise: 'Star Anise', clams: 'Clams' };
+const TIERS = [
+  { id: 'pizza', title: 'Pizza Shop', judges: 'Biscuit, Sir Pounce, Joe' },
+  { id: 'star1', title: 'First Michelin Star', judges: 'Gordo Hamsie, Paul Bollywood, Sir Pounce' },
+  { id: 'star2', title: 'Second Michelin Star', judges: 'Mister Dude-Guy, Chef Signore, Chef Seonbae' },
+  { id: 'star3', title: 'Third Michelin Star', judges: 'Chef Monsieur, Marty Stew, President Obama' },
+  { id: 'pool', title: 'Not placed', judges: 'Drag soups here to set them aside' },
+];
 
-const KEY = 'soupgame.planner.v1';
+// Base recipes: the game's soups (with the agreed changes) plus the new drafts. Bakes and the finale aren't planned here.
+const BASE = {};
+for (const l of LEVELS) {
+  if (l.bonus || l.primordial) continue;
+  const c = CHANGES[l.id] || {};
+  const ing = l.ingredients.filter((i) => !(c.remove || []).includes(i));
+  for (const i of c.add || []) if (!ing.includes(i)) ing.push(i);
+  BASE[l.id] = { id: l.id, title: l.title, ingredients: ing, note: c.note || '', tier: ['pizza', 'star1', 'star2', 'star3'][l.tier] };
+}
+for (const d of NEW_SOUPS) BASE[d.id] = { ...d, draft: true, tier: 'pool' };
+
+const KEY = 'soupgame.planner.v2';
+const fresh = () => {
+  const p = { edits: {}, custom: {} };
+  for (const t of TIERS) p[t.id] = Object.values(BASE).filter((d) => d.tier === t.id).map((d) => d.id);
+  return p;
+};
 let plan;
 try { plan = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-if (!plan || !TIERS.every((t) => Array.isArray(plan[t.id]))) plan = JSON.parse(JSON.stringify(PROPOSAL));
-// Any dish missing from the saved plan (added since) goes to the pool.
-for (const id of Object.keys(DISHES)) if (!TIERS.some((t) => plan[t.id].includes(id))) plan.pool.push(id);
+if (!plan || !TIERS.every((t) => Array.isArray(plan[t.id]))) plan = fresh();
+plan.edits = plan.edits || {}; plan.custom = plan.custom || {};
+for (const id of Object.keys(BASE)) if (!TIERS.some((t) => plan[t.id].includes(id))) plan.pool.push(id);
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(plan)); } catch (e) {} };
+
+const ingOf = (id) => plan.edits[id] || BASE[id].ingredients;
+const isNew = (i) => !SHELF.some((s) => s.id === i);
+const NAME = (i) => (SHELF.find((s) => s.id === i) || { name: NEW_NAMES[i] || plan.custom[i] || i }).name;
+const ALL_INGS = () => {
+  const ids = [...SHELF.map((s) => s.id).filter((i) => i !== 'extinguisher'), ...Object.keys(NEW_NAMES), ...Object.keys(plan.custom)];
+  for (const id of Object.keys(BASE)) for (const i of ingOf(id)) if (!ids.includes(i)) ids.push(i);
+  return ids;
+};
+const ORDER = () => ALL_INGS();
+function edit(id, list) {
+  const same = list.length === BASE[id].ingredients.length && list.every((i) => BASE[id].ingredients.includes(i));
+  if (same) delete plan.edits[id]; else plan.edits[id] = list;
+  save(); render();
+}
 
 function render() {
   const el = document.getElementById('tiers'); el.innerHTML = '';
-  const have = new Set();   // unlocked by earlier tiers
+  const have = new Set(['water']);
   for (const t of TIERS) {
     const box = document.createElement('section'); box.className = 'tier'; box.dataset.tier = t.id;
-    const ids = plan[t.id], need = new Set(ids.flatMap((id) => DISHES[id].ingredients));
-    const fresh = t.id === 'pool' ? [] : SHELF_ORDER.filter((i) => need.has(i) && !have.has(i));
-    const count = t.size ? `<span class="count ${ids.length !== t.size ? 'bad' : ''}">${ids.length} / ${t.size} dishes</span>` : '';
-    box.innerHTML = `<h2>${t.title} ${count}</h2><div class="judges">${t.judges}</div>`;
+    const ids = plan[t.id], need = new Set(ids.flatMap(ingOf));
+    const fresh = t.id === 'pool' ? [] : ORDER().filter((i) => need.has(i) && !have.has(i));
+    box.innerHTML = `<h2>${t.title} <span class="count">${ids.length} soup${ids.length === 1 ? '' : 's'}</span></h2><div class="judges">${t.judges}</div>`;
     for (const id of ids) {
-      const d = DISHES[id], card = document.createElement('div'); card.className = 'dish'; card.draggable = true; card.dataset.id = id;
-      card.innerHTML = `<b>${d.title}</b>${d.draft ? '<span class="tag">draft</span>' : ''}<div class="chips">${d.ingredients.map((i) =>
-        `<span class="chip ${NEW_INGREDIENTS[i] ? 'missing' : t.id !== 'pool' && !have.has(i) ? 'new' : ''}">${NAME(i)}</span>`).join('')}</div>`;
+      const d = BASE[id], ings = ingOf(id), edited = !!plan.edits[id];
+      const card = document.createElement('div'); card.className = 'dish' + (edited ? ' edited' : ''); card.draggable = true; card.dataset.id = id;
+      card.innerHTML = `<div class="head"><b>${d.title}</b>${d.draft ? '<span class="tag">new</span>' : ''}${edited ? '<span class="tag ed">edited</span><span class="reset">reset</span>' : ''}</div>` +
+        (d.note ? `<div class="note">${d.note}</div>` : '') +
+        `<div class="chips">${ings.map((i) => `<span class="chip ${isNew(i) ? 'missing' : t.id !== 'pool' && !have.has(i) ? 'new' : ''}" data-i="${i}" title="Click to remove">${NAME(i)}</span>`).join('')}<button class="add" title="Add an ingredient">+</button></div>`;
       card.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', id));
+      card.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => edit(id, ings.filter((x) => x !== c.dataset.i))));
+      const r = card.querySelector('.reset'); if (r) r.addEventListener('click', () => { delete plan.edits[id]; save(); render(); });
+      card.querySelector('.add').addEventListener('click', (e) => {
+        const sel = document.createElement('select'); sel.className = 'adder';
+        sel.innerHTML = '<option value="">add…</option>' + ALL_INGS().filter((i) => !ings.includes(i)).map((i) => `<option value="${i}">${NAME(i)}${isNew(i) ? ' (new)' : ''}</option>`).join('') + '<option value="__new">a new ingredient…</option>';
+        sel.addEventListener('change', () => {
+          let v = sel.value;
+          if (v === '__new') { const name = (prompt('New ingredient name:') || '').trim(); if (!name) return render(); v = name.toLowerCase().replace(/[^a-z0-9]+/g, ''); plan.custom[v] = name; }
+          if (v) edit(id, [...ings, v]); else render();
+        });
+        sel.addEventListener('blur', () => setTimeout(render, 150));
+        e.target.replaceWith(sel); sel.focus();
+      });
       box.appendChild(card);
     }
     if (t.id !== 'pool') {
-      const shelf = have.size + fresh.length;
-      box.insertAdjacentHTML('beforeend', `<div class="unlock"><b>Unlocks ${fresh.length}</b> (shelf: ${shelf} of ${SHELF_ORDER.length - 1})<div class="chips">${fresh.map((i) => `<span class="chip ${NEW_INGREDIENTS[i] ? 'missing' : 'new'}">${NAME(i)}</span>`).join('') || '<span class="sub">nothing new</span>'}</div></div>`);
+      box.insertAdjacentHTML('beforeend', `<div class="unlock"><b>Unlocks ${fresh.length}</b> (shelf: ${have.size + fresh.length})<div class="chips">${fresh.map((i) => `<span class="chip ${isNew(i) ? 'missing' : 'new'}">${NAME(i)}</span>`).join('') || '<span class="sub">nothing new</span>'}</div></div>`);
       fresh.forEach((i) => have.add(i));
     }
     box.addEventListener('dragover', (e) => { e.preventDefault(); box.classList.add('over'); });
     box.addEventListener('dragleave', () => box.classList.remove('over'));
     box.addEventListener('drop', (e) => {
       e.preventDefault(); box.classList.remove('over');
-      const id = e.dataTransfer.getData('text/plain');
-      for (const k of Object.keys(plan)) plan[k] = plan[k].filter((x) => x !== id);
-      // Drop before the card under the cursor, or at the end.
+      const id = e.dataTransfer.getData('text/plain'); if (!BASE[id]) return;
+      for (const t2 of TIERS) plan[t2.id] = plan[t2.id].filter((x) => x !== id);
       const target = e.target.closest('.dish'), list = plan[t.id];
       if (target && target.dataset.id !== id) list.splice(list.indexOf(target.dataset.id), 0, id); else list.push(id);
       save(); render();
     });
     el.appendChild(box);
   }
-  const unused = SHELF_ORDER.filter((i) => !have.has(i) && i !== 'extinguisher');
-  if (unused.length) el.insertAdjacentHTML('beforeend', `<section class="tier"><h2>Never needed</h2><div class="judges">Ingredients no placed dish uses (still in the sandbox and Primordial Soup)</div><div class="chips">${unused.map((i) => `<span class="chip">${NAME(i)}</span>`).join('')}</div></section>`);
-  renderGrid();
-  document.getElementById('out').value = TIERS.filter((t) => t.id !== 'pool').map((t) => `${t.title}: ${plan[t.id].map((id) => DISHES[id].title).join(', ') || '(empty)'}`).join('\n') + (plan.pool.length ? `\nNot placed: ${plan.pool.map((id) => DISHES[id].title).join(', ')}` : '');
+  const unused = SHELF.map((s) => s.id).filter((i) => !have.has(i) && i !== 'extinguisher');
+  el.insertAdjacentHTML('beforeend', `<section class="tier never"><h2>Shelf total: ${have.size}</h2><div class="judges">Ingredients placed soups need (plus water). ${ORDER().filter((i) => have.has(i) && isNew(i)).length} of them aren't in the game yet.</div>` +
+    (unused.length ? `<div class="judges" style="margin-top:6px">In the game but no placed soup uses them (sandbox and Primordial Soup only):</div><div class="chips">${unused.map((i) => `<span class="chip">${NAME(i)}</span>`).join('')}</div>` : '') + '</section>');
+  renderGrid(); renderOut();
 }
 
 function renderGrid() {
-  const cols = TIERS.filter((t) => t.id !== 'pool').flatMap((t, k) => plan[t.id].map((id, n) => ({ id, tier: t, sep: n === 0 && k > 0 })));
-  const used = SHELF_ORDER.filter((i) => cols.some((c) => DISHES[c.id].ingredients.includes(i)));
-  let html = '<tr><th class="ing"></th>' + TIERS.filter((t) => t.id !== 'pool' && plan[t.id].length).map((t, k) => `<th class="tierhead ${k ? 'tsep' : ''}" colspan="${plan[t.id].length}">${t.title}</th>`).join('') + '<th class="tsep">uses</th></tr>';
-  html += '<tr><th class="ing">ingredient</th>' + cols.map((c) => `<th class="d ${c.sep ? 'tsep' : ''}">${DISHES[c.id].title}</th>`).join('') + '<th class="tsep"></th></tr>';
+  const tiers = TIERS.filter((t) => t.id !== 'pool' && plan[t.id].length);
+  const cols = tiers.flatMap((t, k) => plan[t.id].map((id, n) => ({ id, sep: n === 0 && k > 0 })));
+  const used = ORDER().filter((i) => cols.some((c) => ingOf(c.id).includes(i)));
+  let html = '<tr><th class="ing"></th>' + tiers.map((t, k) => `<th class="${k ? 'tsep' : ''}" colspan="${plan[t.id].length}">${t.title}</th>`).join('') + '<th class="tsep">soups</th></tr>';
+  html += '<tr><th class="ing">ingredient</th>' + cols.map((c) => `<th class="d ${c.sep ? 'tsep' : ''}">${BASE[c.id].title}</th>`).join('') + '<th class="tsep"></th></tr>';
   for (const i of used) {
     let seen = false, n = 0;
-    html += `<tr><td class="ing">${NAME(i)}${NEW_INGREDIENTS[i] ? ' <span style="color:var(--missing)">(new)</span>' : ''}</td>` + cols.map((c) => {
-      const has = DISHES[c.id].ingredients.includes(i); if (has) n++;
+    const cells = cols.map((c) => {
+      const has = ingOf(c.id).includes(i); if (has) n++;
       const cls = has ? (seen ? 'dot' : 'first') : ''; if (has) seen = true;
       return `<td class="${cls} ${c.sep ? 'tsep' : ''}">${has ? (cls === 'first' ? '●' : '·') : ''}</td>`;
-    }).join('') + `<td class="tsep">${n}</td></tr>`;
+    }).join('');
+    html += `<tr><td class="ing">${NAME(i)}${isNew(i) ? ' <span style="color:var(--missing)">(new)</span>' : ''}</td>${cells}<td class="tsep ${n === 1 ? 'one' : ''}">${n}</td></tr>`;
   }
   document.getElementById('grid').innerHTML = html;
 }
 
+function renderOut() {
+  const lines = [];
+  for (const t of TIERS) {
+    if (!plan[t.id].length) continue;
+    lines.push(`${t.title}:`);
+    for (const id of plan[t.id]) lines.push(`  ${BASE[id].title}${plan.edits[id] ? ' (edited)' : ''}: ${ingOf(id).map(NAME).join(', ')}`);
+  }
+  document.getElementById('out').value = lines.join('\n');
+}
+
 document.getElementById('copy').onclick = () => { const t = document.getElementById('out'); t.select(); navigator.clipboard && navigator.clipboard.writeText(t.value); };
-document.getElementById('reset').onclick = () => { plan = JSON.parse(JSON.stringify(PROPOSAL)); for (const id of Object.keys(DISHES)) if (!TIERS.some((t) => plan[t.id].includes(id))) plan.pool.push(id); save(); render(); };
+document.getElementById('reset').onclick = () => { if (confirm('Reset all tiers and ingredient edits?')) { plan = fresh(); save(); render(); } };
 render();
 </script>
 </body>
