@@ -1,0 +1,35 @@
+{
+  "name": "dishes/tonkotsu-ramen",
+  "path": "ingredients/dishes/tonkotsu-ramen",
+  "group": "ingredients",
+  "cell": [
+    24,
+    16
+  ],
+  "anchor": [
+    0,
+    0
+  ],
+  "sheet": [
+    24,
+    16
+  ],
+  "states": [
+    {
+      "name": "default",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [],
+      "note": null
+    }
+  ],
+  "shared": {},
+  "order": [
+    "default"
+  ],
+  "notes": "Tonkotsu Ramen, finished: its ticket on the level select board.",
+  "guides": [],
+  "animated": false
+}
