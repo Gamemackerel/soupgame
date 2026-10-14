@@ -1,9 +1,9 @@
 {
-  "name": "dishes/hot-sour",
-  "path": "ingredients/dishes/hot-sour",
+  "name": "ingredients/ginger",
+  "path": "ingredients/ginger",
   "group": "ingredients",
   "cell": [
-    24,
+    16,
     16
   ],
   "anchor": [
@@ -11,7 +11,7 @@
     0
   ],
   "sheet": [
-    24,
+    16,
     16
   ],
   "states": [
@@ -29,7 +29,7 @@
   "order": [
     "default"
   ],
-  "notes": "Hot & Sour Soup, finished: its ticket on the level select board.",
+  "notes": "Ginger: on the shelf, and in the chef's hand.",
   "guides": [],
   "animated": false
 }
