@@ -51,6 +51,7 @@
   <p class="sub">Drag soups between tiers. <b>Click an ingredient to remove it</b>; <b>+</b> adds one (or type a new one). Each tier's shelf is everything unlocked so far. Everything is saved in this browser.</p>
   <div class="bar">
     <button class="primary" id="copy">Copy menu (to send to Claude)</button>
+    <button id="placement">Put the game's soups back in their tiers</button>
     <button id="reset">Reset everything</button>
   </div>
   <div class="legend">
@@ -66,8 +67,11 @@
   <h3>Menu</h3>
   <textarea id="out" readonly></textarea>
 </main>
-<script src="../js/materials.js"></script>
-<script src="../js/levels.js"></script>
+<script>
+  // Load the game's current data fresh every time (never a cached copy), then start the planner.
+  const v = Date.now();
+  document.write(`<script src="../js/materials.js?v=${v}"><\/script><script src="../js/levels.js?v=${v}"><\/script>`);
+</script>
 <script>
 // Soups beyond the game's current levels, and agreed changes to the current ones (drafts: ingredient lists only).
 const CHANGES = {
@@ -109,7 +113,7 @@ for (const l of LEVELS) {
 }
 for (const d of NEW_SOUPS) BASE[d.id] = { ...d, draft: true, tier: 'pool' };
 
-const KEY = 'soupgame.planner.v2';
+const KEY = 'soupgame.planner.v3';
 const fresh = () => {
   const p = { edits: {}, custom: {} };
   for (const t of TIERS) p[t.id] = Object.values(BASE).filter((d) => d.tier === t.id).map((d) => d.id);
@@ -218,6 +222,13 @@ function renderOut() {
 }
 
 document.getElementById('copy').onclick = () => { const t = document.getElementById('out'); t.select(); navigator.clipboard && navigator.clipboard.writeText(t.value); };
+// The game's own placement, keeping any ingredient edits and anything you've placed that isn't in the game yet.
+document.getElementById('placement').onclick = () => {
+  const game = fresh(), isGame = (id) => BASE[id].tier !== 'pool';
+  for (const t of TIERS) plan[t.id] = plan[t.id].filter((id) => !isGame(id));   // new soups stay where you put them
+  for (const t of TIERS) if (t.id !== 'pool') plan[t.id] = [...game[t.id], ...plan[t.id]];
+  save(); render();
+};
 document.getElementById('reset').onclick = () => { if (confirm('Reset all tiers and ingredient edits?')) { plan = fresh(); save(); render(); } };
 render();
 </script>
