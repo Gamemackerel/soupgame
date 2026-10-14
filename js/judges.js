@@ -262,6 +262,160 @@ Object.assign(JUDGE_ROSTER, {
   },
 });
 
+// ---- The Second and Third Michelin Star panels, and The Ram. (Placeholder voices; to be rewritten.)
+// Every palate here leans on the same building blocks: Taste.score's overall balance, plus what each one cares about.
+const balanceOf = (a) => Taste.score(a.p, { plate: a.type === 'plate' });
+const flawLines = (a, voice) => {
+  const out = [];
+  if (a.flaws.burnt > 0.2) out.push(voice.burnt);
+  if (a.flaws.raw > 0.4) out.push(voice.raw);
+  if (a.flaws.mushy > 0.3) out.push(voice.mushy);
+  if (a.flaws.curdled > 0.2) out.push(voice.curdled);
+  if (a.flaws.lumps > 0.2) out.push(voice.lumps);
+  if (a.flaws.greasy > 0.3) out.push(voice.greasy);
+  if (a.flaws.chemical > 0.2) out.push(voice.chemical);
+  return out.filter(Boolean);
+};
+
+Object.assign(JUDGE_ROSTER, {
+  // Mister Dude-Guy (a Guy Fieri caricature): big, bold, loud flavor. Heat, salt, richness. Blandness offends him.
+  dudeguy: {
+    id: 'dudeguy', name: 'Mister Dude-Guy', title: 'The Mayor of Flavor',
+    blend: { match: 0.45, recipe: 0.25, taste: 0.3 }, theme: [230, 160, 30],
+    sounds: { good: ['OHHH YEAH!', '*fist pump*'], bad: ['Dude...', '*lowers sunglasses*'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [], bal = balanceOf(a);
+      const bold = Math.min(1, (p.heat * 0.8 + p.umami * 0.6 + p.rich * 0.5 + p.salty * 0.5));
+      if (bold > 0.75) good.push('Welcome to Flavor City, population: THIS BOWL!');
+      else if (bold > 0.5) good.push('Now that is some legit, righteous soup, dude.');
+      else bad.push("This is a one-way ticket to Bland-ville. Where's the KICK?");
+      if (p.heat > 0.3 && p.heat < 0.8) good.push('That heat? Totally rockin\'.');
+      if (p.salty < 0.25) bad.push('Season it up, bro! Salt is your friend!');
+      bad.push(...flawLines(a, { burnt: 'Burnt, dude. Not the good char.', raw: "That's still raw, man!", mushy: 'Mushy noodles? Not on my watch.', greasy: 'Even I think that\'s too greasy.', chemical: 'Is that EXTINGUISHER? Out of bounds!' }));
+      const s = 10 * (0.5 * bal + 0.35 * bold + 0.15) - a.flawSum * 8;
+      return { score: s, good, bad };
+    },
+  },
+
+  // Chef Signore: Italian. Simple, honest ingredients done right: sweet tomato, herbs, olive oil, pasta al dente.
+  signore: {
+    id: 'signore', name: 'Chef Signore', title: 'The Italian',
+    blend: { match: 0.4, recipe: 0.3, taste: 0.3 }, theme: [60, 150, 80],
+    sounds: { good: ['*kisses fingertips*', 'Bellissimo!'], bad: ['Mamma mia...', '*throws hands up*'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [], bal = balanceOf(a), U = Sim.used;
+      let soul = 0.5;
+      if (U.has('tomato') && Sim.happened.has('tomato')) { soul += 0.2; good.push('The tomatoes are sweet and melted. Like my nonna made.'); }
+      if (U.has('herbs')) { soul += 0.15; good.push('Fresh herbs! Now it smells like home.'); }
+      if ((U.has('pasta') || U.has('noodles')) && a.flaws.mushy < 0.2 && a.flaws.raw < 0.3) { soul += 0.2; good.push('The pasta is al dente. Perfetto.'); }
+      if (p.salty < 0.22) bad.push('No salt? Even the sea is saltier than this.');
+      bad.push(...flawLines(a, { burnt: 'Bruciato! Burnt!', raw: 'Is not cooked. Patience!', mushy: 'The pasta is MUSH. A crime in Italy.', curdled: 'The cream, she has split.', greasy: 'Too much oil, even for me.', chemical: 'What is this powder?! Basta!' }));
+      const s = 10 * (0.55 * bal + 0.3 * Math.min(1, soul) + 0.15) - a.flawSum * 9;
+      return { score: s, good, bad };
+    },
+  },
+
+  // Chef Seonbae: Korean. Deep, layered broth: savory depth, a little heat, a touch of sour, fermented richness (soy).
+  seonbae: {
+    id: 'seonbae', name: 'Chef Seonbae', title: 'The Senior Chef',
+    blend: { match: 0.4, recipe: 0.3, taste: 0.3 }, theme: [70, 110, 190],
+    sounds: { good: ['*slow nod*', 'Jinjja masisseoyo.'], bad: ['Aigoo...', '*sighs*'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [], bal = balanceOf(a);
+      const depth = Math.min(1, p.umami * 0.9 + (Sim.used.has('soy') ? 0.2 : 0) + Math.min(0.3, a.notes.length * 0.08));
+      if (depth > 0.7) good.push('Deep broth. You can taste the hours in it.');
+      else bad.push('The broth is shallow. It needs more depth.');
+      if (p.heat > 0.15 && p.heat < 0.7) good.push('A good warmth. It wakes you up.');
+      if (p.sour > 0.05 && p.sour < 0.5) good.push('A little brightness. Balanced.');
+      bad.push(...flawLines(a, { burnt: 'Burnt. Start over, junior.', raw: 'Undercooked. Respect the ingredients.', mushy: 'The noodles lost their bite.', greasy: 'Too oily. Skim it.', chemical: 'This is... not food.' }));
+      const s = 10 * (0.5 * bal + 0.35 * depth + 0.15) - a.flawSum * 9;
+      return { score: s, good, bad };
+    },
+  },
+
+  // Chef Monsieur: French. Technique above all: mirepoix, fond, deglazing, a roux, caramelized onions.
+  monsieur: {
+    id: 'monsieur', name: 'Chef Monsieur', title: 'The French Master',
+    blend: { match: 0.3, recipe: 0.4, taste: 0.3 }, theme: [60, 80, 170],
+    sounds: { good: ['*adjusts mustache*', 'Magnifique.'], bad: ['Sacrebleu!', '*scoffs*'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [], bal = balanceOf(a), H = Sim.happened;
+      let tech = 0;
+      if (a.mirepoix) { tech += 0.25; good.push('A proper mirepoix. Good foundations.'); }
+      if (H.has('fond')) { tech += 0.25; good.push('You built a fond. Bien.'); }
+      if (a.deglazed || H.has('deglaze')) { tech += 0.25; good.push('And you deglazed it. Exquisite.'); }
+      if (H.has('roux') && a.flaws.lumps < 0.2) { tech += 0.25; good.push('A silky roux. Très bien.'); }
+      if (a.caramelized) { tech += 0.25; good.push('Caramelized with patience. Bravo.'); }
+      if (tech === 0) bad.push('Where is the technique? This is merely... boiled.');
+      bad.push(...flawLines(a, { burnt: 'Burnt! An insult to the flame.', raw: 'Raw. Unacceptable.', mushy: 'Overcooked to mush. Non.', curdled: 'The cream has split. Amateur.', lumps: 'Lumps! Make a roux, as God intended.', greasy: 'Greasy. Pas du tout.', chemical: 'Extinguisher powder?! Mon dieu.' }));
+      const s = 10 * (0.5 * bal + 0.35 * Math.min(1, tech) + 0.15) - a.flawSum * 12;
+      return { score: s, good, bad };
+    },
+  },
+
+  // Marty Stew (a Martha Stewart caricature): homey perfection. Tidy, balanced, warm, garnished, no sloppiness.
+  marty: {
+    id: 'marty', name: 'Marty Stew', title: 'The Domestic Doyenne',
+    blend: { match: 0.45, recipe: 0.25, taste: 0.3 }, theme: [200, 120, 150],
+    sounds: { good: ['*dabs lips with a napkin*', 'Lovely.'], bad: ['*purses lips*', 'Oh, dear.'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [], bal = balanceOf(a);
+      const warm = a.temp > 55 ? 1 : 0.5, tidy = a.flawSum < 0.05 ? 1 : 0.4;
+      if (bal > 0.7 && tidy === 1) good.push("Beautifully balanced. It's a good thing.");
+      if (Sim.used.has('herbs')) good.push('A fresh herb garnish. Such a nice touch.');
+      if (warm < 1) bad.push('It should be served piping hot.');
+      if (p.salty > 0.8) bad.push('Rather heavy-handed with the salt.');
+      bad.push(...flawLines(a, { burnt: 'Scorched. I can taste the pan.', raw: 'This needed more time.', mushy: 'Mushy pasta. Timing is everything.', curdled: 'Split cream. Temper it next time.', lumps: 'Lumpy. Whisk, whisk, whisk.', greasy: 'A slick of grease on top. Skim it.', chemical: "That's... not a garnish." }));
+      const s = 10 * (0.55 * bal + 0.15 * warm + 0.15 * tidy + 0.15) - a.flawSum * 10;
+      return { score: s, good, bad };
+    },
+  },
+
+  // President Obama: measured, fair, a fan of a hearty, well-balanced bowl (he's known for his chili).
+  obama: {
+    id: 'obama', name: 'President Obama', title: 'The Commander in Chef',
+    blend: { match: 0.45, recipe: 0.25, taste: 0.3 }, theme: [60, 90, 150],
+    sounds: { good: ['*nods thoughtfully*', 'Now, look.'], bad: ['*long pause*', 'Let me be clear.'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [], bal = balanceOf(a);
+      const hearty = Math.min(1, a.chunkiness * 3 + p.body);
+      if (bal > 0.7) good.push('This is a soup the whole country can get behind.');
+      else if (bal > 0.5) good.push("It's a good start. There's work left to do, but it's a good start.");
+      if (hearty > 0.6) good.push('Hearty. That is a bowl that feeds a family.');
+      if (p.salty < 0.22) bad.push("Let me be clear: it needs salt.");
+      if (p.heat > 0.7) bad.push("That's a little more heat than I campaigned on.");
+      bad.push(...flawLines(a, { burnt: "It's burnt. We can do better than this.", raw: 'This needed more time. We can be patient.', mushy: 'The pasta went soft. That happens. Learn from it.', curdled: 'The cream split. We move forward.', lumps: 'Some lumps. Nobody is perfect.', greasy: 'A little greasy for my taste.', chemical: 'Is that a fire extinguisher? Somebody check on the chef.' }));
+      const s = 10 * (0.6 * bal + 0.25 * hearty + 0.15) - a.flawSum * 8;
+      return { score: s, good, bad };
+    },
+  },
+
+  // The Ram: Gordo, transformed. He judges Primordial Soup alone. Everything must be in it; what impresses him is
+  // depth (many layers), savoriness, richness, a little fire, and balance in the chaos. Burning it is unforgivable.
+  // The extinguisher, in here, is just one more ingredient.
+  ram: {
+    id: 'ram', name: 'THE RAM', title: 'The Devil of the Kitchen', storyOnly: true,
+    blend: { match: 0, recipe: 0, taste: 1 }, theme: [150, 20, 20],
+    sounds: { good: ['*the horns glow*', 'HMMMM.'], bad: ['*the floor cracks*', 'PATHETIC.'] },
+    evaluate(a) {
+      const p = a.p, good = [], bad = [];
+      const bal = Taste.score(p, { plate: false });
+      // Every flavor note in the pot, not just the strongest few: he wants all of creation in there.
+      const notes = Object.values(Sim.notes).filter((v) => v > 0.03).length;
+      const layers = Math.min(1, notes / 7), depth = Math.min(1, p.umami * 0.7 + p.rich * 0.5), fire = p.heat > 0.15 && p.heat < 0.75 ? 1 : 0.4;
+      if (layers > 0.8) good.push('Layer upon layer. Everything there is, in one bowl.');
+      if (depth > 0.7) good.push('Deep. Dark. Rich. Like the pit itself.');
+      if (fire === 1) good.push('Fire. GOOD.');
+      if (bal < 0.5) bad.push('CHAOS without balance is just a MESS.');
+      if (a.flaws.burnt > 0.2) bad.push('YOU BURNT IT. EVEN HELL HAS STANDARDS.');
+      if (a.flaws.raw > 0.4) bad.push('RAW. Did you think I would not notice?');
+      const flaws = a.flawSum - (a.flaws.chemical || 0) * 0.4;   // the extinguisher is an ingredient here, not a crime
+      const s = 10 * (0.4 * Math.min(1, bal) + 0.25 * layers + 0.2 * depth + 0.15 * fire) - Math.max(0, flaws) * 8;
+      return { score: s, good, bad };
+    },
+  },
+});
+
 // A judge who liked the dish (7+) still mentions what could be better, but gently.
 const SOFTER = {
   'Thin as dishwater. Reduce it, or thicken it.': 'Perhaps a touch thin. A little reduction would help.',
@@ -307,6 +461,13 @@ function wrongDishLine(j, level, wrong, r) {
     nanny: ing ? `Oh dear, there's no ${ing}. This isn't ${dish}, is it?` : `Oh dear, this isn't ${dish}, is it?`,
     gordo: ing ? `WHERE'S THE ${ing.toUpperCase()}?! This is NOT a ${dish.toUpperCase()}!` : `What IS this? It's NOT a ${dish.toUpperCase()}!`,
     paul: ing ? `No ${ing}. That isn't a ${dish}. Not even close.` : `That isn't a ${dish}. Not even close.`,
+    dudeguy: ing ? `Dude. A ${dish} with no ${ing}? That's not a thing!` : `Bro, this is NOT a ${dish}.`,
+    signore: ing ? `Where is the ${ing}? This is not ${dish}!` : `This? This is not ${dish}. Mamma mia.`,
+    seonbae: ing ? `No ${ing}? Then it is not ${dish}.` : `This is not ${dish}. Try again.`,
+    monsieur: ing ? `${dish[0].toUpperCase() + dish.slice(1)} without ${ing}? Non, non, non.` : `I ordered ${dish}. This is not ${dish}.`,
+    marty: ing ? `Oh, dear. A ${dish} needs ${ing}.` : `This isn't ${dish}, is it?`,
+    obama: ing ? `Let me be clear: a ${dish} has ${ing} in it.` : `I asked for ${dish}. This is something else entirely.`,
+    ram: `THAT IS NOT WHAT I ASKED FOR.`,
   };
   const tasty = r.score >= 7 ? ' Tastes good, mind you.' : r.score >= 5 ? ' It tastes all right, I suppose.' : '';
   return pick(j.sounds.bad) + ' ' + lines[j.id] + tasty;
@@ -323,10 +484,11 @@ const Judging = {
   // Seat three judges: the given ids, a level's tier panel, or (sandbox) three at random.
   setPanel(ids) {
     JUDGES.length = 0;
-    ids.forEach((id, n) => JUDGES.push(Object.assign(Object.create(JUDGE_ROSTER[id]), { x: JUDGE_SLOTS[n] })));
+    const slots = ids.length === 1 ? [160] : JUDGE_SLOTS;   // a lone judge (The Ram) takes the middle seat
+    ids.forEach((id, n) => JUDGES.push(Object.assign(Object.create(JUDGE_ROSTER[id]), { x: slots[n] })));
   },
   randomPanel() {
-    const pool = JUDGE_IDS.slice(), out = [];
+    const pool = JUDGE_IDS.filter((id) => !JUDGE_ROSTER[id].storyOnly), out = [];
     while (out.length < 3) out.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
     return out;
   },
@@ -372,7 +534,7 @@ const Judging = {
       this.avg = L.total;
       this.verdict = L.badge === 'perfect' ? 'PERFECT' : L.badge === 'good' ? 'GOOD SOUP' : L.passed ? 'PASSED' : 'CHOPPED';
     } else {
-      const avg = this.results.reduce((s, r) => s + r.score, 0) / 3;
+      const avg = this.results.reduce((s, r) => s + r.score, 0) / this.results.length;
       this.avg = avg;
       this.verdict = avg >= 7.5 ? 'WINNER' : avg >= 5 ? 'SAFE' : 'CHOPPED';
     }
@@ -394,7 +556,7 @@ const Judging = {
     if (this.phase === 'speak') {
       const line = this.results[this.k].line;
       if (this.typed < line.length) { this.typed = line.length; return; }
-      if (++this.k < 3) this.next('taste'); else this.next('deliberate');
+      if (++this.k < JUDGES.length) this.next('taste'); else this.next('deliberate');
     } else if (this.phase === 'verdict' && this.t > 60) {
       this.next('done');
     }
@@ -429,7 +591,7 @@ const Judging = {
     else drawBowl(g, bx, 140 + bob, a);
 
     // Score cards for judges who have spoken.
-    for (let n = 0; n < 3; n++) {
+    for (let n = 0; n < JUDGES.length; n++) {
       const shown = n < this.k || (n === this.k && this.phase === 'speak' && this.typed >= this.results[n].line.length) ||
                     ['deliberate', 'verdict', 'done'].includes(this.phase);
       if (!shown) continue;
@@ -450,7 +612,7 @@ const Judging = {
   },
 
   drawText(T) {
-    for (let n = 0; n < 3; n++) {
+    for (let n = 0; n < JUDGES.length; n++) {
       T.text(JUDGES[n].name, JUDGES[n].x, 4, { size: 6, color: '#ffe9c0', align: 'center' });
       const shown = n < this.k || (n === this.k && this.phase === 'speak' && this.typed >= this.results[n].line.length) ||
                     ['deliberate', 'verdict', 'done'].includes(this.phase);
@@ -918,6 +1080,42 @@ function framePaul(g, j, J, s) {
   } else { hand(g, x - 18, 121, j.skin, j.shirt); hand(g, x + 18, 121, j.skin, j.shirt); }
 }
 
+// ---- Placeholder judges (the Second and Third Michelin Star panels, and The Ram): the plain sketch every redraw
+// starts from, with one telltale feature each so they can be told apart while playtesting.
+const SK_FILL = [226, 222, 214], SK_INK = [40, 30, 40];
+function sketchJudge(feature, skin = SK_FILL) {
+  return {
+    body(g, j, J, s) {
+      const x = j.x, bob = s.active ? Math.round(Math.sin(J.t * 0.12)) : 0, hy = 60 + bob;
+      ellipse(g, x, 109, 27, 23, SK_INK); ellipse(g, x, 108, 26, 22, rgb(j.theme, 1.2));   // shirt in their color
+      rect(g, x - 6, 72 + bob, 12, 16, skin);
+      ellipse(g, x, hy, 17, 17, SK_INK); ellipse(g, x, hy, 16, 16, skin);
+      rect(g, x - 6, hy - 2, 2, 2, SK_INK); rect(g, x + 4, hy - 2, 2, 2, SK_INK);   // eyes
+      const my = hy + 8;
+      if (s.tasting) { ellipse(g, x, my, 2, 1, [150, 60, 60]); rect(g, x + 3, my - 8, 1, 9, [200, 206, 220]); }
+      else if (s.mood === 'happy') { rect(g, x - 4, my, 1, 1, SK_INK); rect(g, x - 3, my + 1, 6, 1, SK_INK); rect(g, x + 3, my, 1, 1, SK_INK); }
+      else if (s.mood === 'upset') { rect(g, x - 4, my + 1, 1, 1, SK_INK); rect(g, x - 3, my, 6, 1, SK_INK); rect(g, x + 3, my + 1, 1, 1, SK_INK); }
+      else rect(g, x - 3, my, 6, 1, SK_INK);
+      feature(g, x, hy, s);
+    },
+    front(g, j) { for (const sd of [-1, 1]) { ellipse(g, j.x + sd * 18, 121, 7, 4, SK_INK); ellipse(g, j.x + sd * 18, 120, 6, 3, skin); } },
+  };
+}
+const SKETCH_JUDGES = {
+  dudeguy: sketchJudge((g, x, hy) => {   // spiky bleached hair and shades
+    for (let k = -3; k <= 3; k++) tri(g, x + k * 5, hy - 13, 5, 7, [250, 226, 90]);
+    rect(g, x - 9, hy - 3, 18, 3, [20, 20, 24]);
+  }),
+  signore: sketchJudge((g, x, hy) => { rect(g, x - 9, hy - 27, 18, 13, [252, 252, 252]); ellipse(g, x, hy - 27, 11, 5, [252, 252, 252]); rect(g, x - 9, hy - 15, 18, 1, [200, 200, 210]); }),   // toque
+  seonbae: sketchJudge((g, x, hy) => { ellipse(g, x, hy - 9, 16, 9, [30, 26, 30], 'top'); }),   // neat dark hair
+  monsieur: sketchJudge((g, x, hy) => { ellipse(g, x + 2, hy - 13, 15, 5, [40, 50, 110]); rect(g, x + 1, hy - 20, 2, 3, [40, 50, 110]); rect(g, x - 6, hy + 5, 12, 1, [60, 40, 30]); rect(g, x - 7, hy + 4, 1, 1, [60, 40, 30]); rect(g, x + 6, hy + 4, 1, 1, [60, 40, 30]); }),   // beret, mustache
+  marty: sketchJudge((g, x, hy) => { ellipse(g, x, hy - 6, 18, 13, [236, 206, 140], 'top'); rect(g, x - 18, hy - 6, 5, 12, [236, 206, 140]); rect(g, x + 13, hy - 6, 5, 12, [236, 206, 140]); }),   // blond bob
+  obama: sketchJudge((g, x, hy) => { ellipse(g, x, hy - 10, 16, 7, [40, 34, 34], 'top'); rect(g, x - 1, 88, 3, 18, [180, 40, 50]); }),   // short hair, a tie
+  ram: sketchJudge((g, x, hy) => {   // horns and burning eyes
+    for (const sd of [-1, 1]) for (let k = 0; k < 10; k++) rect(g, x + sd * (12 + k), hy - 12 - Math.round(Math.sin(k / 9 * Math.PI) * 9) + (k > 6 ? k - 6 : 0), 3, 3, [60, 40, 36]);
+    rect(g, x - 6, hy - 2, 2, 2, [255, 210, 60]); rect(g, x + 4, hy - 2, 2, 2, [255, 210, 60]);
+  }, [190, 50, 40]),
+};
 const JUDGE_ART = {
   pounce: { body: drawCat, front: (g, j, J, s) => paw(g, j.x - 6, 120, j.fur, false) },
   biscuit: { body: drawDog, front: (g, j, J, s) => { const b = s.mood === 'happy' ? Math.round(Math.abs(Math.sin(s.ft * 0.25)) * -2) : 0; paw(g, j.x - 19, 121 + b, j.fur, true); paw(g, j.x + 19, 121 - b, j.fur, true); } },
@@ -932,6 +1130,7 @@ const JUDGE_ART = {
   joe: { body: drawJoe, front: frontJoe },
   gordo: { body: drawGordo, front: frontGordo },
   paul: { body: drawPaul, front: framePaul },
+  ...SKETCH_JUDGES,
 };
 
 function drawVerdict(g, J) {

@@ -33,7 +33,8 @@ const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CH
       LUMP = 22, CURD = 23, RIBBON = 24, SCRAMBLE = 25, BURNT = 26,
       YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33,
       EXTPOWDER = 34, DOUGH = 35, BREAD = 36, BAKEPOWDER = 37,
-      CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41, RESIDUE = 42, PEPPER = 43, YEAST = 44, CHICKEN = 45;
+      CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41, RESIDUE = 42, PEPPER = 43, YEAST = 44, CHICKEN = 45,
+      PORK = 46, NOODLES = 47;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -114,6 +115,14 @@ defMat(POTATO,  { name: 'potato', cls: C_CHUNK, dens: 1.1, cond: 0.09, col: [238
                   soften: 0.055, starch: true, collapse: true, leach: flavorVec({ body: 0.035, umami: 0.004 }), note: 'earthy' });
 defMat(BEANS,   { name: 'beans', cls: C_CHUNK, dens: 1.12, cond: 0.1, col: [206, 160, 118], col2: [150, 96, 62], burnAt: 220, brownRate: 0.15,
                   soften: 0.04, starch: true, leach: flavorVec({ body: 0.02, umami: 0.012, rich: 0.006 }) });
+defMat(PORK,    { brownRate: 0.15, name: 'pork', cls: C_CHUNK, dens: 1.12, cond: 0.1, col: [236, 170, 166], col2: [150, 96, 60], burnAt: 235,
+                  // raw pink → poached pale (cooked in water) → seared golden-brown → charred
+                  stops: [[0, [236, 170, 166]], [60, [232, 196, 176]], [110, [226, 208, 190]], [170, [190, 124, 70]], [220, [110, 64, 34]], [255, [40, 28, 22]]],
+                  // A long, hard boil pulls the collagen out of pork: tonkotsu broth, rich, creamy and cloudy white.
+                  leach: flavorVec({ umami: 0.035, rich: 0.03, white: 0.09, body: 0.02, aroma: 0.008 }), note: 'toasty' });
+defMat(NOODLES, { name: 'noodles', cls: C_CHUNK, dens: 1.14, cond: 0.1, col: [244, 222, 150], col2: [200, 150, 80], burnAt: 220, brownRate: 0.2,
+                  soften: 0.07, starch: true, leach: flavorVec({ body: 0.05 }),   // their starch thickens whatever they cook in
+                  stops: [[0, [244, 222, 150]], [80, [248, 234, 186]], [170, [250, 244, 222]], [255, [252, 250, 240]]] });
 defMat(PASTA,   { name: 'pasta', cls: C_CHUNK, dens: 1.15, cond: 0.1, col: [236, 206, 128], col2: [200, 150, 80], burnAt: 220, brownRate: 0.2,
                   soften: 0.07, starch: true, leach: flavorVec({ body: 0.04 }),
                   stops: [[0, [236, 206, 128]], [80, [246, 232, 178]], [170, [250, 244, 222]], [255, [252, 250, 240]]] });
@@ -151,6 +160,8 @@ EAT[CORN] = flavorVec({ sweet: 0.35, body: 0.1, aroma: 0.05 });
 EAT[POTATO] = flavorVec({ body: 0.3, umami: 0.03, rich: 0.04 });
 EAT[BEANS] = flavorVec({ body: 0.25, umami: 0.1, rich: 0.06 });
 EAT[PASTA] = flavorVec({ body: 0.35, sweet: 0.02 });
+EAT[NOODLES] = flavorVec({ body: 0.35, sweet: 0.02 });
+EAT[PORK] = flavorVec({ umami: 0.5, rich: 0.4, aroma: 0.12, sweet: 0.03 });
 EAT[SODA] = flavorVec({ bitter: 2 });
 EAT[EXTPOWDER] = flavorVec({ bitter: 3 });
 for (const m of [SALT, SUGAR, CHILI, CUMIN, PEPPER]) EAT[m] = MAT[m].solu;   // a grain is just as salty dissolved or not
@@ -195,6 +206,8 @@ const SHELF = [
   { id: 'fish',    name: 'Whole Fish',  kind: 'whole',  mat: FISH,  rate: 1, icon: 'fish',   c: [150, 172, 196] },
   { id: 'egg',     name: 'Egg',         kind: 'whole',  mat: EGG,   rate: 1, icon: 'egg',    c: [250, 246, 236] },
   { id: 'pasta',   name: 'Small Pasta', kind: 'chunk',  mat: PASTA, rate: 1, icon: 'pasta',  c: [236, 206, 128], piece: [2, 1], count: 6 },
+  { id: 'noodles', name: 'Noodles',     kind: 'chunk',  mat: NOODLES, rate: 1, icon: 'noodles', c: [244, 222, 150], piece: [4, 1], count: 5 },
+  { id: 'pork',    name: 'Pork',        kind: 'chunk',  mat: PORK,  rate: 1, icon: 'pork',   c: [236, 170, 166] },
   { id: 'extinguisher', name: 'Fire Extinguisher', kind: 'spray', mat: EXTPOWDER, rate: 7, icon: 'extinguisher', c: [220, 40, 40] },
 ];
 
@@ -202,6 +215,7 @@ const SHELF = [
 const DISCOVERIES = [
   { id: 'dissolve',   name: 'Seasoning',      hint: 'Some powders vanish into water…', desc: 'Salt and sugar dissolve, faster when it\'s hot. Stir or it stays patchy!' },
   { id: 'boil',       name: 'Rolling Boil',   hint: 'Turn it up.',                     desc: 'Water can\'t pass 100°C. Extra heat becomes steam: the soup reduces and concentrates.' },
+  { id: 'tonkotsu',   name: 'Pork Bone Broth', hint: 'Pork, a hard boil, and time.',    desc: 'Pork boiled hard for a long time melts its collagen into the broth: rich, silky and creamy white. A gentle simmer won\'t do it.' },
   { id: 'sweat',      name: 'Sweating',       hint: 'Onions + fat + gentle heat',      desc: 'Aromatics soften and release sweetness in warm fat.' },
   { id: 'caramelize', name: 'Caramelization', hint: 'Patience with onions… no water.', desc: 'Browning only happens above 100°C, so never in water. Deep sweet, toasty flavor.' },
   { id: 'seared',     name: 'Seared',         hint: 'Leave it alone on a hot pan…',    desc: 'Meat and starches brown on hot metal (the Maillard reaction): savory and roasty.' },

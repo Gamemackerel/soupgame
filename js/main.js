@@ -450,6 +450,16 @@ const Tip = {
   },
 };
 
+// The finale: The Ram paces back and forth behind the chef, stomping now and then (the screen shakes).
+function drawRampage(g, t) {
+  const x = 160 + Math.sin(t * 0.008) * 115, stomp = Math.sin(t * 0.008 * 7) > 0.97;
+  if (stomp) Sim.shake = Math.max(Sim.shake, 6);
+  const j = Object.assign(Object.create(JUDGE_ROSTER.ram), { x }), s = { mood: 'upset', ft: t, active: true, tasting: false };
+  g.save(); g.globalAlpha = 0.9;
+  Sprites.draw(g, 'judges/ram', 'upset', t, x, 20 - (stomp ? 3 : 0), { j, J: { t }, s });
+  g.restore();
+}
+
 function draw() {
   // Full-screen pages: a cutscene, the title menu, or level select.
   const page = Story.active ? Story : Journal.active ? Journal : Title.active ? Title : Menu.active ? Menu : null;
@@ -465,7 +475,9 @@ function draw() {
   } else {
     const t = Sim.frame;
     // Papa Dom's pizza shop for the first tier; Souped Up's studio kitchen otherwise (the sandbox too).
-    g.drawImage(Sprites.canvas('backgrounds/' + (Game.level && Game.level.tier === 0 ? 'pizza-shop' : 'studio-kitchen'), 'default', 0), 0, 0);
+    const final = Game.level && LEVEL_TIERS[Game.level.tier].final;
+    g.drawImage(Sprites.canvas('backgrounds/' + (final ? 'hell-kitchen' : Game.level && Game.level.tier === 0 ? 'pizza-shop' : 'studio-kitchen'), 'default', 0), 0, 0);
+    if (final) drawRampage(g, t);   // The Ram, behind you, the whole time
     // Soot from a kitchen fire stays on the wall until a fresh pot.
     if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
     Spill.drawWall(g);   // and so does food blasted off the stove
@@ -547,12 +559,12 @@ const Game = {
   toTitle() { Title.active = true; Title.page = 'root'; Menu.active = false; Judging.active = false; },
   // Story: the first time, Papa Dom's intro plays before level select.
   startStory() { if (Story.seen('intro')) this.toMenu(); else { Title.active = false; Story.play('intro', () => this.toMenu()); } },
-  tierDone(t) { const ls = LEVELS.filter((l) => l.tier === t); return ls.length > 0 && ls.every((l) => Progress.passed(l.id)); },
+  tierDone(t) { const ls = Levels.main(t); return ls.length > 0 && ls.every((l) => Progress.passed(l.id)); },
   // The next dish to play after this one: the next in its tier, else the first of the next open tier.
   nextLevel() {
     if (!this.level) return null;
-    const k = LEVELS.indexOf(this.level), next = LEVELS[k + 1];
-    return next && Progress.unlocked(next.tier) ? next : null;
+    const rest = LEVELS.slice(LEVELS.indexOf(this.level) + 1).filter((l) => Levels.visible(l));
+    return rest[0] && Progress.unlocked(rest[0].tier) ? rest[0] : null;
   },
   serve() {
     Judging.start(this.judging());
@@ -561,7 +573,7 @@ const Game = {
       const tierOpenBefore = Progress.unlocked(this.level.tier + 1), doneBefore = this.tierDone(this.level.tier);
       Progress.record(this.level, L, Judging.handshake);
       // Finishing a tier for the first time unlocks the next chapter of the story.
-      const scene = ['pizzaDone', 'showDone'][this.level.tier];
+      const scene = ['pizzaDone', 'showDone', 'star2Done', 'star3Done', 'finaleDone'][this.level.tier];
       if (!doneBefore && this.tierDone(this.level.tier) && scene && !Story.seen(scene)) this.pendingStory = scene;
       if (!tierOpenBefore && Progress.unlocked(this.level.tier + 1)) Menu.flash = { text: LEVEL_TIERS[this.level.tier + 1].title + ' unlocked!', t: 0 };
     }

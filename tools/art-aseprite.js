@@ -47,7 +47,7 @@ function documents() {
   docs.push({ file: 'characters/chef', kind: 'parts',
     parts: { body: { sprite: 'characters/chef/body', at: [0, 0] }, head: { sprite: 'characters/chef/head', at: [0, 62] }, face: { sprite: 'characters/chef/face', at: [0, 62] } },
     layers: [{ part: 'body' }, { part: 'head' }, { part: 'face' }, { guide: '_guides (pot rim, shoulders)', draw: (img, off) => { line(111, BLUE)(img, off); dot(-18, 88, RED)(img, off); dot(18, 88, RED)(img, off); } }] });
-  for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
+  for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul', 'dudeguy', 'signore', 'seonbae', 'monsieur', 'marty', 'obama', 'ram']) {
     docs.push({ file: 'characters/judges/' + id, kind: 'parts',
       parts: { body: { sprite: 'characters/judges/' + id, at: [0, 0] }, front: { sprite: 'characters/judges/' + id + '-front', at: [0, 0] } },
       layers: [{ part: 'body' }, tableGuide(160), { part: 'front' }] });
@@ -64,8 +64,8 @@ function documents() {
   const dishIds = fs.readdirSync(path.join(TPL, 'ingredients', 'dishes')).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5));
   docs.push({ file: 'dishes', kind: 'items', group: 'dish', items: dishIds.map((id) => ({ sprite: 'ingredients/dishes/' + id, state: 'default', tag: id })) });
 
-  for (const bg of ['pizza-shop', 'studio-kitchen', 'shop-night', 'shop-day', 'level-select']) {
-    const potLines = ['pizza-shop', 'studio-kitchen'].includes(bg) ? [{ guide: '_guides (pot area)', draw: (img) => { const POT = { l: 78, r: 242, t: 106, b: 206 }; for (let x = POT.l; x <= POT.r; x += 2) { img.data.set(BLUE, (POT.t * img.w + x) * 4); img.data.set(BLUE, (POT.b * img.w + x) * 4); } } }] : [];
+  for (const bg of ['pizza-shop', 'studio-kitchen', 'hell-kitchen', 'shop-night', 'shop-day', 'level-select']) {
+    const potLines = ['pizza-shop', 'studio-kitchen', 'hell-kitchen'].includes(bg) ? [{ guide: '_guides (pot area)', draw: (img) => { const POT = { l: 78, r: 242, t: 106, b: 206 }; for (let x = POT.l; x <= POT.r; x += 2) { img.data.set(BLUE, (POT.t * img.w + x) * 4); img.data.set(BLUE, (POT.b * img.w + x) * 4); } } }] : [];
     docs.push({ file: 'backgrounds/' + bg, kind: 'parts', parts: { background: { sprite: 'backgrounds/' + bg, at: [0, 0] } }, layers: [{ part: 'background' }, ...potLines] });
   }
   // The stage and its table, with the judges between them for reference.

@@ -107,6 +107,7 @@ const Sprites = {
       }
     }
     d.rows = [];
+    if (d.distinct) { d.rows = d.order.slice(); return; }   // every state a drawing of its own, however alike they look now
     for (const s of d.order) {
       const same = d.rows.find((r) => look[r].length === look[s].length && look[r].every((x, f) => x === look[s][f]));
       if (same) d.alias[s] = same; else d.rows.push(s);
@@ -224,8 +225,15 @@ const JUDGE_NOTES = {
   pounce: 'Sir Pounce: a snooty cat.', biscuit: 'Biscuit: an excitable pup.', nanny: 'Nanny Mae: a cozy old goat.',
   joe: 'Joe: the pizza-shop regular.', gordo: 'Gordo Hamsie: the shouty head chef (a caricature): he should look like Gordon Ramsay. Also used, larger, in story cutscenes.',
   paul: 'Paul Bollywood: the silver-haired baker (looks like Paul Hollywood).',
+  dudeguy: 'Mister Dude-Guy: the loud, flame-shirted flavor king (a Guy Fieri caricature).',
+  signore: 'Chef Signore: the Italian chef.', seonbae: 'Chef Seonbae: the Korean chef.', monsieur: 'Chef Monsieur: the French chef.',
+  marty: 'Marty Stew: the queen of home entertaining (a Martha Stewart caricature).',
+  obama: 'President Barack Hussein Obama.',
+  ram: "The Ram: Gordo Hamsie transformed into a devil, with ram's horns and true fury in his eyes. Judges Primordial Soup alone, in the middle seat; also used, larger, in the story.",
 };
-for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
+// Judges still at the placeholder stage: every pose is its own drawing to make (their sketches look alike).
+const SKETCHED = new Set(Object.keys(SKETCH_JUDGES));
+for (const id of JUDGE_IDS) {
   const poses = JSON.parse(JSON.stringify({ ...JUDGE_POSES, ...(JUDGE_EXTRA[id] || {}) }));
   const front = JSON.parse(JSON.stringify(poses));
   if (front.handshake) front.handshake = { frames: 6, fps: 12, loop: false, ticks: [0, 6, 12, 18, 24, 30], note: 'his arm reaches across the table, then holds (plays once)' };
@@ -233,7 +241,7 @@ for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul']) {
     ctx = ctx || judgeCtx(id, pose, t);
     JUDGE_ART[id][part](g, Object.assign(Object.create(ctx.j), { x: 0 }), ctx.J, ctx.s);
   };
-  Sprites.def('judges/' + id, { path: 'characters/judges/' + id, w: 96, h: 128, ox: -48, oy: 0,
+  Sprites.def('judges/' + id, { path: 'characters/judges/' + id, w: 96, h: 128, ox: -48, oy: 0, distinct: SKETCHED.has(id),
     notes: JUDGE_NOTES[id] + ' Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.',
     guides: [{ y: 118, label: 'table top' }], states: poses, render: render('body') });
   Sprites.def('judges/' + id + '-front', { path: 'characters/judges/' + id + '-front', w: 96, h: 48, ox: -48, oy: 96,
@@ -280,7 +288,8 @@ const BG_NOTES = {
   'pizza-shop': "Papa Dom's pizza shop kitchen (Pizza Shop levels), with an exposed brick wall. It should have a pizza menu on a chalkboard, some kind of pizza advertisement, a pizza oven, and a pizza paddle hung on the wall. The pot, flames and everything in it are drawn on top, centered at the bottom.",
   'studio-kitchen': "Souped Up's studio kitchen (First Michelin Star levels), also used for the sandbox and behind the title screen. It should have a window, a hanging set of tools and pans, and a sign that says EVERY SECOND COUNTS. The pot, flames and everything in it are drawn on top, centered at the bottom.",
 };
-for (const [name, theme] of [['pizza-shop', 'pizza'], ['studio-kitchen', 'show']]) {
+BG_NOTES['hell-kitchen'] = "Hell's kitchen, for the finale (Primordial Soup): rock, fire and lava, with the same stovetop. The Ram paces and rampages behind you while you cook.";
+for (const [name, theme] of [['pizza-shop', 'pizza'], ['studio-kitchen', 'show'], ['hell-kitchen', 'hell']]) {
   Sprites.def('backgrounds/' + name, { path: 'backgrounds/' + name, w: W, h: H, static: true, notes: BG_NOTES[name], theme,
     guides: [{ y: POT_TOP, label: 'pot rim' }, { y: POT_BOT, label: 'pot bottom' }],
     states: { default: {} }, render: (g) => g.drawImage(Art.buildBackground(theme), 0, 0) });
@@ -350,7 +359,8 @@ const SKETCH = {
 };
 // Dishes: every soup the same plain bowl in its soup's color; the flatbread and the cake as plain shapes.
 const PLAIN_DISH = { 'tomato-soup': [214, 60, 40], 'creamy-corn': [244, 224, 150], 'fish-stew': [226, 120, 60], minestrone: [204, 96, 50],
-  'french-onion': [170, 110, 60], 'beef-chowder': [236, 216, 180], goulash: [160, 50, 30], chili: [150, 40, 26] };
+  'french-onion': [170, 110, 60], 'beef-chowder': [236, 216, 180], goulash: [160, 50, 30], chili: [150, 40, 26],
+  'chicken-noodle': [234, 196, 100], 'tonkotsu-ramen': [244, 236, 220], 'marinara-meatballs': [200, 50, 36], 'hot-sour': [160, 96, 50], 'primordial-soup': [90, 140, 70] };
 function plainDish(g, id) {
   if (id === 'flatbread') { ellipse(g, 12, 9, 10, 4, [226, 182, 110]); return; }
   if (id === 'sponge-cake') { rect(g, 4, 5, 16, 8, [240, 200, 120]); return; }

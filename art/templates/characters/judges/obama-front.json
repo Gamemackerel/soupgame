@@ -1,0 +1,54 @@
+{
+  "name": "judges/obama-front",
+  "path": "characters/judges/obama-front",
+  "group": "characters",
+  "cell": [
+    96,
+    48
+  ],
+  "anchor": [
+    48,
+    -96
+  ],
+  "sheet": [
+    96,
+    48
+  ],
+  "states": [
+    {
+      "name": "neutral",
+      "row": 0,
+      "frames": 1,
+      "fps": null,
+      "loop": null,
+      "also": [
+        "tasting",
+        "happy",
+        "meh",
+        "upset"
+      ],
+      "note": "waiting"
+    }
+  ],
+  "shared": {
+    "tasting": "neutral",
+    "happy": "neutral",
+    "meh": "neutral",
+    "upset": "neutral"
+  },
+  "order": [
+    "neutral",
+    "tasting",
+    "happy",
+    "meh",
+    "upset"
+  ],
+  "notes": "President Barack Hussein Obama. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "guides": [
+    {
+      "y": 118,
+      "label": "table top"
+    }
+  ],
+  "animated": false
+}
