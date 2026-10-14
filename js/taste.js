@@ -132,6 +132,7 @@ const DONENESS = [
   [MEAT, 'beef', [[30, 'raw'], [70, 'pink'], [150, 'cooked'], [215, 'seared'], [256, 'charred']]],
   [CHICKEN, 'chicken', [[60, 'raw'], [150, 'cooked'], [215, 'golden'], [256, 'charred']]],
   [PORK, 'pork', [[60, 'raw'], [150, 'cooked'], [215, 'golden'], [256, 'charred']]],
+  [CLAMS, 'clams', [[60, 'closed'], [150, 'tender'], [256, 'rubbery']]],
   [FISH, 'fish', [[60, 'raw'], [90, 'translucent'], [170, 'flaky'], [256, 'dry']]],
   [ONION, 'onion', [[30, 'raw'], [80, 'crunchy'], [130, 'soft'], [200, 'caramelized'], [256, 'dark']]],
 ];
@@ -293,16 +294,16 @@ Taste.analyzeBowl = function () {
   const plate = type === 'plate' || type === 'baked';
   const bake = doughy ? Taste.bakeReport(counts) : null;
 
-  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, CHICKEN, PORK, HERB, TOMATO, FISH, CORN, POTATO, BEANS, PASTA, NOODLES];
+  const chunkMats = [ONION, GARLIC, CARROT, CELERY, MEAT, CHICKEN, PORK, CLAMS, GINGER, HERB, TOMATO, FISH, CORN, POTATO, BEANS, PASTA, NOODLES];
   let chunks = 0, raw = 0, rawStarch = false;
   for (const m of chunkMats) {
     chunks += counts[m] || 0;
     // Starchy pieces need longer: pasta and potato are 'raw' (chalky, hard) until well softened, and a
     // crunchy bit of pasta stands out even when it's a small part of the pot.
     const starchy = MAT[m].starch && m !== CORN;
-    if (counts[m] && avgCook(m) < (starchy || m === CHICKEN || m === PORK ? 60 : 30) && m !== HERB) {   // chicken and pork must be cooked through
+    if (counts[m] && avgCook(m) < (starchy || m === CHICKEN || m === PORK || m === CLAMS ? 60 : 30) && m !== HERB && m !== GINGER) {   // meat and shellfish must be cooked through
       raw += counts[m] * (starchy ? 4 : 1);
-      if ((starchy || m === CHICKEN || m === PORK) && counts[m] >= 10) rawStarch = true;   // a crunchy bit of pasta or potato stands out whatever else is in the bowl
+      if ((starchy || m === CHICKEN || m === PORK || m === CLAMS) && counts[m] >= 10) rawStarch = true;   // a crunchy bit of pasta or potato stands out whatever else is in the bowl
     }
   }
   const burntFrac = (counts[BURNT] || 0) / Math.max(1, total);

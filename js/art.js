@@ -82,6 +82,9 @@ const ICON_DRAW = {
   tomato(g) { ball(g, 8, 9, 6, [228, 50, 44], false); rect(g, 6, 3, 5, 1, [70, 150, 60]); rect(g, 8, 2, 1, 2, [70, 150, 60]); },
   pork(g) { veg(g, 8, 9, 6, 5, [236, 170, 166]); },
   noodles(g) { for (let k = 0; k < 4; k++) rect(g, 3, 5 + k * 2, 10, 1, [244, 222, 150]); },
+  ginger(g) { veg(g, 8, 9, 6, 3, [214, 176, 112]); },
+  cheese(g) { for (let y = 0; y < 8; y++) rect(g, 3 + Math.max(0, 5 - y), 5 + y, 10 - Math.max(0, 5 - y), 1, [250, 222, 130]); },
+  clams(g) { veg(g, 6, 9, 4, 3, [206, 196, 176]); veg(g, 11, 8, 4, 3, [206, 196, 176]); },
 
 
   drumstick(g) { veg(g, 7, 7, 5, 5, [214, 146, 70]); rect(g, 11, 11, 3, 2, [244, 238, 224]); },   // chicken: a lump with a bit of bone
@@ -202,6 +205,21 @@ const DISH_DRAW = {
     soupBowl(g, [160, 96, 50]);   // dark, peppery broth
     for (let x = 8; x < 16; x += 2) rect(g, x, 5 + (x & 2 ? 1 : 0), 2, 1, [250, 220, 120]);   // egg ribbons
     dots(g, [[10, 7], [15, 6]], [200, 40, 30]); dots(g, [[13, 5]], [90, 160, 70]);
+  },
+  'clam-chowder'(g) {
+    soupBowl(g, [240, 232, 214]);   // creamy chowder
+    rect(g, 8, 5, 2, 2, [206, 196, 176]); rect(g, 14, 6, 2, 2, [206, 196, 176]);   // clams
+    rect(g, 11, 6, 2, 1, [250, 236, 180]); dots(g, [[12, 5], [16, 6]], [60, 54, 52]);   // potato, pepper
+  },
+  'avgolemono'(g) {
+    soupBowl(g, [246, 226, 150]);   // pale lemon-yellow, silky
+    rect(g, 8, 5, 2, 1, [250, 240, 200]); rect(g, 14, 6, 2, 1, [250, 240, 200]); rect(g, 11, 6, 2, 1, [244, 244, 236]);
+    dots(g, [[13, 5]], [90, 160, 70]); rect(g, 16, 5, 2, 2, [250, 230, 70]);   // dill, a lemon wedge
+  },
+  'bouillabaisse'(g) {
+    soupBowl(g, [226, 130, 40]);   // saffron-orange broth
+    rect(g, 8, 5, 3, 2, [250, 246, 236]); rect(g, 14, 6, 2, 1, [250, 236, 180]);   // fish, potato
+    dots(g, [[12, 5], [16, 5]], [200, 40, 30]); dots(g, [[11, 7]], [90, 160, 70]);
   },
   'primordial-soup'(g) {
     // A bubbling, glowing cauldron of everything.

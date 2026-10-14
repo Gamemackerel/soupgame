@@ -34,7 +34,7 @@ const EMPTY = 0, BROTH = 1, OIL = 2, EGG = 3, SALT = 4, SUGAR = 5, FLOUR = 6, CH
       YOLK = 27, WHITE_COOKED = 28, YOLK_COOKED = 29, SHELL = 30, FISH = 31, FISHFIN = 32, FISHEYE = 33,
       EXTPOWDER = 34, DOUGH = 35, BREAD = 36, BAKEPOWDER = 37,
       CORN = 38, POTATO = 39, BEANS = 40, PASTA = 41, RESIDUE = 42, PEPPER = 43, YEAST = 44, CHICKEN = 45,
-      PORK = 46, NOODLES = 47;
+      PORK = 46, NOODLES = 47, CHEESE = 48, PAPRIKA = 49, GINGER = 50, CLAMS = 51, SAFFRON = 52;
 
 // name, class, density, conductivity, base colors [raw, cooked/browned]
 const MAT = [];
@@ -54,6 +54,10 @@ defMat(CUMIN,   { name: 'cumin',  cls: C_POWDER, dens: 1.4,  cond: 0.08, col: [1
                   solu: flavorVec({ aroma: 16, bitter: 0.6, brown: 2 }) });
 defMat(PEPPER,  { name: 'black pepper', cls: C_POWDER, dens: 1.4, cond: 0.08, col: [44, 40, 40], col2: [20, 18, 18], burnAt: 210,
                   solu: flavorVec({ heat: 6, aroma: 8, bitter: 0.3 }) });   // a gentler, more aromatic heat than chili
+defMat(PAPRIKA, { name: 'paprika', cls: C_POWDER, dens: 1.4, cond: 0.08, col: [196, 52, 30], col2: [90, 30, 20], burnAt: 190,
+                  solu: flavorVec({ aroma: 10, sweet: 2, heat: 3, red: 6, brown: 1 }) });   // sweet, smoky, deep red; only a little heat
+defMat(SAFFRON, { name: 'saffron', cls: C_POWDER, dens: 1.3, cond: 0.08, col: [214, 80, 30], col2: [120, 40, 20], burnAt: 200,
+                  solu: flavorVec({ aroma: 24, gold: 10, bitter: 0.4 }) });   // a pinch perfumes and gilds the whole pot
 defMat(YEAST,   { name: 'yeast', cls: C_POWDER, dens: 1.2, cond: 0.08, col: [214, 190, 140],
                   solu: flavorVec({ umami: 0.6, bitter: 0.2, aroma: 0.4 }) });   // in liquid it just tastes yeasty
 defMat(SODA,    { name: 'baking soda', cls: C_POWDER, dens: 1.5, cond: 0.08, col: [226, 236, 244] });
@@ -115,6 +119,13 @@ defMat(POTATO,  { name: 'potato', cls: C_CHUNK, dens: 1.1, cond: 0.09, col: [238
                   soften: 0.055, starch: true, collapse: true, leach: flavorVec({ body: 0.035, umami: 0.004 }), note: 'earthy' });
 defMat(BEANS,   { name: 'beans', cls: C_CHUNK, dens: 1.12, cond: 0.1, col: [206, 160, 118], col2: [150, 96, 62], burnAt: 220, brownRate: 0.15,
                   soften: 0.04, starch: true, leach: flavorVec({ body: 0.02, umami: 0.012, rich: 0.006 }) });
+defMat(GINGER,  { name: 'ginger', cls: C_CHUNK, dens: 1.06, cond: 0.1, col: [228, 196, 140], col2: [170, 120, 60], burnAt: 175,
+                  leach: flavorVec({ aroma: 0.12, heat: 0.015, sweet: 0.005 }), note: 'herbal' });
+defMat(CHEESE,  { name: 'cheese', cls: C_CHUNK, dens: 1.1, cond: 0.12, col: [250, 222, 130], col2: [200, 140, 60], burnAt: 200, brownRate: 0.2 });   // melts (reactions.js)
+defMat(CLAMS,   { name: 'clams', cls: C_CHUNK, dens: 1.2, cond: 0.12, col: [206, 196, 176], burnAt: 220,
+                  // closed grey shells → open, cooked through → rubbery and dry if boiled too long
+                  stops: [[0, [206, 196, 176]], [60, [232, 214, 190]], [150, [240, 200, 160]], [255, [150, 120, 90]]],
+                  leach: flavorVec({ salty: 0.03, umami: 0.05, white: 0.02, aroma: 0.01 }), note: 'oceanic' });   // clam liquor: briny and savory
 defMat(PORK,    { brownRate: 0.15, name: 'pork', cls: C_CHUNK, dens: 1.12, cond: 0.1, col: [236, 170, 166], col2: [150, 96, 60], burnAt: 235,
                   // raw pink → poached pale (cooked in water) → seared golden-brown → charred
                   stops: [[0, [236, 170, 166]], [60, [232, 196, 176]], [110, [226, 208, 190]], [170, [190, 124, 70]], [220, [110, 64, 34]], [255, [40, 28, 22]]],
@@ -161,6 +172,9 @@ EAT[POTATO] = flavorVec({ body: 0.3, umami: 0.03, rich: 0.04 });
 EAT[BEANS] = flavorVec({ body: 0.25, umami: 0.1, rich: 0.06 });
 EAT[PASTA] = flavorVec({ body: 0.35, sweet: 0.02 });
 EAT[NOODLES] = flavorVec({ body: 0.35, sweet: 0.02 });
+EAT[CHEESE] = flavorVec({ rich: 0.8, salty: 0.35, umami: 0.4 });
+EAT[GINGER] = flavorVec({ aroma: 0.6, heat: 0.1 });
+EAT[CLAMS] = flavorVec({ umami: 0.5, salty: 0.2, sweet: 0.05 });
 EAT[PORK] = flavorVec({ umami: 0.5, rich: 0.4, aroma: 0.12, sweet: 0.03 });
 EAT[SODA] = flavorVec({ bitter: 2 });
 EAT[EXTPOWDER] = flavorVec({ bitter: 3 });
@@ -181,18 +195,23 @@ const SHELF = [
     flavor: flavorVec({ alcohol: 3, sour: 1.2, sweet: 0.4, red: 2, aroma: 1.5 }) },
   { id: 'vinegar', name: 'Vinegar',     kind: 'liquid', mat: BROTH, rate: 3, icon: 'liquid', c: [230, 220, 170],
     flavor: flavorVec({ sour: 5, aroma: 0.3 }) },
+  { id: 'lemon',   name: 'Lemon Juice', kind: 'liquid', mat: BROTH, rate: 3, icon: 'liquid', c: [246, 226, 90],
+    flavor: flavorVec({ sour: 4, aroma: 1.6 }) },
   { id: 'soy',     name: 'Soy Sauce',   kind: 'liquid', mat: BROTH, rate: 3, icon: 'liquid', c: [60, 30, 20],
     flavor: flavorVec({ salty: 6, umami: 3, brown: 4 }), note: 'fermented' },
   { id: 'salt',    name: 'Salt',        kind: 'powder', mat: SALT,  rate: 2, icon: 'spice', c: [240, 240, 246] },
   { id: 'sugar',   name: 'Sugar',       kind: 'powder', mat: SUGAR, rate: 2, icon: 'powder',    c: [252, 246, 228] },
   { id: 'flour',   name: 'Flour',       kind: 'powder', mat: FLOUR, rate: 3, icon: 'powder',    c: [236, 226, 204] },
   { id: 'chili',   name: 'Chili Flakes',kind: 'powder', mat: CHILI, rate: 2, icon: 'spice',    c: [208, 44, 30] },
+  { id: 'paprika', name: 'Paprika',     kind: 'powder', mat: PAPRIKA, rate: 2, icon: 'spice', c: [196, 52, 30] },
+  { id: 'saffron', name: 'Saffron',     kind: 'powder', mat: SAFFRON, rate: 1, icon: 'spice', c: [214, 80, 30] },
   { id: 'cumin',   name: 'Cumin',       kind: 'powder', mat: CUMIN, rate: 2, icon: 'spice',    c: [170, 116, 52] },
   { id: 'pepper',  name: 'Black Pepper',kind: 'powder', mat: PEPPER, rate: 2, icon: 'spice',    c: [60, 54, 52] },
   { id: 'soda',    name: 'Baking Soda', kind: 'powder', mat: SODA,  rate: 3, icon: 'powder',    c: [240, 120, 60] },
   { id: 'powder',  name: 'Baking Powder', kind: 'powder', mat: BAKEPOWDER, rate: 3, icon: 'powder', c: [90, 140, 220] },
   { id: 'yeast',   name: 'Yeast',       kind: 'powder', mat: YEAST, rate: 2, icon: 'powder', c: [214, 190, 140] },
   { id: 'onion',   name: 'Onion',       kind: 'chunk',  mat: ONION, rate: 1, icon: 'onion',  c: [210, 160, 90] },
+  { id: 'ginger',  name: 'Ginger',      kind: 'chunk',  mat: GINGER, rate: 1, icon: 'ginger', c: [228, 196, 140] },
   { id: 'garlic',  name: 'Garlic',      kind: 'chunk',  mat: GARLIC,rate: 1, icon: 'garlic', c: [250, 246, 230] },
   { id: 'carrot',  name: 'Carrot',      kind: 'chunk',  mat: CARROT,rate: 1, icon: 'carrot', c: [244, 128, 32] },
   { id: 'celery',  name: 'Celery',      kind: 'chunk',  mat: CELERY,rate: 1, icon: 'celery', c: [150, 210, 90] },
@@ -207,6 +226,8 @@ const SHELF = [
   { id: 'egg',     name: 'Egg',         kind: 'whole',  mat: EGG,   rate: 1, icon: 'egg',    c: [250, 246, 236] },
   { id: 'pasta',   name: 'Small Pasta', kind: 'chunk',  mat: PASTA, rate: 1, icon: 'pasta',  c: [236, 206, 128], piece: [2, 1], count: 6 },
   { id: 'noodles', name: 'Noodles',     kind: 'chunk',  mat: NOODLES, rate: 1, icon: 'noodles', c: [244, 222, 150], piece: [4, 1], count: 5 },
+  { id: 'cheese',  name: 'Cheese',      kind: 'chunk',  mat: CHEESE, rate: 1, icon: 'cheese', c: [250, 222, 130], piece: [1, 1], count: 12 },
+  { id: 'clams',   name: 'Clams',       kind: 'chunk',  mat: CLAMS, rate: 1, icon: 'clams', c: [206, 196, 176], piece: [2, 2], count: 4 },
   { id: 'pork',    name: 'Pork',        kind: 'chunk',  mat: PORK,  rate: 1, icon: 'pork',   c: [236, 170, 166] },
   { id: 'extinguisher', name: 'Fire Extinguisher', kind: 'spray', mat: EXTPOWDER, rate: 7, icon: 'extinguisher', c: [220, 40, 40] },
 ];
@@ -215,6 +236,8 @@ const SHELF = [
 const DISCOVERIES = [
   { id: 'dissolve',   name: 'Seasoning',      hint: 'Some powders vanish into water…', desc: 'Salt and sugar dissolve, faster when it\'s hot. Stir or it stays patchy!' },
   { id: 'boil',       name: 'Rolling Boil',   hint: 'Turn it up.',                     desc: 'Water can\'t pass 100°C. Extra heat becomes steam: the soup reduces and concentrates.' },
+  { id: 'liaison',    name: 'Egg Liaison',    hint: 'Warm, not boiling. And stir.',      desc: 'Egg stirred into warm (not boiling) broth melts into it and thickens it silky, the way avgolemono is made. Too hot and it scrambles.' },
+  { id: 'melt',       name: 'Melted Cheese',  hint: 'Cheese and heat.',                 desc: 'Cheese melts into a hot soup: rich, salty and savory.' },
   { id: 'tonkotsu',   name: 'Pork Bone Broth', hint: 'Pork, a hard boil, and time.',    desc: 'Pork boiled hard for a long time melts its collagen into the broth: rich, silky and creamy white. A gentle simmer won\'t do it.' },
   { id: 'sweat',      name: 'Sweating',       hint: 'Onions + fat + gentle heat',      desc: 'Aromatics soften and release sweetness in warm fat.' },
   { id: 'caramelize', name: 'Caramelization', hint: 'Patience with onions… no water.', desc: 'Browning only happens above 100°C, so never in water. Deep sweet, toasty flavor.' },
