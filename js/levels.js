@@ -331,6 +331,7 @@ const LEVEL_PASS = 6, LEVEL_GOOD = 8, LEVEL_PAR = 9, WRONG_DISH_MAX = 3;
 // Within this much of the recipe on any taste axis is free (the taste card's green band); past it, points fall off
 // gradually. (A judge's own palate counts for at most 30% of their score: see JUDGE_ROSTER blends.)
 const LEVEL_FREE = 0.15, LEVEL_FALLOFF = 0.22;
+const overIsFine = (level, ax) => ax === 'umami' || (level && level.sauce && ax === 'body');
 const FLOURISH_GAIN = 0.15, FLOURISH_SLACK = 0.3;
 const NOT_A_FLOURISH = new Set(['water', 'extinguisher']);
 const FLAW_NAMES = { burnt: 'burnt', curdled: 'split dairy', lumps: 'lumps', scrambled: 'scrambled egg', raw: 'undercooked',
@@ -391,8 +392,9 @@ const Levels = {
     let sw = 0, se = 0, worst = null;
     for (const ax of LEVEL_AXES) {
       const want = target.taste[ax], got = p[ax] || 0, w = 1 + 2 * want;
-      // A sauce (level.sauce) can't be too thick: only thinner than the recipe counts against it.
-      const err = level.sauce && ax === 'body' && got > want ? 0 : Math.max(0, Math.abs(got - want) - LEVEL_FREE);
+      // Some axes only count one way: more savory than the recipe is never a fault, and a sauce (level.sauce) can't
+      // be too thick. Only falling short on those costs anything.
+      const err = got > want && overIsFine(level, ax) ? 0 : Math.max(0, Math.abs(got - want) - LEVEL_FREE);
       sw += w; se += w * err;
       if (!worst || w * err > worst.e) worst = { ax, e: w * err, d: got - want };
     }
