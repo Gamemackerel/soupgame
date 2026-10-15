@@ -5,11 +5,12 @@ const pick = (arr) => arr[(Math.random() * arr.length) | 0];
 // Every judge, by id. A panel of three is drawn from these for each serving (see Judging.setPanel).
 // `sens` is how hard the judge comes down on each kind of mistake in a career level (see Levels.score): 1 is
 // normal, below 1 a blind spot, above 1 a pet peeve. Keys: a taste axis ('salty'), or one direction of it
-// ('salty+' too much, 'salty-' not enough), 'technique', 'ingredients' and 'flaw'.
+// ('salty+' too much, 'salty-' not enough), 'technique', 'ingredients' and 'flaw'. `loves`: dishes on their panel
+// they have a soft spot for (a small lean up; every other dish gets a small fixed lean of its own, see judgeLean).
 const JUDGE_ROSTER = {
   pounce: {
     id: 'pounce', name: 'Sir Pounce', title: 'The Classicist Cat',
-    sens: { technique: 1.4, sour: 1.2, body: 1.2, heat: 0.7 },
+    sens: { technique: 1.4, sour: 1.2, body: 1.2, heat: 0.7 }, loves: ['french-onion'],
     fur: [192, 194, 210], dark: [128, 130, 152], belly: [246, 246, 252], theme: [110, 120, 170],
     sounds: { good: ['*purrs*', 'Mrrow.'], bad: ['Hsss!', '*flicks tail*'] },
     evaluate(a) {
@@ -48,7 +49,7 @@ const JUDGE_ROSTER = {
   },
   biscuit: {
     id: 'biscuit', name: 'Biscuit', title: 'The Flavor Hound',
-    sens: { 'salty+': 0.5, 'rich+': 0.5, aroma: 1.3, sweet: 1.2, technique: 0.6 },
+    sens: { 'salty+': 0.5, 'rich+': 0.5, aroma: 1.3, sweet: 1.2, technique: 0.6 }, loves: ['fish-stew'],
     fur: [238, 184, 110], dark: [170, 104, 58], belly: [253, 238, 210], theme: [220, 120, 60],
     sounds: { good: ['WOOF!', '*tail wags*'], bad: ['*whimper*', 'Grrr.'] },
     evaluate(a) {
@@ -160,7 +161,7 @@ Object.assign(JUDGE_ROSTER, {
   // A fair customer: would he order it again? Balance, warmth, something to chew on, no nasty surprises.
   joe: {
     id: 'joe', name: 'Joe', title: 'The Regular',
-    sens: { technique: 0.4, ingredients: 0.6, salty: 1.3, aroma: 0.7, flaw: 1.2 },
+    sens: { technique: 0.4, ingredients: 0.6, salty: 1.3, aroma: 0.7, flaw: 1.2 }, loves: ['tomato-soup'],
     skin: [236, 190, 150], hoodie: [84, 120, 176], cap: [210, 60, 50], theme: [84, 120, 176],
     sounds: { good: ['*nods slowly*', 'Oh, nice.'], bad: ['Uhh...', '*polite chewing*'] },
     evaluate(a) {
@@ -188,7 +189,7 @@ Object.assign(JUDGE_ROSTER, {
   // The head chef: execution is everything. Raw, burnt, mushy, under-seasoned or sloppy gets the full rant.
   gordo: {
     id: 'gordo', name: 'Gordo Hamsie', title: 'The Head Chef',
-    sens: { technique: 1.5, flaw: 1.4, salty: 1.4 },
+    sens: { technique: 1.5, flaw: 1.4, salty: 1.4 }, loves: ['clam-chowder'],
     skin: [246, 202, 172], hair: [240, 206, 110], brow: [190, 150, 80], coat: [250, 250, 252], theme: [200, 50, 50],
     sounds: { good: ['Mmm.', '*nods sharply*'], bad: ['OH, COME ON!', '*slams the table*'] },
     evaluate(a) {
@@ -221,7 +222,7 @@ Object.assign(JUDGE_ROSTER, {
   // The master baker, who also knows his spices: rise, crust and crumb on a bake; bloomed spice and balance on the rest.
   paul: {
     id: 'paul', name: 'Paul Bollywood', title: 'The Master Baker',
-    sens: { heat: 1.4, aroma: 1.3, sweet: 1.2, salty: 0.8, technique: 1.1 },
+    sens: { heat: 1.4, aroma: 1.3, sweet: 1.2, salty: 0.8, technique: 1.1 }, loves: ['chicken-noodle'],
     skin: [234, 180, 144], hair: [206, 208, 216], iris: [70, 160, 250], shirt: [40, 50, 84], theme: [70, 110, 190],
     sounds: { good: ['*raises an eyebrow*', 'Hmm. Yes.'], bad: ['*stares*', 'Hmm. No.'] },
     evaluate(a) {
@@ -282,7 +283,7 @@ Object.assign(JUDGE_ROSTER, {
   // Mister Dude-Guy (a Guy Fieri caricature): big, bold, loud flavor. Heat, salt, richness. Blandness offends him.
   dudeguy: {
     id: 'dudeguy', name: 'Mister Dude-Guy', title: 'The Mayor of Flavor',
-    sens: { 'salty+': 0.3, 'salty-': 1.4, 'heat+': 0.2, 'rich+': 0.4, technique: 0.7, ingredients: 0.8 }, theme: [230, 160, 30],
+    sens: { 'salty+': 0.3, 'salty-': 1.4, 'heat+': 0.2, 'rich+': 0.4, technique: 0.7, ingredients: 0.8 }, loves: ['goulash'], theme: [230, 160, 30],
     sounds: { good: ['OHHH YEAH!', '*fist pump*'], bad: ['Dude...', '*lowers sunglasses*'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a);
@@ -301,7 +302,7 @@ Object.assign(JUDGE_ROSTER, {
   // Chef Signore: Italian. Simple, honest ingredients done right: sweet tomato, herbs, olive oil, pasta al dente.
   signore: {
     id: 'signore', name: 'Chef Signore', title: 'The Italian',
-    sens: { ingredients: 1.4, body: 1.2, 'heat+': 1.3, 'sweet+': 0.6, technique: 0.8 }, theme: [60, 150, 80],
+    sens: { ingredients: 1.4, body: 1.2, 'heat+': 1.3, 'sweet+': 0.6, technique: 0.8 }, loves: ['minestrone'], theme: [60, 150, 80],
     sounds: { good: ['*kisses fingertips*', 'Bellissimo!'], bad: ['Mamma mia...', '*throws hands up*'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a), U = Sim.used;
@@ -319,7 +320,7 @@ Object.assign(JUDGE_ROSTER, {
   // Chef Seonbae: Korean. Deep, layered broth: savory depth, a little heat, a touch of sour, fermented richness (soy).
   seonbae: {
     id: 'seonbae', name: 'Chef Seonbae', title: 'The Senior Chef',
-    sens: { 'umami-': 1.5, 'salty-': 1.2, 'heat+': 0.4, 'sour+': 0.6, technique: 1.1 }, theme: [70, 110, 190],
+    sens: { 'umami-': 1.5, 'salty-': 1.2, 'heat+': 0.4, 'sour+': 0.6, technique: 1.1 }, loves: ['avgolemono'], theme: [70, 110, 190],
     sounds: { good: ['*slow nod*', 'Jinjja masisseoyo.'], bad: ['Aigoo...', '*sighs*'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a);
@@ -337,7 +338,7 @@ Object.assign(JUDGE_ROSTER, {
   // Chef Monsieur: French. Technique above all: mirepoix, fond, deglazing, a roux, caramelized onions.
   monsieur: {
     id: 'monsieur', name: 'Chef Monsieur', title: 'The French Master',
-    sens: { technique: 1.6, sweet: 1.3, body: 1.3, flaw: 1.3, heat: 0.6, salty: 0.8, ingredients: 0.8 }, theme: [60, 80, 170],
+    sens: { technique: 1.6, sweet: 1.3, body: 1.3, flaw: 1.3, heat: 0.6, salty: 0.8, ingredients: 0.8 }, loves: ['bouillabaisse'], theme: [60, 80, 170],
     sounds: { good: ['*adjusts mustache*', 'Magnifique.'], bad: ['Sacrebleu!', '*scoffs*'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a), H = Sim.happened;
@@ -357,7 +358,7 @@ Object.assign(JUDGE_ROSTER, {
   // Marty Stew (a Martha Stewart caricature): homey perfection. Tidy, balanced, warm, garnished, no sloppiness.
   marty: {
     id: 'marty', name: 'Marty Stew', title: 'The Domestic Doyenne',
-    sens: { 'salty+': 1.5, heat: 1.3, aroma: 1.2, ingredients: 1.4, flaw: 1.2, technique: 0.7 }, theme: [200, 120, 150],
+    sens: { 'salty+': 1.5, heat: 1.3, aroma: 1.2, ingredients: 1.4, flaw: 1.2, technique: 0.7 }, loves: ['tonkotsu-ramen'], theme: [200, 120, 150],
     sounds: { good: ['*dabs lips with a napkin*', 'Lovely.'], bad: ['*purses lips*', 'Oh, dear.'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a);
@@ -375,7 +376,7 @@ Object.assign(JUDGE_ROSTER, {
   // President Obama: measured, fair, a fan of a hearty, well-balanced bowl (he's known for his chili).
   obama: {
     id: 'obama', name: 'President Obama', title: 'The Commander in Chef',
-    sens: { salty: 0.6, heat: 0.3, sweet: 0.7, body: 0.7, technique: 0.8, ingredients: 0.8 }, theme: [60, 90, 150],
+    sens: { salty: 0.6, heat: 0.3, sweet: 0.7, body: 0.7, technique: 0.8, ingredients: 0.8 }, loves: ['chili'], theme: [60, 90, 150],
     sounds: { good: ['*nods thoughtfully*', 'Now, look.'], bad: ['*long pause*', 'Let me be clear.'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a);

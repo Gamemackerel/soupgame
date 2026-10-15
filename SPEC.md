@@ -611,6 +611,8 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
   | Marty Stew | too salty, heat, aroma, missing ingredients | technique |
   | President Obama | | salt, heat, sweetness, thickness |
 
+  **Leans:** each judge also has a small fixed lean on each dish, up to 0.6 either way and the same every time (`judgeLean`), plus +0.6 on the one dish on their panel they have a soft spot for (`loves`): Joe the tomato soup, Sir Pounce the French onion, Biscuit the fish stew, Gordo the clam chowder, Paul the chicken noodle, Dude-Guy the goulash, Signore the minestrone, Seonbae the avgolemono, Monsieur the bouillabaisse, Marty the tonkotsu, Obama the chili. So even a flawless par reads 8, 10, 9 or 9, 9, 10 rather than 9, 9, 9. (A 10 on one card isn't a Perfect: that still takes a flourish, which every judge scores 10.)
+
   The judge who minds technique most points out a missing technique or ingredient; the one who minds the biggest drift most says how it drifted.
 - **Where scores land** (Tonkotsu, 20 test bowls): a pile of mistakes 1–2; one serious slip (no seasoning, mushy noodles, a pile of sugar) 4–6; a minor one (short boil, no salt, double water) 7–7.5; par 9; par plus a flourish 10.
 - **Soft caps:**

@@ -325,7 +325,8 @@ const LEVELS = [
 //   flaw         LEVEL_FLAW_COST if a forbidden flaw (burnt, mushy...) is in it
 // Each deduction is scaled by the judge's sensitivity to it (JUDGE_ROSTER[id].sens): blind spots and pet peeves,
 // so a flawed dish splits the panel and a solid one brings them together. Then each judge's own palate moves
-// their score up to LEVEL_OWN_MAX either way around how they liked the par recipe. Big pile-ups of deductions
+// their score up to LEVEL_OWN_MAX either way around how they liked the par recipe, and each has a small fixed lean
+// on each dish (judgeLean). Big pile-ups of deductions
 // level off (LEVEL_KNEE).
 // Cooking par flawlessly lands at 9. A flourish (an extra ingredient that makes the overall flavor better by the
 // judges' taste: the panel's average taste rises FLOURISH_GAIN over par, and nobody likes it more than
@@ -341,6 +342,16 @@ const LEVEL_OWN_GAIN = 0.5, LEVEL_OWN_MAX = 1;
 // Past LEVEL_KNEE points off, further deductions count LEVEL_PAST_KNEE as much: one mistake is felt in full, but
 // several piled up (one slip often costs taste, technique and ingredient at once) don't sink a dish to zero.
 const LEVEL_KNEE = 3, LEVEL_PAST_KNEE = 0.55;
+// A judge's small, fixed lean on a dish, so even a perfect par reads 9, 9, 8 or 10, 9, 9 rather than 9, 9, 9:
+// a soft spot for the dishes they love (LEVEL_LEAN), and otherwise a lean of its own that's the same every time.
+const LEVEL_LEAN = 0.6;
+function judgeLean(j, levelId) {
+  if (!j || j.id === 'ram') return 0;
+  if ((j.loves || []).includes(levelId)) return LEVEL_LEAN;
+  let h = 2166136261;
+  for (const c of j.id + '/' + levelId) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  return Math.round(((h % 1000) / 999 * 2 - 1) * LEVEL_LEAN * 10) / 10;   // -0.6..0.6, to a tenth
+}
 // How hard a judge comes down on a kind of mistake ('salty+' falls back to 'salty', then to 1).
 function judgeSens(j, key) {
   const k = (j && j.sens) || {};
@@ -482,7 +493,7 @@ const Levels = {
           + missingIng.length * LEVEL_INGR_COST * m('ingredients') + (broke.length ? LEVEL_FLAW_COST * m('flaw') : 0);
       const own = Math.max(-LEVEL_OWN_MAX, Math.min(LEVEL_OWN_MAX, LEVEL_OWN_GAIN * (tastes[n] - parOf(id))));
       const loss = off <= LEVEL_KNEE ? off : LEVEL_KNEE + (off - LEVEL_KNEE) * LEVEL_PAST_KNEE;
-      return { id, score: LEVEL_PAR - loss + own, off, flourish };
+      return { id, score: LEVEL_PAR - loss + own + judgeLean(j, level.id), off, flourish };
     });
     const raw = judges.reduce((s, j) => s + Math.max(0, Math.min(10, j.score)), 0) / judges.length;
     let total = raw;
