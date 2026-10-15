@@ -587,21 +587,32 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
   - A perfect 10 earns the **Perfect** badge.
 
 **Score:**
-- **Each judge blends.** Every judge gives their own 0–10, and the level score is the panel's average. A judge's score is 9 × (match + recipe + taste, each weighted), where:
-  - **match** is how close the taste is to the par recipe's (§16). Within ±0.15 of the recipe on any taste axis is free (the taste card's green band); past that, points fall off gradually
-  - **recipe** is the recipe's techniques and ingredients, half each
-  - **taste** is the judge's own taste score relative to how they scored the par recipe, capped at par. A judge's own palate counts for at most 30%, so matching the recipe is what mostly decides the score
+- **Each judge starts at par and takes points off.** Every judge gives their own 0–10, and the level score is the panel's average. A judge starts at 9 (the par recipe cooked flawlessly) and takes off:
+  - **Taste:** 7.5 points per unit past the free band (±0.15 of the recipe, the taste card's green band) on each axis, added up across axes, at most 7. More savory than the recipe never counts, and neither does a sauce dish being thicker.
+  - **Technique:** 1.5 for each of the recipe's techniques missing, or a forbidden one done.
+  - **Ingredients:** 0.7 for each of the recipe's ingredients left out.
+  - **Flaw:** 3 if a forbidden flaw is in it.
 
-  | Judge | Match | Recipe | Own taste |
-  |---|---|---|---|
-  | Joe | 45% | 25% | 30% |
-  | Biscuit | 45% | 25% | 30% |
-  | Nanny Mae | 45% | 25% | 30% |
-  | Sir Pounce | 35% | 35% | 30% |
-  | Gordo Hamsie | 25% | 45% | 30% |
-  | Paul Bollywood | 35% | 35% | 30% |
+  Past 3 points off, further points count 55% (one slip often costs taste, technique and ingredient at once, and a pile-up shouldn't hit zero). Then the judge's **own palate** moves the score up to 1 point either way: half the difference between their own taste of this bowl and of the par recipe (`tools/build-levels.js` records the latter in `js/level-targets.js`).
+- **Blind spots and pet peeves.** Each deduction is scaled by how much that judge cares (`sens` in `JUDGE_ROSTER`; 1 is normal). A flawed dish therefore splits the panel (say 4, 5 and 7), while a solid dish has small deductions and brings them together (8, 8, 9). A sensitivity can apply to one direction only (`salty+` too much, `salty-` not enough).
 
-  The par recipe cooked flawlessly therefore scores exactly 9. `tools/build-levels.js` records each judge's own taste of the par in `js/level-targets.js`.
+  | Judge | Comes down hard on | Barely notices |
+  |---|---|---|
+  | Sir Pounce | technique, sourness, thickness | heat |
+  | Biscuit | aroma, sweetness | too much salt or richness, technique |
+  | Nanny Mae | too spicy, too sour, thickness | technique |
+  | Joe | salt, flaws | technique, missing ingredients |
+  | Gordo Hamsie | technique, flaws, salt | |
+  | Paul Bollywood | heat, aroma, sweetness | |
+  | Mister Dude-Guy | not salty enough | too much salt, heat or richness |
+  | Chef Signore | missing ingredients, too spicy, thickness | too sweet |
+  | Chef Seonbae | not savory or salty enough | heat, sourness |
+  | Chef Monsieur | technique, sweetness, thickness, flaws | heat |
+  | Marty Stew | too salty, heat, aroma, missing ingredients | technique |
+  | President Obama | | salt, heat, sweetness, thickness |
+
+  The judge who minds technique most points out a missing technique or ingredient; the one who minds the biggest drift most says how it drifted.
+- **Where scores land** (Tonkotsu, 20 test bowls): a pile of mistakes 1–2; one serious slip (no seasoning, mushy noodles, a pile of sugar) 4–6; a minor one (short boil, no salt, double water) 7–7.5; par 9; par plus a flourish 10.
 - **Soft caps:**
   - A missing required ingredient or technique caps the score below 8 (no badge, but you can still pass).
   - A forbidden flaw caps it below 6 (chopped).
@@ -615,7 +626,7 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - **A perfect 10 takes par plus a flourish.** A flawless par recipe lands around 9.
   - **Flourish:** an extra ingredient not in the recipe.
   - It counts only if it makes the overall flavor better by the judges' own palates: the panel's average taste beats its average for the par recipe (precomputed by `build-levels.js`) by at least 0.15, nobody likes it more than 0.3 less than par, it's still close to the recipe (match ≥ 0.8), and nothing the recipe needs is missing.
-  - Then every judge credits it: +1 each, and its drift from par isn't held against the match. Par plus a flourish is a 10.
+  - Then every judge gives it a 10: its drift from the recipe isn't held against it.
 
 **Panels:**
 

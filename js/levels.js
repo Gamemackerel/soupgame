@@ -318,19 +318,34 @@ const LEVELS = [
 ];
 
 // ---------- Scoring ----------
-// Each judge gives their own 0–10 by blending (weights in JUDGE_ROSTER[id].blend):
-//   match   how close the taste is to the par recipe's
-//   recipe  the recipe's techniques and ingredients (half each)
-//   taste   their own taste, relative to how they scored the par recipe (capped at par)
+// Each judge starts from par (9) and takes points off for what's wrong, then the panel is averaged:
+//   taste        every axis past the free band costs LEVEL_AXIS_COST per unit off (summed, at most LEVEL_TASTE_MAX)
+//   technique    LEVEL_TECH_COST for each of the recipe's techniques missing (or a forbidden one done)
+//   ingredients  LEVEL_INGR_COST for each of the recipe's ingredients left out
+//   flaw         LEVEL_FLAW_COST if a forbidden flaw (burnt, mushy...) is in it
+// Each deduction is scaled by the judge's sensitivity to it (JUDGE_ROSTER[id].sens): blind spots and pet peeves,
+// so a flawed dish splits the panel and a solid one brings them together. Then each judge's own palate moves
+// their score up to LEVEL_OWN_MAX either way around how they liked the par recipe. Big pile-ups of deductions
+// level off (LEVEL_KNEE).
 // Cooking par flawlessly lands at 9. A flourish (an extra ingredient that makes the overall flavor better by the
 // judges' taste: the panel's average taste rises FLOURISH_GAIN over par, and nobody likes it more than
-// FLOURISH_SLACK less) adds 1 from every judge: par plus a flourish is a perfect 10.
+// FLOURISH_SLACK less) forgives its drift from the recipe and makes every judge's score 10.
 // Caps: anything the recipe needs missing → below 8 (no badge); a forbidden flaw → below 6 (chopped).
 const LEVEL_AXES = ['salty', 'sweet', 'sour', 'bitter', 'umami', 'rich', 'heat', 'aroma', 'body'];
 const LEVEL_PASS = 6, LEVEL_GOOD = 8, LEVEL_PAR = 9, WRONG_DISH_MAX = 3;
 // Within this much of the recipe on any taste axis is free (the taste card's green band); past it, points fall off
 // gradually. (A judge's own palate counts for at most 30% of their score: see JUDGE_ROSTER blends.)
 const LEVEL_FREE = 0.15, LEVEL_FALLOFF = 0.22;
+const LEVEL_AXIS_COST = 7.5, LEVEL_TASTE_MAX = 7, LEVEL_TECH_COST = 1.5, LEVEL_INGR_COST = 0.7, LEVEL_FLAW_COST = 3;
+const LEVEL_OWN_GAIN = 0.5, LEVEL_OWN_MAX = 1;
+// Past LEVEL_KNEE points off, further deductions count LEVEL_PAST_KNEE as much: one mistake is felt in full, but
+// several piled up (one slip often costs taste, technique and ingredient at once) don't sink a dish to zero.
+const LEVEL_KNEE = 3, LEVEL_PAST_KNEE = 0.55;
+// How hard a judge comes down on a kind of mistake ('salty+' falls back to 'salty', then to 1).
+function judgeSens(j, key) {
+  const k = (j && j.sens) || {};
+  return k[key] != null ? k[key] : k[key.replace(/[+-]$/, '')] != null ? k[key.replace(/[+-]$/, '')] : 1;
+}
 const overIsFine = (level, ax) => ax === 'umami' || (level && level.sauce && ax === 'body');
 const FLOURISH_GAIN = 0.15, FLOURISH_SLACK = 0.3;
 const NOT_A_FLOURISH = new Set(['water', 'extinguisher']);
@@ -388,17 +403,19 @@ const Levels = {
   // differences within LEVEL_FREE cost nothing.
   match(level, p) {
     const target = this.target(level);
-    if (!target) return { match: 1, worst: null };
+    if (!target) return { match: 1, worst: null, errs: {} };
     let sw = 0, se = 0, worst = null;
+    const errs = {};   // 'salty+': how far past the free band, by axis and direction
     for (const ax of LEVEL_AXES) {
       const want = target.taste[ax], got = p[ax] || 0, w = 1 + 2 * want;
       // Some axes only count one way: more savory than the recipe is never a fault, and a sauce (level.sauce) can't
       // be too thick. Only falling short on those costs anything.
       const err = got > want && overIsFine(level, ax) ? 0 : Math.max(0, Math.abs(got - want) - LEVEL_FREE);
       sw += w; se += w * err;
+      if (err > 0) errs[ax + (got > want ? '+' : '-')] = err;
       if (!worst || w * err > worst.e) worst = { ax, e: w * err, d: got - want };
     }
-    return { match: Math.max(0, Math.min(1, 1 - se / sw / LEVEL_FALLOFF)), worst: worst && worst.e > 0 ? worst : null };
+    return { match: Math.max(0, Math.min(1, 1 - se / sw / LEVEL_FALLOFF)), worst: worst && worst.e > 0 ? worst : null, errs };
   },
 
   // What the chef says tasting in a level: how it compares with the recipe (burnt and the like still come first).
@@ -418,10 +435,10 @@ const Levels = {
     const name = (i) => (SHELF.find((s) => s.id === i) || { name: i }).name.toLowerCase();
 
     // How close the taste is to the recipe.
-    let match = a.empty ? 0 : 1, gap = null;
+    let match = a.empty ? 0 : 1, gap = null, errs = {};
     if (target && !a.empty) {
       const m = this.match(level, a.p), worst = m.worst;
-      match = m.match;
+      match = m.match; errs = m.errs;
       if (worst && worst.e > 0.05) { gap = { ax: worst.ax, d: worst.d }; notes.push(`It was ${worst.d < 0 ? 'less' : 'more'} ${AXIS_WORDS[worst.ax] || worst.ax} than the recipe.`); }
     }
 
@@ -454,14 +471,21 @@ const Levels = {
     const gain = ids.reduce((s, id, n) => s + tastes[n] - parOf(id), 0) / ids.length;
     const flourish = extras.length > 0 && match >= 0.8 && !missing.length && gain >= FLOURISH_GAIN &&
                      ids.every((id, n) => tastes[n] >= parOf(id) - FLOURISH_SLACK);
-    const judges = ids.map((id, n) => {
-      const w = JUDGE_ROSTER[id].blend, rel = Math.max(0, Math.min(1, tastes[n] / parOf(id)));
-      // A flourish's drift from par isn't held against you.
-      return { id, score: LEVEL_PAR * (w.match * (flourish ? 1 : match) + w.recipe * recipe + w.taste * (flourish ? 1 : rel)) + (flourish ? 1 : 0), flourish };
-    });
-    const raw = judges.reduce((s, j) => s + j.score, 0) / judges.length;
-    let total = raw;
     const broke = level.forbid.filter((f) => (a.flaws[f] || 0) > 0.3);
+    const judges = ids.map((id, n) => {
+      // A flourish's drift from par isn't held against you: everyone gives it a 10.
+      if (flourish) return { id, score: LEVEL_PAR + 1, flourish };
+      const j = JUDGE_ROSTER[id], m = (key) => judgeSens(j, key);
+      let off = 0;
+      for (const key in errs) off += LEVEL_AXIS_COST * errs[key] * m(key);
+      off = Math.min(off, LEVEL_TASTE_MAX) + (missing.length + slipped.length) * LEVEL_TECH_COST * m('technique')
+          + missingIng.length * LEVEL_INGR_COST * m('ingredients') + (broke.length ? LEVEL_FLAW_COST * m('flaw') : 0);
+      const own = Math.max(-LEVEL_OWN_MAX, Math.min(LEVEL_OWN_MAX, LEVEL_OWN_GAIN * (tastes[n] - parOf(id))));
+      const loss = off <= LEVEL_KNEE ? off : LEVEL_KNEE + (off - LEVEL_KNEE) * LEVEL_PAST_KNEE;
+      return { id, score: LEVEL_PAR - loss + own, off, flourish };
+    });
+    const raw = judges.reduce((s, j) => s + Math.max(0, Math.min(10, j.score)), 0) / judges.length;
+    let total = raw;
     if (missing.length || slipped.length || missingIng.length) total = Math.min(total, LEVEL_GOOD - 0.1);
     if (broke.length) { total = Math.min(total, LEVEL_PASS - 0.1); notes.unshift('The judges can\'t forgive: ' + broke.map((f) => FLAW_NAMES[f] || f).join(', ') + '.'); }
     // Keep each judge's card consistent with a capped total.
