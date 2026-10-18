@@ -238,7 +238,7 @@ const DISCOVERIES = [
   { id: 'boil',       name: 'Rolling Boil',   hint: 'Turn it up.',                     desc: 'Water can\'t pass 100°C. Extra heat becomes steam: the soup reduces and concentrates.' },
   { id: 'liaison',    name: 'Egg Liaison',    hint: 'Warm, not boiling. And stir.',      desc: 'Egg stirred into warm (not boiling) broth melts into it and thickens it silky, the way avgolemono is made. Too hot and it scrambles.' },
   { id: 'melt',       name: 'Melted Cheese',  hint: 'Cheese and heat.',                 desc: 'Cheese melts into a hot soup: rich, salty and savory.' },
-  { id: 'tonkotsu',   name: 'Pork Bone Broth', hint: 'Pork, a hard boil, and time.',    desc: 'Pork boiled hard for a long time melts its collagen into the broth: rich, silky and creamy white. A gentle simmer won\'t do it.' },
+  { id: 'tonkotsu',   name: 'Pork Bone Broth', hint: 'Pork at a hard boil (heat 7+) for two minutes.',    desc: 'Pork boiled hard for a long time melts its collagen into the broth: rich, silky and creamy white. A gentle simmer won\'t do it.' },
   { id: 'sweat',      name: 'Sweating',       hint: 'Onions + fat + gentle heat',      desc: 'Aromatics soften and release sweetness in warm fat.' },
   { id: 'caramelize', name: 'Caramelization', hint: 'Patience with onions… no water.', desc: 'Browning only happens above 100°C, so never in water. Deep sweet, toasty flavor.' },
   { id: 'seared',     name: 'Seared',         hint: 'Leave it alone on a hot pan…',    desc: 'Meat and starches brown on hot metal (the Maillard reaction): savory and roasty.' },

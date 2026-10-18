@@ -329,7 +329,7 @@ Sim.cellRGB = function (i) {
     const o = i * NF, c = [128, 184, 226];
     lerpC(c, tint(this.fl[o + F_RED], 4) * 0.9, 206, 70, 40);
     lerpC(c, tint(this.fl[o + F_BROWN], 2) * 0.75, 128, 70, 30);
-    lerpC(c, tint(this.fl[o + F_WHITE], 1.5) * 0.85, 246, 240, 226);
+    lerpC(c, tint(this.fl[o + F_WHITE], 1.5) * 0.85 * (1 - 0.65 * tint(this.fl[o + F_RED], 4)), 246, 240, 226);
     return c;
   }
   return M.col.slice();
@@ -417,6 +417,18 @@ function tryBody(S, cells, b, dx, dy, free, force) {
   return true;
 }
 
+// A thrown egg only splats on something hard: the pot floor, near the bottom of a nearly empty pot. Landing on top of
+// a full pot (pieces, soup) never cracks it; and deep soup under it cushions it too.
+function cushioned(S, cells) {
+  if (!cells.some((i) => i >= (GH - 5) * GW)) return true;   // nowhere near the floor
+  for (const i of cells) {
+    const y = (i / GW) | 0;
+    let liquid = 0;
+    for (let k = 1; y + k < GH && k <= 24; k++) if (CLS[S.mat[i + k * GW]] === C_LIQUID && ++liquid >= 8) return true;
+  }
+  return false;
+}
+
 // Pieces carry momentum: the ladle and the whirlpool push them, liquid drags them back to rest,
 // and in a dry pot they fly, bounce off the walls and skid across the floor.
 Sim.moveBodies = function () {
@@ -493,7 +505,7 @@ Sim.moveBodies = function () {
       if (dx && tryBody(this, cells, b, dx, 0, true, shoved)) { v.ax -= dx; moved = true; }
       else if (dx) { v.vx *= -0.45; v.ax = 0; }                       // bounce off a wall or piece
       if (dy && tryBody(this, cells, b, 0, dy, true, shoved)) { v.ay -= dy; moved = true; }
-      else if (dy > 0 && this.bodyKind[b] === BK_SHELL && v.vy > 2.2) { this.crackEgg(b, cells, v); cracked = true; break; }
+      else if (dy > 0 && this.bodyKind[b] === BK_SHELL && v.vy > 2.2 && !cushioned(this, cells)) { this.crackEgg(b, cells, v); cracked = true; break; }
       else if (dy) {
         if (dy > 0 && !swimming) {   // land, skid, maybe bounce (off-center landings tip the piece)
           if (Math.abs(v.vy) > 1.2) v.w = (v.w || 0) + (rnd() - 0.5) * 0.25 + v.vx * 0.03;

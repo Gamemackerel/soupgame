@@ -415,10 +415,10 @@ function reactChunk(S, x, y, i, m) {
     }
   }
   // Pork at a hard, rolling boil, for long enough (about two and a half minutes, counted once a frame), makes tonkotsu.
-  if (m === PORK && t >= 94 && S.dial >= 8 && S.flags.porkBoilFrame !== S.frame) {   // (pieces lag the boiling water a few degrees)
+  if (m === PORK && t >= 92 && S.dial >= 7 && S.flags.porkBoilFrame !== S.frame) {   // (pieces lag the boiling water a few degrees)
     S.flags.porkBoilFrame = S.frame;
     S.flags.porkBoil = (S.flags.porkBoil || 0) + 1;
-    if (S.flags.porkBoil > 150 * 60) S.discover('tonkotsu');
+    if (S.flags.porkBoil > 120 * 60) S.discover('tonkotsu');
   }
   // Watery vegetables steam off their water before they can get really hot: they sit near 110°C while
   // moist, and only climb toward the pan's temperature as they brown (dry out). So stirring fresh food
@@ -581,8 +581,9 @@ Sim.render = function (data) {
         // Pigment saturates: a little tints the broth clearly, more makes it deeper, so a reducing soup darkens.
         lerpC(c, tint(fl[o + F_GOLD] + fl[o + F_RICH] * 0.25, 1.5) * 0.8, 232, 186, 70);
         lerpC(c, tint(fl[o + F_RED], 4) * 0.9, 206, 70, 40);
-        lerpC(c, tint(fl[o + F_BROWN] + fl[o + F_UMAMI] * 0.15, 2) * 0.75, 128, 70, 30);
-        lerpC(c, tint(fl[o + F_WHITE] + fl[o + F_BODY] * 0.2, 1.5) * 0.85, 246, 240, 226);
+        lerpC(c, tint(fl[o + F_BROWN] + fl[o + F_UMAMI] * 0.15, 2) * 0.75 * (1 - 0.55 * tint(fl[o + F_RED], 4)), 128, 70, 30);   // (tomato's own savor doesn't brown it)
+        // Cloudiness, though strong red pigment wins over it: a pot full of tomato reads red even with pork broth in it.
+        lerpC(c, tint(fl[o + F_WHITE] + fl[o + F_BODY] * 0.2, 1.5) * 0.85 * (1 - 0.65 * tint(fl[o + F_RED], 4)), 246, 240, 226);
         lerpC(c, fl[o + F_BITTER] * 0.4, 60, 50, 40);
         a = m === RESIDUE ? 255 : 200 + Math.min(55, (fl[o + F_BODY] + fl[o + F_WHITE] + fl[o + F_RED]) * 30);
         if (m === RESIDUE) { c[0] *= 0.8; c[1] *= 0.8; c[2] *= 0.8; }   // a sticky, concentrated film
