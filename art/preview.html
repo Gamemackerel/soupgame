@@ -88,7 +88,7 @@ function buildScenes() {
     for (const s of list) {
       const fig = document.createElement('figure'), wrap = document.createElement('div'), frame = document.createElement('iframe');
       wrap.className = 'frame'; frame.title = s.title;
-      frame.addEventListener('load', () => settle(frame, mine));
+      frame.addEventListener('load', () => { if (frame.src && !frame.dataset.settling) { frame.dataset.settling = 1; settle(frame, mine); } });   // (not the empty frame's own load)
       wrap.append(frame);
       const cap = document.createElement('figcaption'); cap.innerHTML = `${s.title}<small>${s.note}</small>`;
       fig.append(wrap, cap); box.append(fig); frames.push(frame);
@@ -106,7 +106,7 @@ function settle(frame, mine, tries = 0) {
   const hideCard = () => { const UI = game(w, 'UI'); if (UI) UI.card = null; };
   hideCard(); setTimeout(hideCard, 300);
   setTimeout(() => { hideCard(); frame.parentNode.classList.add('ready'); }, 500);
-  if (mine === build && queue.length) setTimeout(() => queue.shift()(), 50);
+  if (mine === build && queue.length) { const next = queue.shift(); setTimeout(next, 50); }
 }
 // The game calls this as it starts up (js/sprites.js, Sprites.load), so it never draws its own placeholder art.
 // Returns the sprites the page supplied.
