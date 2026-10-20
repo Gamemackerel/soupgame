@@ -60,7 +60,8 @@ The chef is a bit bigger, and he comes in pieces:
    - **Head and hat:** rows 1–52, in the middle 40 columns (leave 4 empty columns on each side).
    - **Face** (eyes, mustache, mouth): on the head, rows 29–50, in the middle 24 columns.
    - **Body** (shirt and scarf): rows 49–94, all 48 columns. The neck is where the head and body overlap.
-   - **The pot hides the bottom 9 rows** (86–94), so keep the important stuff above row 86.
+   - **The pot hides the bottom 16 rows** (79–94), so keep the important stuff above row 79.
+   - **His arms join at row 56,** at the outer edges of his shoulders.
    - **Don't draw arms.** The game draws them from his shoulders.
 2. Open `characters/chef.aseprite`. Now there are three folders: **body**, **head** and **face**.
 3. Bring in your photo, then draw each part in its own folder: his shirt and scarf in **body**, his head and hat in **head**, his eyes, mustache and mouth in **face**.

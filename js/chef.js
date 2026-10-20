@@ -2,6 +2,9 @@
 
 // Low camera: the chef stands a little higher above the pot, presiding over it.
 const CHEF_LIFT = -5;
+// How far his body and head sit down behind the pot, below where his arms join: the drawn shoulders line up with
+// the arms' shoulder points (88 + by), and the pot rim hides more of his coat.
+const CHEF_SINK = 7;
 const SKIN = [250, 212, 182], COAT = [250, 250, 252], HAT = [255, 255, 255];
 
 const REACTIONS = {
@@ -32,7 +35,7 @@ const Chef = {
   // A flying bit of food reaching the chef: sometimes it sticks to him.
   hit(p) {
     const by = Math.round(Math.sin(this.t * 0.07) + this.swayBob) + CHEF_LIFT;
-    const dx = p.x - this.x, dy = p.y - by;
+    const dx = p.x - this.x, dy = p.y - by - CHEF_SINK;
     if (Math.abs(dx) > 20 || dy < 40 || dy > 118 || Math.random() > 0.35) return false;
     if (this.stains.length > 90) this.stains.shift();
     this.stains.push({ dx: Math.round(dx), dy: Math.round(dy), c: p.c.slice(), r: Math.random() < 0.3 ? 2 : 1 });
@@ -118,24 +121,25 @@ const Chef = {
     const cx = Math.round(this.x + this.swayX + (this.shakeT ? ((t >> 1) & 1 ? 1 : -1) : 0)), by = bob + CHEF_LIFT;
 
     // Torso, head (with toque) and face are separate sprites, so the face can change without redrawing him.
-    Sprites.draw(g, 'chef/body', 'idle', t, cx, by);
-    const hy = 62 + by + (this.sipT ? 2 : 0);
+    const sy = by + CHEF_SINK;   // his body and head (the arms stay at by)
+    Sprites.draw(g, 'chef/body', 'idle', t, cx, sy);
+    const hy = 62 + sy + (this.sipT ? 2 : 0);
     Sprites.draw(g, 'chef/head', 'idle', t, cx, hy);
     Sprites.draw(g, 'chef/face', this.faceState(), t, cx, hy);
 
     // Splats on his coat and face; soot from fire darkens him.
-    for (const s of this.stains) rect(g, cx + s.dx - (s.r >> 1), by + s.dy - (s.r >> 1), s.r, s.r, s.c);
+    for (const s of this.stains) rect(g, cx + s.dx - (s.r >> 1), sy + s.dy - (s.r >> 1), s.r, s.r, s.c);
     if (Sim.disaster) this.soot = Math.min(1, this.soot + 0.0008);
     if (this.soot > 0) {
       g.fillStyle = `rgba(40,30,30,${this.soot * 0.55})`;
       ellipse(g, cx, hy, 13, 13, g.fillStyle);
       for (let k = 0; k < 6; k++) rect(g, cx - 14 + ((k * 37) % 28), hy - 22 + ((k * 13) % 10), 3, 2, `rgba(40,30,30,${this.soot * 0.6})`);
-      rect(g, cx - 18, 96 + by, 36, 20, `rgba(40,30,30,${this.soot * 0.3})`);
+      rect(g, cx - 18, 96 + sy, 36, 20, `rgba(40,30,30,${this.soot * 0.3})`);
     }
     // Sweat when the heat's high or panicking.
     if (Sim.dial >= 8 || this.mood === 'panic') {
-      const sy = hy - 6 + ((t >> 2) % 8);
-      rect(g, cx + 12, sy, 2, 3, [140, 200, 255]); rect(g, cx + 12, sy, 1, 1, [230, 245, 255]);
+      const dy = hy - 6 + ((t >> 2) % 8);
+      rect(g, cx + 12, dy, 2, 3, [140, 200, 255]); rect(g, cx + 12, dy, 1, 1, [230, 245, 255]);
     }
   },
 
@@ -303,9 +307,9 @@ const Chef = {
   drawSpoon(g, sh, cx, by) {
     const steel = [196, 202, 216], dark = [70, 74, 90];
     let sx, sy, hx, hy, ang;   // spoon bowl, hand, handle direction
-    if (this.sipT > 0) { sx = cx + 3; sy = 70 + by; hx = cx + 14; hy = 82 + by; }
+    if (this.sipT > 0) { sx = cx + 3; sy = 70 + by + CHEF_SINK; hx = cx + 14; hy = 82 + by + CHEF_SINK; }
     else if (this.spoon) { sx = Math.round(this.spoon.x); sy = Math.round(this.spoon.y); hx = sx + 7; hy = sy - 9; }
-    else { sx = cx + 6; sy = 70 + by; hx = cx + 16; hy = 86 + by; }   // pondering, spoon at his lips
+    else { sx = cx + 6; sy = 70 + by + CHEF_SINK; hx = cx + 16; hy = 86 + by + CHEF_SINK; }   // pondering, spoon at his lips
     arm(g, sh.x, sh.y, hx, hy);
     const dx = hx - sx, dy = hy - sy, len = Math.max(1, Math.hypot(dx, dy));
     for (let k = 0; k <= len + 3; k++) rect(g, Math.round(sx + dx / len * k), Math.round(sy + dy / len * k), 1, 1, k > len - 2 ? [150, 156, 172] : steel);

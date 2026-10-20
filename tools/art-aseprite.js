@@ -44,9 +44,12 @@ function documents() {
   const dot = (x, y, color) => (img, off) => { for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + off.x + dx, Y = y + off.y + dy; if (X >= 0 && Y >= 0 && X < img.w && Y < img.h) img.data.set(color, (Y * img.w + X) * 4); } };
   const BLUE = [80, 170, 255, 255], RED = [255, 60, 80, 255];
 
+  // The game draws the chef's body and head CHEF_SINK (js/chef.js) lower than his arms and the pot, so the guides
+  // for his shoulders and the pot rim sit that much higher on his drawing.
+  const SINK = 7;
   docs.push({ file: 'characters/chef', kind: 'parts',
     parts: { body: { sprite: 'characters/chef/body', at: [0, 0] }, head: { sprite: 'characters/chef/head', at: [0, 62] }, face: { sprite: 'characters/chef/face', at: [0, 62] } },
-    layers: [{ part: 'body' }, { part: 'head' }, { part: 'face' }, { guide: '_guides (pot rim, shoulders)', draw: (img, off) => { line(111, BLUE)(img, off); dot(-18, 88, RED)(img, off); dot(18, 88, RED)(img, off); } }] });
+    layers: [{ part: 'body' }, { part: 'head' }, { part: 'face' }, { guide: '_guides (pot rim, shoulders)', draw: (img, off) => { line(111 - SINK, BLUE)(img, off); dot(-18, 88 - SINK, RED)(img, off); dot(18, 88 - SINK, RED)(img, off); } }] });
   for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul', 'dudeguy', 'signore', 'seonbae', 'monsieur', 'marty', 'obama', 'ram']) {
     docs.push({ file: 'characters/judges/' + id, kind: 'parts',
       parts: { body: { sprite: 'characters/judges/' + id, at: [0, 0] }, front: { sprite: 'characters/judges/' + id + '-front', at: [0, 0] } },
