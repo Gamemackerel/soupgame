@@ -61,8 +61,13 @@ const Sprites = {
 
   // Finished art: art/sprites/index.json lists the sheets that exist (tools/art-index.js writes it).
   load() {
+    // Inside the artist's scene preview (art/preview.html): the page hands over its art (the artist's drawings and
+    // the catalog's sketches) before anything is drawn, and that art wins over the finished sheets below.
+    let owned = null;
+    try { if (window.parent !== window && window.parent.soupPreview) owned = window.parent.soupPreview(window); } catch (e) {}
     fetch('art/sprites/index.json').then((r) => (r.ok ? r.json() : [])).then((list) => {
       for (const path of list) {
+        if (owned && owned.has(path)) continue;
         const d = this.byPath[path];
         if (!d) { console.warn('art: no sprite called', path); continue; }
         const img = new Image();

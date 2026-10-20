@@ -477,11 +477,11 @@ function draw() {
     // Papa Dom's pizza shop for the first tier; Souped Up's studio kitchen otherwise (the sandbox too).
     const final = Game.level && LEVEL_TIERS[Game.level.tier].final;
     g.drawImage(Sprites.canvas('backgrounds/' + (final ? 'hell-kitchen' : Game.level && Game.level.tier === 0 ? 'pizza-shop' : 'studio-kitchen'), 'default', 0), 0, 0);
-    if (final) drawRampage(g, t);   // The Ram, behind you, the whole time
     // Soot from a kitchen fire stays on the wall until a fresh pot.
     if (Sim.soot > 0) { g.fillStyle = `rgba(30,22,24,${Sim.soot * 0.65})`; g.fillRect(58, 0, 204, GY + 4); }
     Spill.drawWall(g);   // and so does food blasted off the stove
     if (Game.level) drawTimer(g);   // on the back wall, behind the chef
+    if (final) drawRampage(g, t);   // The Ram, in the room behind you (in front of the wall and its clock) the whole time
     Chef.draw(g, input.x, input.y);
     Art.drawFlames(g, Sim.dial, t, false);
     const glow = Math.max(0, Math.min(1, (Sim.panT - 150) / 120));

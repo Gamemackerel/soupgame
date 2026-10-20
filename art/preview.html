@@ -24,7 +24,10 @@
   .scenes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 1fr)); gap: 18px; }
   figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   figure .frame { position: relative; aspect-ratio: 4 / 3; background: #000; }
-  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; opacity: 0; transition: opacity .3s; }
+  .frame.ready iframe { opacity: 1; }
+  .frame::before { content: 'Loading...'; position: absolute; inset: 0; display: grid; place-items: center; color: #8a8094; font-size: 13px; }
+  .frame.ready::before { content: none; }
   figcaption { padding: 8px 12px; font-size: 14px; } figcaption small { color: var(--muted); display: block; }
   .opts { margin-top: 10px; font-size: 14px; color: var(--muted); }
 </style></head>
@@ -74,33 +77,43 @@ const frames = [];
 // ---------- The scenes: the game itself, in frames ----------
 // (The game reads the first word as the view: demo, judge.)
 function sceneHash(s) { return '#' + s.hash + '&preview&desktop'; }
+// Each scene's game cooks its soup before it starts, which keeps the page busy: the scenes load one at a time, so
+// the first appears quickly, and each stays hidden until it's ready.
+let queue = [], build = 0;
 function buildScenes() {
+  const mine = ++build;
+  queue = [];
   for (const [where, list] of Object.entries(SCENES)) {
     const box = $(where); box.textContent = '';
     for (const s of list) {
       const fig = document.createElement('figure'), wrap = document.createElement('div'), frame = document.createElement('iframe');
-      wrap.className = 'frame'; frame.title = s.title; frame.loading = 'lazy';
-      frame.src = '../index.html' + sceneHash(s);
-      frame.addEventListener('load', () => settle(frame));
+      wrap.className = 'frame'; frame.title = s.title;
+      frame.addEventListener('load', () => settle(frame, mine));
       wrap.append(frame);
       const cap = document.createElement('figcaption'); cap.innerHTML = `${s.title}<small>${s.note}</small>`;
       fig.append(wrap, cap); box.append(fig); frames.push(frame);
+      queue.push(() => { frame.src = '../index.html' + sceneHash(s); });
     }
   }
+  queue.shift()();
 }
 // Once a scene's game is up: no recipe card in the way, and the artist's drawings in.
 // (The game's objects are top-level consts, not window properties: reach them through the frame's own eval.)
 const game = (w, name) => { try { return w && w.eval(name); } catch (e) { return undefined; } };
-function settle(frame, tries = 0) {
+function settle(frame, mine, tries = 0) {
   const w = frame.contentWindow;
-  if (!game(w, 'Sprites') || !game(w, 'Game')) { if (tries < 50) setTimeout(() => settle(frame, tries + 1), 100); return; }
+  if (!game(w, 'Sprites') || !game(w, 'Game')) { if (tries < 50) setTimeout(() => settle(frame, mine, tries + 1), 100); return; }
   const hideCard = () => { const UI = game(w, 'UI'); if (UI) UI.card = null; };
-  hideCard(); setTimeout(hideCard, 300); setTimeout(hideCard, 1200);
-  apply(w);
+  hideCard(); setTimeout(hideCard, 300);
+  setTimeout(() => { hideCard(); frame.parentNode.classList.add('ready'); }, 500);
+  if (mine === build && queue.length) setTimeout(() => queue.shift()(), 50);
 }
+// The game calls this as it starts up (js/sprites.js, Sprites.load), so it never draws its own placeholder art.
+// Returns the sprites the page supplied.
+window.soupPreview = (w) => apply(w);
 function apply(w) {
-  const Sprites = game(w, 'Sprites');
-  if (!Sprites) return;
+  const Sprites = game(w, 'Sprites'), supplied = new Set();
+  if (!Sprites) return supplied;
   for (const f of files.values()) for (const [path, img] of Object.entries(f.sheets || {})) {
     const d = Sprites.byPath[path];
     if (!d) continue;
@@ -109,7 +122,7 @@ function apply(w) {
     if (img.width !== W || img.height !== H) { console.warn(`preview: ${path} is ${img.width}x${img.height}, the game expects ${W}x${H}`); continue; }
     const cv = w.document.createElement('canvas'); cv.width = W; cv.height = H;
     cv.getContext('2d').putImageData(new w.ImageData(new w.Uint8ClampedArray(img.data), W, H), 0, 0);
-    Sprites.over[d.name] = cv;
+    Sprites.over[d.name] = cv; supplied.add(path);
   }
   // Everything nobody has drawn yet (not in the artist's files, not finished in the game): its plain sketch from
   // the catalog, the same sheet layout the game uses.
@@ -122,9 +135,10 @@ function apply(w) {
     if (img.naturalWidth !== W || img.naturalHeight !== H) continue;
     const cv = w.document.createElement('canvas'); cv.width = W; cv.height = H;
     cv.getContext('2d').drawImage(img, 0, 0);
-    Sprites.over[d.name] = cv;
+    Sprites.over[d.name] = cv; supplied.add(path);
   }
   Sprites.cache = {};
+  return supplied;
 }
 const applyAll = () => frames.forEach((f) => apply(f.contentWindow));
 
