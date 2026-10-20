@@ -285,12 +285,10 @@ Art.buildBackground = function (theme = 'kitchen', plain = false) {
   const cv = makeCanvas(W, H), g = cv.getContext('2d');
   const pizza = theme === 'pizza', hell = theme === 'hell';
   if (hell) {
-    // Hell's kitchen: black rock split by glowing lava cracks.
-    rect(g, 0, 0, W, 150, [44, 12, 12]);
-    for (let y = 0; y < 150; y += 9) for (let x = ((y / 9) & 1) * 9; x < W; x += 18) rect(g, x, y, 17, 8, [56, 16, 16]);
-    for (let k = 0; k < 9; k++) {
-      let x = 12 + k * 36, y = 0;
-      while (y < 140) { const nx = x + ((k * 7 + y) % 5) - 2; rect(g, Math.min(x, nx), y, Math.abs(nx - x) + 1, 6, [255, 110 + (y % 40), 30]); x = nx; y += 6; }
+    // Hell's kitchen, as a plain sketch for now: a reddish rock wall, a few rough boulders.
+    rect(g, 0, 0, W, 150, [120, 46, 36]);
+    for (const [x, y, rx, ry] of [[30, 30, 26, 18], [110, 16, 30, 14], [200, 40, 34, 20], [290, 22, 26, 16], [60, 96, 30, 20], [262, 104, 34, 22], [160, 70, 22, 12]]) {
+      ellipse(g, x, y + 2, rx, ry, [92, 34, 28]); ellipse(g, x, y, rx - 2, ry - 2, [140, 58, 44]);
     }
   } else if (pizza) {
     // Exposed brick wall.
