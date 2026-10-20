@@ -1179,8 +1179,8 @@
     "animated": false
   },
   {
-    "name": "judges/signore",
-    "path": "characters/judges/signore",
+    "name": "judges/jamie",
+    "path": "characters/judges/jamie",
     "group": "characters",
     "cell": [
       96,
@@ -1249,7 +1249,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Chef Signore: the Italian chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "notes": "Jamie Olives: the cheeky, health-conscious British chef (a Jamie Oliver caricature): tousled hair, rolled-up sleeves, always holding a bowl of olives. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
     "guides": [
       {
         "y": 118,
@@ -1259,8 +1259,8 @@
     "animated": true
   },
   {
-    "name": "judges/signore-front",
-    "path": "characters/judges/signore-front",
+    "name": "judges/jamie-front",
+    "path": "characters/judges/jamie-front",
     "group": "characters",
     "cell": [
       96,
@@ -1303,7 +1303,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Chef Signore: the Italian chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "notes": "Jamie Olives: the cheeky, health-conscious British chef (a Jamie Oliver caricature): tousled hair, rolled-up sleeves, always holding a bowl of olives. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
     "guides": [
       {
         "y": 118,
@@ -1313,8 +1313,8 @@
     "animated": false
   },
   {
-    "name": "judges/seonbae",
-    "path": "characters/judges/seonbae",
+    "name": "judges/kenji",
+    "path": "characters/judges/kenji",
     "group": "characters",
     "cell": [
       96,
@@ -1383,7 +1383,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Chef Seonbae: the Korean chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "notes": "Kenji L Salt: the food scientist (a J. Kenji López-Alt caricature): glasses, short dark beard, a probe thermometer in his shirt pocket. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
     "guides": [
       {
         "y": 118,
@@ -1393,8 +1393,8 @@
     "animated": true
   },
   {
-    "name": "judges/seonbae-front",
-    "path": "characters/judges/seonbae-front",
+    "name": "judges/kenji-front",
+    "path": "characters/judges/kenji-front",
     "group": "characters",
     "cell": [
       96,
@@ -1437,7 +1437,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Chef Seonbae: the Korean chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "notes": "Kenji L Salt: the food scientist (a J. Kenji López-Alt caricature): glasses, short dark beard, a probe thermometer in his shirt pocket. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
     "guides": [
       {
         "y": 118,
@@ -1447,8 +1447,8 @@
     "animated": false
   },
   {
-    "name": "judges/monsieur",
-    "path": "characters/judges/monsieur",
+    "name": "judges/julia",
+    "path": "characters/judges/julia",
     "group": "characters",
     "cell": [
       96,
@@ -1517,7 +1517,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Chef Monsieur: the French chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "notes": "Julia Childish: the warbling, butter-loving grande dame of French cooking (a Julia Child caricature): tall and cheerful, curled hair, pearls, a blue button-down shirt. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
     "guides": [
       {
         "y": 118,
@@ -1527,8 +1527,8 @@
     "animated": true
   },
   {
-    "name": "judges/monsieur-front",
-    "path": "characters/judges/monsieur-front",
+    "name": "judges/julia-front",
+    "path": "characters/judges/julia-front",
     "group": "characters",
     "cell": [
       96,
@@ -1571,7 +1571,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Chef Monsieur: the French chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "notes": "Julia Childish: the warbling, butter-loving grande dame of French cooking (a Julia Child caricature): tall and cheerful, curled hair, pearls, a blue button-down shirt. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
     "guides": [
       {
         "y": 118,
@@ -1581,8 +1581,8 @@
     "animated": false
   },
   {
-    "name": "judges/marty",
-    "path": "characters/judges/marty",
+    "name": "judges/marta",
+    "path": "characters/judges/marta",
     "group": "characters",
     "cell": [
       96,
@@ -1651,7 +1651,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Marty Stew: the queen of home entertaining (a Martha Stewart caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+    "notes": "Marta Stew: the queen of home entertaining (a Martha Stewart caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
     "guides": [
       {
         "y": 118,
@@ -1661,8 +1661,8 @@
     "animated": true
   },
   {
-    "name": "judges/marty-front",
-    "path": "characters/judges/marty-front",
+    "name": "judges/marta-front",
+    "path": "characters/judges/marta-front",
     "group": "characters",
     "cell": [
       96,
@@ -1705,7 +1705,7 @@
       "meh",
       "upset"
     ],
-    "notes": "Marty Stew: the queen of home entertaining (a Martha Stewart caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+    "notes": "Marta Stew: the queen of home entertaining (a Martha Stewart caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
     "guides": [
       {
         "y": 118,

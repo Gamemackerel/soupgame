@@ -1,6 +1,6 @@
 {
-  "name": "judges/signore-front",
-  "path": "characters/judges/signore-front",
+  "name": "judges/julia-front",
+  "path": "characters/judges/julia-front",
   "group": "characters",
   "cell": [
     96,
@@ -43,7 +43,7 @@
     "meh",
     "upset"
   ],
-  "notes": "Chef Signore: the Italian chef. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "notes": "Julia Childish: the warbling, butter-loving grande dame of French cooking (a Julia Child caricature): tall and cheerful, curled hair, pearls, a blue button-down shirt. What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
   "guides": [
     {
       "y": 118,

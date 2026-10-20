@@ -1,6 +1,6 @@
 {
-  "name": "judges/signore",
-  "path": "characters/judges/signore",
+  "name": "judges/jamie",
+  "path": "characters/judges/jamie",
   "group": "characters",
   "cell": [
     96,
@@ -69,7 +69,7 @@
     "meh",
     "upset"
   ],
-  "notes": "Chef Signore: the Italian chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+  "notes": "Jamie Olives: the cheeky, health-conscious British chef (a Jamie Oliver caricature): tousled hair, rolled-up sleeves, always holding a bowl of olives. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
   "guides": [
     {
       "y": 118,

@@ -1,6 +1,6 @@
 {
-  "name": "judges/marty-front",
-  "path": "characters/judges/marty-front",
+  "name": "judges/marta-front",
+  "path": "characters/judges/marta-front",
   "group": "characters",
   "cell": [
     96,
@@ -43,7 +43,7 @@
     "meh",
     "upset"
   ],
-  "notes": "Marty Stew: the queen of home entertaining (a Martha Stewart caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
+  "notes": "Marta Stew: the queen of home entertaining (a Martha Stewart caricature). What rests on the table in front of them (paws, hands, props), drawn over the table. Same anchor as the body sheet.",
   "guides": [
     {
       "y": 118,

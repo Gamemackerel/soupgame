@@ -7,8 +7,8 @@
 const LEVEL_TIERS = [
   { tier: 0, title: 'Pizza Shop', judges: ['biscuit', 'pounce', 'joe'] },
   { tier: 1, title: 'First Michelin Star', judges: ['gordo', 'paul', 'pounce'] },
-  { tier: 2, title: 'Second Michelin Star', judges: ['dudeguy', 'signore', 'seonbae'] },
-  { tier: 3, title: 'Third Michelin Star', judges: ['monsieur', 'marty', 'obama'] },
+  { tier: 2, title: 'Second Michelin Star', judges: ['dudeguy', 'jamie', 'kenji'] },
+  { tier: 3, title: 'Third Michelin Star', judges: ['julia', 'marta', 'obama'] },
   { tier: 4, title: 'The Deal', judges: ['ram'], final: true },
 ];
 

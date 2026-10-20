@@ -6,6 +6,17 @@ const CHEF_LIFT = -5;
 // the arms' shoulder points (88 + by), and the pot rim hides more of his coat.
 const CHEF_SINK = 7;
 const SKIN = [250, 212, 182], COAT = [250, 250, 252], HAT = [255, 255, 255];
+// His hands match the skin of his drawn face (art/sprites/characters/chef): flat skin and a dark outline.
+const HAND = [238, 195, 154], HAND_LINE = [20, 14, 14];
+function chefHand(g, cx, cy) {
+  cx = Math.round(cx); cy = Math.round(cy);
+  for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) {
+    const d2 = x * x + y * y;
+    if (d2 > 17) continue;
+    g.fillStyle = rgb(d2 > 10 ? HAND_LINE : HAND);
+    g.fillRect(cx + x, cy + y, 1, 1);
+  }
+}
 
 const REACTIONS = {
   discover: { mood: 'happy', say: ['Ooh!', 'Eureka!', 'Magnifique!', 'Wow!'], t: 80, hop: true },
@@ -237,7 +248,7 @@ const Chef = {
       for (const sd of [-1, 1]) {
         const s0 = sd < 0 ? shL : sh, hx = cx + sd * (26 + 6 * u), hy = POT_TOP - 2 - u * 46;
         const ex = cx + sd * (30 + 4 * u), ey = 92 + by - u * 12;
-        arm(g, s0.x, s0.y, ex, ey); arm(g, ex, ey, hx, hy); ball(g, hx, hy, 3, SKIN);
+        arm(g, s0.x, s0.y, ex, ey); arm(g, ex, ey, hx, hy); chefHand(g, hx, hy);
       }
       return;
     }
@@ -247,10 +258,10 @@ const Chef = {
     } else if (this.idleLadle) {
       const ex = cx - 30, ey = 97, hx = cx - 19, hy = POT_TOP - 4;
       arm(g, shL.x, shL.y, ex, ey); arm(g, ex, ey, hx, hy);
-      ball(g, hx, hy, 3, SKIN);
+      chefHand(g, hx, hy);
     } else {
       arm(g, shL.x, shL.y, cx - 26, POT_TOP - 1);
-      ball(g, cx - 26, POT_TOP - 2, 3, SKIN);
+      chefHand(g, cx - 26, POT_TOP - 2);
     }
     if (this.throwT > 6) { showItem = null; iy += 10; }     // just threw it
     if (this.ladle) {
@@ -264,12 +275,12 @@ const Chef = {
       // Arm first, then the item in front of it, then the hand wrapped around the item's edge.
       arm(g, sh.x, sh.y, ix + 4, iy + 5);
       g.save(); g.translate(Math.round(ix), Math.round(iy)); g.rotate(ang); g.drawImage(icon, -8, -8); g.restore();
-      ball(g, ix + 5, iy + 5, 3, SKIN);
-      rect(g, ix + 3, iy + 3, 2, 1, rgb(SKIN, 0.8));   // fingers over the front
+      chefHand(g, ix + 5, iy + 5);
+      rect(g, ix + 3, iy + 3, 2, 1, rgb(HAND));   // fingers over the front
       if (this.pouring) this.drawStream(g, ix, iy);
     } else {
       arm(g, sh.x, sh.y, cx + 26, POT_TOP - 1);
-      ball(g, cx + 26, POT_TOP - 2, 3, SKIN);
+      chefHand(g, cx + 26, POT_TOP - 2);
     }
   },
 
@@ -290,8 +301,8 @@ const Chef = {
     ellipse(g, lx, ly, 5, 3, [190, 196, 212]);
     ellipse(g, lx, ly - 1, 4, 1, [120, 126, 144]);
     rect(g, lx - 4, ly + 1, 3, 1, [240, 244, 250]);
-    ball(g, hx, hy, 3, SKIN);
-    rect(g, hx - 2, hy - 1, 1, 3, rgb(SKIN, 0.8));
+    chefHand(g, hx, hy);
+    rect(g, hx - 2, hy - 1, 1, 3, rgb(HAND));
   },
 
   // The tasting spoon: reached into the pot wherever you point (his arm stretches right down in), lifted
@@ -300,8 +311,8 @@ const Chef = {
   drawLidHand(g, knob) {
     const cx = Math.round(this.x + this.swayX), by = Math.round(Math.sin(this.t * 0.07) + this.swayBob) + CHEF_LIFT;
     arm(g, cx - 18, 88 + by, knob.x - 3, knob.y + 1);
-    ball(g, knob.x - 2, knob.y + 1, 3, SKIN);
-    rect(g, knob.x - 1, knob.y - 1, 3, 1, rgb(SKIN, 0.8));   // fingers curled over the top of the handle
+    chefHand(g, knob.x - 2, knob.y + 1);
+    rect(g, knob.x - 1, knob.y - 1, 3, 1, rgb(HAND));   // fingers curled over the top of the handle
   },
 
   drawSpoon(g, sh, cx, by) {
@@ -314,7 +325,7 @@ const Chef = {
     const dx = hx - sx, dy = hy - sy, len = Math.max(1, Math.hypot(dx, dy));
     for (let k = 0; k <= len + 3; k++) rect(g, Math.round(sx + dx / len * k), Math.round(sy + dy / len * k), 1, 1, k > len - 2 ? [150, 156, 172] : steel);
     ellipse(g, sx, sy, 3, 2, dark); ellipse(g, sx, sy, 2, 1, steel); rect(g, sx - 1, sy - 1, 1, 1, [250, 252, 255]);
-    ball(g, hx, hy, 3, SKIN);
+    chefHand(g, hx, hy);
   },
 
   // At ease with the ladle: held upright at his side, bowl up.
@@ -327,7 +338,7 @@ const Chef = {
     }
     const bx = hx + 5, bY = hy - 30;
     ellipse(g, bx, bY, 6, 4, [70, 74, 90]); ellipse(g, bx, bY, 5, 3, [190, 196, 212]); ellipse(g, bx, bY + 1, 4, 1, [120, 126, 144]);
-    ball(g, hx, hy, 3, SKIN);
+    chefHand(g, hx, hy);
   },
 
   drawStream(g, ix, iy) {

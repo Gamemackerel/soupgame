@@ -50,7 +50,7 @@ function documents() {
   docs.push({ file: 'characters/chef', kind: 'parts',
     parts: { body: { sprite: 'characters/chef/body', at: [0, 0] }, head: { sprite: 'characters/chef/head', at: [0, 62] }, face: { sprite: 'characters/chef/face', at: [0, 62] } },
     layers: [{ part: 'body' }, { part: 'head' }, { part: 'face' }, { guide: '_guides (pot rim, shoulders)', draw: (img, off) => { line(111 - SINK, BLUE)(img, off); dot(-18, 88 - SINK, RED)(img, off); dot(18, 88 - SINK, RED)(img, off); } }] });
-  for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul', 'dudeguy', 'signore', 'seonbae', 'monsieur', 'marty', 'obama', 'ram']) {
+  for (const id of ['pounce', 'biscuit', 'nanny', 'joe', 'gordo', 'paul', 'dudeguy', 'jamie', 'kenji', 'julia', 'marta', 'obama', 'ram']) {
     docs.push({ file: 'characters/judges/' + id, kind: 'parts',
       parts: { body: { sprite: 'characters/judges/' + id, at: [0, 0] }, front: { sprite: 'characters/judges/' + id + '-front', at: [0, 0] } },
       layers: [{ part: 'body' }, tableGuide(160), { part: 'front' }] });

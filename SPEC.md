@@ -605,13 +605,13 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
   | Gordo Hamsie | technique, flaws, salt | |
   | Paul Bollywood | heat, aroma, sweetness | |
   | Mister Dude-Guy | not salty enough | too much salt, heat or richness |
-  | Chef Signore | missing ingredients, too spicy, thickness | too sweet |
-  | Chef Seonbae | not savory or salty enough | heat, sourness |
-  | Chef Monsieur | technique, sweetness, thickness, flaws | heat |
-  | Marty Stew | too salty, heat, aroma, missing ingredients | technique |
+  | Jamie Olives | too salty, too rich, missing ingredients | technique |
+  | Kenji L Salt | salt off either way, flaws, technique | heat |
+  | Julia Childish | technique, not rich enough, sweetness, flaws | too rich (more butter!) |
+  | Marta Stew | too salty, heat, aroma, missing ingredients | technique |
   | President Obama | | salt, heat, sweetness, thickness |
 
-  **Leans:** each judge also has a small fixed lean on each dish, up to 0.6 either way and the same every time (`judgeLean`), plus +0.6 on the one dish on their panel they have a soft spot for (`loves`): Joe the tomato soup, Sir Pounce the French onion, Biscuit the fish stew, Gordo the clam chowder, Paul the chicken noodle, Dude-Guy the goulash, Signore the minestrone, Seonbae the avgolemono, Monsieur the bouillabaisse, Marty the tonkotsu, Obama the chili. So even a flawless par reads 8, 10, 9 or 9, 9, 10 rather than 9, 9, 9. (A 10 on one card isn't a Perfect: that still takes a flourish, which every judge scores 10.)
+  **Leans:** each judge also has a small fixed lean on each dish, up to 0.6 either way and the same every time (`judgeLean`), plus +0.6 on the one dish on their panel they have a soft spot for (`loves`): Joe the tomato soup, Sir Pounce the French onion, Biscuit the fish stew, Gordo the clam chowder, Paul the chicken noodle, Dude-Guy the goulash, Jamie the minestrone, Kenji the avgolemono, Julia the bouillabaisse, Marta the tonkotsu, Obama the chili. So even a flawless par reads 8, 10, 9 or 9, 9, 10 rather than 9, 9, 9. (A 10 on one card isn't a Perfect: that still takes a flourish, which every judge scores 10.)
 
   The judge who minds technique most points out a missing technique or ingredient; the one who minds the biggest drift most says how it drifted.
 - **Where scores land** (Tonkotsu, 20 test bowls): a pile of mistakes 1–2; one serious slip (no seasoning, mushy noodles, a pile of sugar) 4–6; a minor one (short boil, no salt, double water) 7–7.5; par 9; par plus a flourish 10.
@@ -839,14 +839,21 @@ The **Pizza Shop tier** is cooked in Papa Dom's kitchen: a brick wall, Italian-f
 |---|---|---|---|
 | Pizza Shop | Biscuit, Sir Pounce, Joe | Tomato Soup, French Onion Soup (with cheese), Fish Stew (onion poached in wine) | Pan Flatbread |
 | First Michelin Star | Gordo Hamsie, Paul Bollywood, Sir Pounce | Creamy Corn Soup, Chicken Noodle Soup, New England Clam Chowder | Pot-Oven Sponge Cake |
-| Second Michelin Star | Mister Dude-Guy, Chef Signore, Chef Seonbae | Goulash (paprika), Avgolemono, Minestrone | Focaccia |
-| Third Michelin Star | Chef Monsieur, Marty Stew, President Obama | Chili con Carne, Tonkotsu Ramen (ginger), Marinara Pasta & Meatballs (pork, noodles, cheese), Bouillabaisse (saffron) | Irish Soda Bread |
+| Second Michelin Star | Mister Dude-Guy, Jamie Olives, Kenji L Salt | Goulash (paprika), Avgolemono, Minestrone | Focaccia |
+| Third Michelin Star | Julia Childish, Marta Stew, President Obama | Chili con Carne, Tonkotsu Ramen (ginger), Marinara Pasta & Meatballs (pork, noodles, cheese), Bouillabaisse (saffron) | Irish Soda Bread |
 | The Deal | The Ram (alone) | Primordial Soup | |
 
 - **The shelf follows the story.** It holds every ingredient the opened tiers need, plus what's always there (water, the extinguisher, vinegar, sugar, chili flakes, black pepper: `SHELF_ALWAYS`) (`Levels.shelf`), so replaying an earlier dish you have all your newer ingredients, and the sandbox shows only what you've unlocked. Once The Deal is open, that's everything. In the Pizza Shop only Fish Stew requires herbs; they're a flourish elsewhere.
 - **New ingredients:** **pork** (sears and builds fond like beef, and renders fat when seared hot; beef renders a little too, but only seared in a dry pan; a long hard boil makes a rich, cloudy-white broth), **noodles** (cook like pasta; their starch thickens what they cook in), **cheese** (shreds that melt into hot soup: rich, salty, savory), **paprika** and **saffron** (spices that bloom in oil; paprika sweet and red, saffron perfumed and golden), **ginger** (an aromatic), **clams** (must cook through; a briny, savory liquor) and **lemon juice**. Baking powder, baking soda and yeast come with The Deal. With more than 33 on the shelf the pantry goes to four narrower columns.
 - **New techniques:** **Pork Bone Broth** (pork at a hard boil, heat 7+, for about 120 s in total), **Egg Liaison** (loose egg stirred into broth that's off the boil, 45–80 °C with the flame at 3 or less, melts in and thickens it silky; avgolemono) and **Melted Cheese**.
 - **Bonus recipes** (`bonus: true`) appear marked NEW RECIPE once Primordial Soup is passed. They don't count toward unlocking tiers.
+- **Who they are** (parodies, like Gordo and Paul):
+  - **Mister Dude-Guy** (Guy Fieri): big, loud flavor.
+  - **Jamie Olives** (Jamie Oliver), "The Naked Chef": cheeky, British and health-conscious. He wants fresh herbs, lemon and proper veg, winces at grease, heavy salt and richness, and always has a bowl of olives ("Pukka!").
+  - **Kenji L Salt** (J. Kenji López-Alt), "The Food Lab": the food scientist. Seasoning has to be exactly right, and he explains the science of browning, emulsions and starch.
+  - **Julia Childish** (Julia Child), "The French Chef": warbling and cheerful, all about classic French technique and butter ("Bon appétit!").
+  - **Marta Stew** (Martha Stewart): homey perfection.
+  - **President Obama**: measured and fair, and loves a hearty chili.
 - **New judges** have their own palates (taste capped at 30% of their blend) and voices, and are drawn as placeholder sketches with one telltale feature each. Every pose is its own drawing for the artist (`distinct`). The sandbox's random panel excludes The Ram (`storyOnly`).
 - **Story:** after the Second Michelin Star, Gordo warns you to throw the next one. After the Third, he snaps and transforms (a shaking, reddening, horn-sprouting animation and a white flash) into The Ram, who speaks in a demonic typeface (Pirata One, red on black) and offers the deal. After The Deal, The Ram stands aside, and new recipes appear.
 - **Primordial Soup:** its ingredients are the whole shelf, including water and the extinguisher. Each must go in enough to register (liquids 30 cells, powders 8, the spray 15, any chunk, the egg or the fish). Anything missing caps it at 5, and it passes at 8. The Ram judges alone: balance, layers (every flavor note in the pot), depth (umami and richness) and a little fire; the extinguisher's flaw is forgiven, and burning it is not. The time limit is 5:00 (about 1.1× the reference recipe). You cook in hell's kitchen while The Ram paces and stomps behind you.
