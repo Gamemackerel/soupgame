@@ -30,7 +30,7 @@
 </style></head>
 <body><main>
 <h1>Scene preview</h1>
-<p class="lede">See your drawings in the real game, before anything is exported. Drop your <code>.aseprite</code> files on this page: they show up in every scene below right away. Change a file, save it in Aseprite, and drop it again to see the change. Nothing is uploaded; your files stay in this browser. Parts you haven't drawn yet show the placeholder.</p>
+<p class="lede">See your drawings in the real game, before anything is exported. Drop your <code>.aseprite</code> files on this page: they show up in every scene below right away. Change a file, save it in Aseprite, and drop it again to see the change. Nothing is uploaded; your files stay in this browser. Parts nobody has drawn yet are left out, so you see only real drawings.</p>
 
 <div id="drop">
   <div class="grow"><b>Drop .aseprite files here</b><br><span class="detail">Any of them: the chef, a judge, the ingredients, a background...</span></div>
@@ -38,13 +38,18 @@
   <button id="clear" type="button">Forget my files</button>
 </div>
 <ul id="files"></ul>
-<div class="opts"><label><input id="sketches" type="checkbox" checked> Show undrawn characters as plain sketches (like the catalog). Untick to see the game's current art for them instead.</label></div>
+<div class="opts"><label>Parts nobody has drawn yet:
+  <select id="undrawn">
+    <option value="hide" selected>Hidden: show only real drawings</option>
+    <option value="sketches">Plain sketches (like the catalog)</option>
+    <option value="current">The game's placeholder art</option>
+  </select></label></div>
 
 <h2>Kitchens</h2>
 <div class="scenes" id="kitchens"></div>
 <h2>Judging table</h2>
 <div class="scenes" id="judges"></div>
-<p class="lede" style="margin-top:24px">The chef's arms, the soup, steam and the speech bubbles are drawn by the game itself, so they're the same whatever you draw. <a href="../art-branch/">Back to the catalog</a>.</p>
+<p class="lede" style="margin-top:24px">The pot, the buttons, the soup, steam, speech bubbles and the chef's arms are part of the game itself, not the art, so they always show. <a href="../art-branch/">Back to the catalog</a>.</p>
 </main>
 
 <script src="preview/ase.js"></script>
@@ -67,13 +72,13 @@ const SCENES = {
 };
 const STORE = 'soup-preview-files';
 const $ = (id) => document.getElementById(id);
-let manifest = null;
+let manifest = null, finished = new Set();   // finished: art already in the game (art/sprites/index.json)
 const files = new Map();   // file name → { bytes (ArrayBuffer), sheets: {path: ImageData}, report }
 const frames = [];
 
 // ---------- The scenes: the game itself, in frames ----------
 // (The game reads the first word as the view: demo, judge.)
-function sceneHash(s) { return '#' + s.hash + '&preview&desktop' + ($('sketches').checked ? '&sketches' : ''); }
+function sceneHash(s) { return '#' + s.hash + '&preview&desktop' + ($('undrawn').value === 'sketches' ? '&sketches' : ''); }
 function buildScenes() {
   for (const [where, list] of Object.entries(SCENES)) {
     const box = $(where); box.textContent = '';
@@ -110,6 +115,20 @@ function apply(w) {
     const cv = w.document.createElement('canvas'); cv.width = W; cv.height = H;
     cv.getContext('2d').putImageData(new w.ImageData(new w.Uint8ClampedArray(img.data), W, H), 0, 0);
     Sprites.over[d.name] = cv;
+  }
+  // Everything in the art set that nobody has drawn yet (not in the artist's files, not finished in the game): left
+  // out. Backgrounds become a flat color, so the scene still has somewhere to stand.
+  if ($('undrawn').value === 'hide') {
+    const mine = new Set([...files.values()].flatMap((f) => Object.keys(f.sheets || {})));
+    for (const path of Object.keys(manifest.sprites)) {
+      const d = Sprites.byPath[path];
+      if (!d || mine.has(path) || finished.has(path)) continue;
+      Sprites.settle(d.name);
+      const cv = w.document.createElement('canvas');
+      cv.width = d.w * Math.max(...d.rows.map((k) => d.states[k].frames)); cv.height = d.h * d.rows.length;
+      if (path.startsWith('backgrounds/') && path !== 'backgrounds/stage-table') { const c = cv.getContext('2d'); c.fillStyle = '#2b2733'; c.fillRect(0, 0, cv.width, cv.height); }
+      Sprites.over[d.name] = cv;
+    }
   }
   Sprites.cache = {};
 }
@@ -159,13 +178,14 @@ async function add(list) {
 // ---------- Start ----------
 (async () => {
   manifest = await (await fetch('preview/docs.json')).json();
+  try { finished = new Set(await (await fetch('sprites/index.json')).json()); } catch (e) {}
   try { const saved = JSON.parse(localStorage.getItem(STORE) || '{}'); for (const [name, b64] of Object.entries(saved)) { const s = atob(b64), b = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); await load(name, b.buffer); } } catch (e) {}
   render();
   buildScenes();
 })();
 $('pick').addEventListener('change', (e) => add([...e.target.files]));
 $('clear').addEventListener('click', () => { files.clear(); try { localStorage.removeItem(STORE); } catch (e) {} render(); frames.length = 0; buildScenes(); });
-$('sketches').addEventListener('change', () => { frames.length = 0; buildScenes(); });
+$('undrawn').addEventListener('change', () => { frames.length = 0; buildScenes(); applyAll(); });
 addEventListener('dragover', (e) => { e.preventDefault(); document.body.classList.add('dragging'); });
 addEventListener('dragleave', (e) => { if (!e.relatedTarget) document.body.classList.remove('dragging'); });
 addEventListener('drop', (e) => { e.preventDefault(); document.body.classList.remove('dragging'); add([...e.dataTransfer.files]); });
