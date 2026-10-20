@@ -1,6 +1,6 @@
 {
-  "name": "judges/monsieur",
-  "path": "characters/judges/monsieur",
+  "name": "judges/marta",
+  "path": "characters/judges/marta",
   "group": "characters",
   "cell": [
     96,
@@ -69,7 +69,7 @@
     "meh",
     "upset"
   ],
-  "notes": "Chef Monsieur: the French chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+  "notes": "Marta Stew: the queen of home entertaining (a Martha Stewart caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
   "guides": [
     {
       "y": 118,
