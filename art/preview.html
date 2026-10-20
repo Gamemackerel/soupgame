@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soup Pot scene preview</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<style>
+  :root { --bg: #f6f1e7; --fg: #2a1d24; --muted: #6d5f66; --card: #fffaf0; --line: #e1d6c4; --accent: #c4242a; --ok: #2f7d3a; --warn: #a2620b; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1d1b24; --fg: #f2e8d8; --muted: #a59bb0; --card: #26232f; --line: #3a3644; --accent: #ff6b6b; --ok: #7fd18b; --warn: #f0b45a; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding: 24px 16px 80px; }
+  a { color: var(--accent); }
+  h1 { margin: 0 0 4px; } h2 { margin: 36px 0 12px; border-bottom: 2px solid var(--line); }
+  .lede { color: var(--muted); margin: 0 0 16px; max-width: 760px; }
+  #drop { border: 2px dashed var(--line); border-radius: 10px; padding: 18px; background: var(--card); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  body.dragging #drop { border-color: var(--accent); }
+  #drop b { font-size: 16px; } #drop .grow { flex: 1 1 260px; }
+  button, label.btn { font: inherit; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  button:hover, label.btn:hover { border-color: var(--accent); }
+  #files { list-style: none; padding: 0; margin: 12px 0 0; font-size: 14px; }
+  #files li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+  #files .name { font-family: ui-monospace, monospace; font-weight: 600; }
+  #files .ok { color: var(--ok); } #files .warn { color: var(--warn); } #files .bad { color: var(--accent); }
+  #files .detail { color: var(--muted); font-size: 13px; }
+  .scenes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 390px), 1fr)); gap: 18px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  figure .frame { position: relative; aspect-ratio: 4 / 3; background: #000; }
+  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+  figcaption { padding: 8px 12px; font-size: 14px; } figcaption small { color: var(--muted); display: block; }
+  .opts { margin-top: 10px; font-size: 14px; color: var(--muted); }
+</style></head>
+<body><main>
+<h1>Scene preview</h1>
+<p class="lede">See your drawings in the real game, before anything is exported. Drop your <code>.aseprite</code> files on this page: they show up in every scene below right away. Change a file, save it in Aseprite, and drop it again to see the change. Nothing is uploaded; your files stay in this browser. Parts you haven't drawn yet show the placeholder.</p>
+
+<div id="drop">
+  <div class="grow"><b>Drop .aseprite files here</b><br><span class="detail">Any of them: the chef, a judge, the ingredients, a background...</span></div>
+  <label class="btn">Choose files<input id="pick" type="file" accept=".aseprite,.ase" multiple hidden></label>
+  <button id="clear" type="button">Forget my files</button>
+</div>
+<ul id="files"></ul>
+<div class="opts"><label><input id="sketches" type="checkbox" checked> Show undrawn characters as plain sketches (like the catalog). Untick to see the game's current art for them instead.</label></div>
+
+<h2>Kitchens</h2>
+<div class="scenes" id="kitchens"></div>
+<h2>Judging table</h2>
+<div class="scenes" id="judges"></div>
+<p class="lede" style="margin-top:24px">The chef's arms, the soup, steam and the speech bubbles are drawn by the game itself, so they're the same whatever you draw. <a href="../art-branch/">Back to the catalog</a>.</p>
+</main>
+
+<script src="preview/ase.js"></script>
+<script>
+'use strict';
+const SCENES = {
+  kitchens: [
+    { title: "Papa Dom's pizza shop", note: 'The Pizza Shop dishes are cooked here.', hash: 'demo&level=tomato-soup' },
+    { title: 'The studio kitchen', note: 'The Michelin Star dishes and the sandbox.', hash: 'demo&level=goulash' },
+    { title: "Hell's kitchen", note: 'The finale, with The Ram rampaging behind.', hash: 'demo&level=primordial-soup' },
+  ],
+  judges: [
+    { title: 'Pizza Shop', note: 'Biscuit, Sir Pounce, Joe', hash: 'judge&level=tomato-soup' },
+    { title: 'First Michelin Star', note: 'Gordo Hamsie, Paul Bollywood, Sir Pounce', hash: 'judge&level=creamy-corn' },
+    { title: 'Second Michelin Star', note: 'Mister Dude-Guy, Jamie Olives, Kenji L Salt', hash: 'judge&level=goulash' },
+    { title: 'Third Michelin Star', note: 'Julia Childish, Marta Stew, President Obama', hash: 'judge&level=chili' },
+    { title: 'The Deal', note: 'THE RAM, alone', hash: 'judge&level=primordial-soup' },
+    { title: 'Sandbox panel', note: 'Nanny Mae, with Biscuit and Joe', hash: 'judge&panel=biscuit,nanny,joe' },
+  ],
+};
+const STORE = 'soup-preview-files';
+const $ = (id) => document.getElementById(id);
+let manifest = null;
+const files = new Map();   // file name → { bytes (ArrayBuffer), sheets: {path: ImageData}, report }
+const frames = [];
+
+// ---------- The scenes: the game itself, in frames ----------
+// (The game reads the first word as the view: demo, judge.)
+function sceneHash(s) { return '#' + s.hash + '&preview&desktop' + ($('sketches').checked ? '&sketches' : ''); }
+function buildScenes() {
+  for (const [where, list] of Object.entries(SCENES)) {
+    const box = $(where); box.textContent = '';
+    for (const s of list) {
+      const fig = document.createElement('figure'), wrap = document.createElement('div'), frame = document.createElement('iframe');
+      wrap.className = 'frame'; frame.title = s.title; frame.loading = 'lazy';
+      frame.src = '../index.html' + sceneHash(s);
+      frame.addEventListener('load', () => settle(frame));
+      wrap.append(frame);
+      const cap = document.createElement('figcaption'); cap.innerHTML = `${s.title}<small>${s.note}</small>`;
+      fig.append(wrap, cap); box.append(fig); frames.push(frame);
+    }
+  }
+}
+// Once a scene's game is up: no recipe card in the way, and the artist's drawings in.
+// (The game's objects are top-level consts, not window properties: reach them through the frame's own eval.)
+const game = (w, name) => { try { return w && w.eval(name); } catch (e) { return undefined; } };
+function settle(frame, tries = 0) {
+  const w = frame.contentWindow;
+  if (!game(w, 'Sprites') || !game(w, 'Game')) { if (tries < 50) setTimeout(() => settle(frame, tries + 1), 100); return; }
+  const hideCard = () => { const UI = game(w, 'UI'); if (UI) UI.card = null; };
+  hideCard(); setTimeout(hideCard, 300); setTimeout(hideCard, 1200);
+  apply(w);
+}
+function apply(w) {
+  const Sprites = game(w, 'Sprites');
+  if (!Sprites) return;
+  for (const f of files.values()) for (const [path, img] of Object.entries(f.sheets || {})) {
+    const d = Sprites.byPath[path];
+    if (!d) continue;
+    Sprites.settle(d.name);
+    const W = d.w * Math.max(...d.rows.map((k) => d.states[k].frames)), H = d.h * d.rows.length;
+    if (img.width !== W || img.height !== H) { console.warn(`preview: ${path} is ${img.width}x${img.height}, the game expects ${W}x${H}`); continue; }
+    const cv = w.document.createElement('canvas'); cv.width = W; cv.height = H;
+    cv.getContext('2d').putImageData(new w.ImageData(new w.Uint8ClampedArray(img.data), W, H), 0, 0);
+    Sprites.over[d.name] = cv;
+  }
+  Sprites.cache = {};
+}
+const applyAll = () => frames.forEach((f) => apply(f.contentWindow));
+
+// ---------- The artist's files ----------
+async function load(name, bytes) {
+  const entry = { bytes, sheets: {}, report: null };
+  files.set(name, entry);
+  try {
+    const ase = await AsePreview.read(bytes.slice(0));
+    const mdoc = AsePreview.identify(manifest, name, ase);
+    if (!mdoc) entry.report = { cls: 'bad', text: "Couldn't tell which file this is. Keep the original file name (chef.aseprite, ingredients.aseprite, jamie.aseprite...)." };
+    else {
+      const r = AsePreview.exportDoc(manifest, mdoc, ase), done = Object.keys(r.done);
+      entry.sheets = r.done;
+      const short = (p) => p.replace(/^characters\/|^backgrounds\/|^ingredients\/dishes\/|^ingredients\//, '');
+      entry.report = { cls: r.skipped.length ? 'warn' : done.length ? 'ok' : 'warn', doc: mdoc.file,
+        text: done.length ? `Showing ${done.length}: ${done.map(short).join(', ')}` : 'Nothing finished to show yet.',
+        detail: r.skipped.map((s) => s.replace(/^[^:]+/, (p) => short(p))).join(' · ') };
+    }
+  } catch (e) { entry.report = { cls: 'bad', text: 'Could not read this file: ' + e.message }; }
+}
+function render() {
+  const ul = $('files'); ul.textContent = '';
+  for (const [name, f] of files) {
+    const li = document.createElement('li'), r = f.report || { cls: 'warn', text: 'Reading...' };
+    li.innerHTML = `<span class="name"></span> <span class="${r.cls}"></span>${r.detail ? '<div class="detail"></div>' : ''}`;
+    li.querySelector('.name').textContent = name + (r.doc ? `  →  ${r.doc}` : '');
+    li.querySelector('.' + r.cls).textContent = r.text;
+    if (r.detail) li.querySelector('.detail').textContent = 'Not shown yet: ' + r.detail;
+    ul.append(li);
+  }
+}
+function save() {
+  try {
+    const out = {};
+    for (const [name, f] of files) { let s = ''; const b = new Uint8Array(f.bytes); for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); out[name] = btoa(s); }
+    localStorage.setItem(STORE, JSON.stringify(out));
+  } catch (e) {}
+}
+async function add(list) {
+  for (const file of list) if (/\.(aseprite|ase)$/i.test(file.name)) await load(file.name, await file.arrayBuffer());
+  render(); save(); applyAll();
+}
+
+// ---------- Start ----------
+(async () => {
+  manifest = await (await fetch('preview/docs.json')).json();
+  try { const saved = JSON.parse(localStorage.getItem(STORE) || '{}'); for (const [name, b64] of Object.entries(saved)) { const s = atob(b64), b = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); await load(name, b.buffer); } } catch (e) {}
+  render();
+  buildScenes();
+})();
+$('pick').addEventListener('change', (e) => add([...e.target.files]));
+$('clear').addEventListener('click', () => { files.clear(); try { localStorage.removeItem(STORE); } catch (e) {} render(); frames.length = 0; buildScenes(); });
+$('sketches').addEventListener('change', () => { frames.length = 0; buildScenes(); });
+addEventListener('dragover', (e) => { e.preventDefault(); document.body.classList.add('dragging'); });
+addEventListener('dragleave', (e) => { if (!e.relatedTarget) document.body.classList.remove('dragging'); });
+addEventListener('drop', (e) => { e.preventDefault(); document.body.classList.remove('dragging'); add([...e.dataTransfer.files]); });
+</script>
+</body></html>

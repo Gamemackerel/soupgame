@@ -69,6 +69,12 @@ The chef is a bit bigger, and he comes in pieces:
 
 After the chef, keep going in this order: the other ingredients → the dishes → the judges → Papa Dom → the backgrounds.
 
+## See it in the game
+
+Open the **scene preview**: https://gamemackerel.github.io/soupgame/art/preview.html
+
+Drag your `.aseprite` files onto the page. Your drawings show up in the real game right away: the kitchens, and every judge at the judging table. Save in Aseprite and drop the file again to see a change. Nothing is uploaded.
+
 ## Sending your work
 
 Save in Aseprite, then send the `.aseprite` files you finished. Send a few at a time, as you finish them.
@@ -97,4 +103,5 @@ The whole point is that the game's art is **drawn by you**. You can use tools to
 - `node tools/art-aseprite.js make [--force]` recreates the Aseprite files. It never overwrites one unless you pass `--force`, which loses the drawing.
 - `node tools/export-art.js` regenerates `art/templates/` and the catalog (needs Playwright). `--relayout` rewrites `js/sprite-layout.js`, the list of drawings; only run it on `main`.
 - `tools/publish-art-branch.sh`, run on `main`, publishes the art branch's catalog and the zip at `/soupgame/art-branch/`. Commit and push afterwards.
+- `node tools/art-aseprite.js manifest` rewrites `art/preview/docs.json`, which the scene preview (`art/preview.html`) uses to read the Aseprite files in the browser. Rerun it on `main` whenever sprites or their poses change.
 - Sprites are defined in `js/sprites.js`. The game uses any sheet listed in `art/sprites/index.json` and the code drawing for the rest.

@@ -1,6 +1,6 @@
 {
-  "name": "judges/seonbae",
-  "path": "characters/judges/seonbae",
+  "name": "judges/julia",
+  "path": "characters/judges/julia",
   "group": "characters",
   "cell": [
     96,
@@ -69,7 +69,7 @@
     "meh",
     "upset"
   ],
-  "notes": "Chef Seonbae: the Korean chef. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+  "notes": "Julia Childish: the warbling, butter-loving grande dame of French cooking (a Julia Child caricature): tall and cheerful, curled hair, pearls, a blue button-down shirt. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
   "guides": [
     {
       "y": 118,
