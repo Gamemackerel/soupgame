@@ -226,8 +226,10 @@ const JUDGE_NOTES = {
   joe: 'Joe: the pizza-shop regular.', gordo: 'Gordo Hamsie: the shouty head chef (a caricature): he should look like Gordon Ramsay. Also used, larger, in story cutscenes.',
   paul: 'Paul Bollywood: the silver-haired baker (looks like Paul Hollywood).',
   dudeguy: 'Mister Dude-Guy: the loud, flame-shirted flavor king (a Guy Fieri caricature).',
-  signore: 'Chef Signore: the Italian chef.', seonbae: 'Chef Seonbae: the Korean chef.', monsieur: 'Chef Monsieur: the French chef.',
-  marty: 'Marty Stew: the queen of home entertaining (a Martha Stewart caricature).',
+  jamie: 'Jamie Olives: the cheeky, health-conscious British chef (a Jamie Oliver caricature): tousled hair, rolled-up sleeves, always holding a bowl of olives.',
+  kenji: 'Kenji L Salt: the food scientist (a J. Kenji López-Alt caricature): glasses, short dark beard, a probe thermometer in his shirt pocket.',
+  julia: 'Julia Childish: the warbling, butter-loving grande dame of French cooking (a Julia Child caricature): tall and cheerful, curled hair, pearls, a blue button-down shirt.',
+  marta: 'Marta Stew: the queen of home entertaining (a Martha Stewart caricature).',
   obama: 'President Barack Hussein Obama.',
   ram: "The Ram: Gordo Hamsie transformed into a devil, with ram's horns and true fury in his eyes. Judges Primordial Soup alone, in the middle seat; also used, larger, in the story.",
 };

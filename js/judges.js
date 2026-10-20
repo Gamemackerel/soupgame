@@ -299,65 +299,81 @@ Object.assign(JUDGE_ROSTER, {
     },
   },
 
-  // Chef Signore: Italian. Simple, honest ingredients done right: sweet tomato, herbs, olive oil, pasta al dente.
-  signore: {
-    id: 'signore', name: 'Chef Signore', title: 'The Italian',
-    sens: { ingredients: 1.4, body: 1.2, 'heat+': 1.3, 'sweet+': 0.6, technique: 0.8 }, loves: ['minestrone'], theme: [60, 150, 80],
-    sounds: { good: ['*kisses fingertips*', 'Bellissimo!'], bad: ['Mamma mia...', '*throws hands up*'] },
+  // Jamie Olives (a Jamie Oliver caricature): cheeky, British and health-conscious. Fresh herbs, lemon and proper veg;
+  // he winces at grease, heavy salt and richness. Always has a bowl of olives on the go.
+  jamie: {
+    id: 'jamie', name: 'Jamie Olives', title: 'The Naked Chef',
+    sens: { 'salty+': 1.4, 'rich+': 1.5, ingredients: 1.2, technique: 0.6 }, loves: ['minestrone'], theme: [90, 160, 80],
+    sounds: { good: ['Pukka!', '*pops an olive*'], bad: ['Oh, mate...', '*drops an olive*'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a), U = Sim.used;
-      let soul = 0.5;
-      if (U.has('tomato') && Sim.happened.has('tomato')) { soul += 0.2; good.push('The tomatoes are sweet and melted. Like my nonna made.'); }
-      if (U.has('herbs')) { soul += 0.15; good.push('Fresh herbs! Now it smells like home.'); }
-      if ((U.has('pasta') || U.has('noodles')) && a.flaws.mushy < 0.2 && a.flaws.raw < 0.3) { soul += 0.2; good.push('The pasta is al dente. Perfetto.'); }
-      if (p.salty < 0.22) bad.push('No salt? Even the sea is saltier than this.');
-      bad.push(...flawLines(a, { burnt: 'Bruciato! Burnt!', raw: 'Is not cooked. Patience!', mushy: 'The pasta is MUSH. A crime in Italy.', curdled: 'The cream, she has split.', greasy: 'Too much oil, even for me.', chemical: 'What is this powder?! Basta!' }));
-      const s = 10 * (0.55 * bal + 0.3 * Math.min(1, soul) + 0.15) - a.flawSum * 9;
+      const veg = ['carrot', 'celery', 'onion', 'tomato', 'corn', 'beans', 'potato', 'garlic', 'ginger'].filter((v) => U.has(v)).length;
+      let fresh = 0.3 + Math.min(0.3, veg * 0.1);
+      if (U.has('herbs')) { fresh += 0.25; good.push('Fresh herbs! Lovely jubbly.'); }
+      if (U.has('lemon')) { fresh += 0.15; good.push('A squeeze of lemon. Beautiful.'); }
+      if (veg >= 3) good.push('Proper veg in there. Pukka!');
+      else if (!U.has('herbs')) bad.push("Where's the green stuff, mate?");
+      const light = Math.max(0, 1 - Math.max(0, p.salty - 0.55) * 1.5 - Math.max(0, p.rich - 0.45) * 1.5);
+      if (p.salty > 0.65) bad.push('Bit heavy on the salt, mate.');
+      if (p.rich > 0.55) bad.push('Too much fat in there for me.');
+      bad.push(...flawLines(a, { burnt: "Burnt! Oh, that's a shame.", raw: "That's not cooked through, mate.", mushy: 'Mushy pasta. Nah.', curdled: 'The cream has split, mate.', lumps: 'Lumpy. Give it a proper whisk.', greasy: 'Way too greasy. Skim that off!', chemical: "Is that EXTINGUISHER?! Not in my kitchen." }));
+      const s = 10 * (0.45 * bal + 0.25 * Math.min(1, fresh) + 0.15 * light + 0.15) - a.flawSum * 9;
       return { score: s, good, bad };
     },
   },
 
-  // Chef Seonbae: Korean. Deep, layered broth: savory depth, a little heat, a touch of sour, fermented richness (soy).
-  seonbae: {
-    id: 'seonbae', name: 'Chef Seonbae', title: 'The Senior Chef',
-    sens: { 'umami-': 1.5, 'salty-': 1.2, 'heat+': 0.4, 'sour+': 0.6, technique: 1.1 }, loves: ['avgolemono'], theme: [70, 110, 190],
-    sounds: { good: ['*slow nod*', 'Jinjja masisseoyo.'], bad: ['Aigoo...', '*sighs*'] },
+  // Kenji L Salt (a J. Kenji López-Alt caricature): the food scientist. Seasoning has to be exactly right, and he'll
+  // tell you why. Loves browning, emulsions and starch done properly; lumps and splits offend his science.
+  kenji: {
+    id: 'kenji', name: 'Kenji L Salt', title: 'The Food Lab',
+    sens: { salty: 1.5, flaw: 1.3, technique: 1.2, heat: 0.5 }, loves: ['avgolemono'], theme: [70, 110, 190],
+    sounds: { good: ['*pushes up his glasses*', 'Huh. Nice.'], bad: ['*takes notes*', 'Okay, so here\'s the thing.'] },
     evaluate(a) {
-      const p = a.p, good = [], bad = [], bal = balanceOf(a);
-      const depth = Math.min(1, p.umami * 0.9 + (Sim.used.has('soy') ? 0.2 : 0) + Math.min(0.3, a.notes.length * 0.08));
-      if (depth > 0.7) good.push('Deep broth. You can taste the hours in it.');
-      else bad.push('The broth is shallow. It needs more depth.');
-      if (p.heat > 0.15 && p.heat < 0.7) good.push('A good warmth. It wakes you up.');
-      if (p.sour > 0.05 && p.sour < 0.5) good.push('A little brightness. Balanced.');
-      bad.push(...flawLines(a, { burnt: 'Burnt. Start over, junior.', raw: 'Undercooked. Respect the ingredients.', mushy: 'The noodles lost their bite.', greasy: 'Too oily. Skim it.', chemical: 'This is... not food.' }));
-      const s = 10 * (0.5 * bal + 0.35 * depth + 0.15) - a.flawSum * 9;
+      const p = a.p, good = [], bad = [], bal = balanceOf(a), H = Sim.happened;
+      const seasoning = Math.max(0, 1 - Math.abs(p.salty - 0.42) * 2.5);
+      if (p.salty < 0.25) bad.push("Under-salted. Salt doesn't make it salty, it makes it taste like itself.");
+      else if (p.salty > 0.65) bad.push("Over-salted. That's a measurement problem.");
+      else good.push('Seasoned right on the money.');
+      let science = 0;
+      if (H.has('fond') || H.has('seared')) { science += 0.25; good.push('Textbook Maillard browning.'); }
+      if (H.has('liaison')) { science += 0.3; good.push('The egg liaison held. The science checks out.'); }
+      if (H.has('roux') && a.flaws.lumps < 0.2) { science += 0.25; good.push('Starch fully gelatinized. Silky.'); }
+      if (H.has('bloom')) { science += 0.2; good.push('Spices bloomed in fat: fat-soluble aromatics, unlocked.'); }
+      if (H.has('deglaze') || a.deglazed) science += 0.15;
+      if (a.caramelized) science += 0.2;
+      bad.push(...flawLines(a, { burnt: "That's pyrolysis, not browning.", raw: 'Undercooked. The proteins never set.', mushy: 'The starch overhydrated. Mush.', curdled: 'Your proteins coagulated. Temper it next time.', lumps: 'Lumps: the starch gelatinized unevenly.', greasy: 'The emulsion broke. Greasy.', chemical: 'Monoammonium phosphate is NOT a seasoning.' }));
+      const s = 10 * (0.45 * bal + 0.2 * seasoning + 0.2 * Math.min(1, science) + 0.15) - a.flawSum * 11;
       return { score: s, good, bad };
     },
   },
 
-  // Chef Monsieur: French. Technique above all: mirepoix, fond, deglazing, a roux, caramelized onions.
-  monsieur: {
-    id: 'monsieur', name: 'Chef Monsieur', title: 'The French Master',
-    sens: { technique: 1.6, sweet: 1.3, body: 1.3, flaw: 1.3, heat: 0.6, salty: 0.8, ingredients: 0.8 }, loves: ['bouillabaisse'], theme: [60, 80, 170],
-    sounds: { good: ['*adjusts mustache*', 'Magnifique.'], bad: ['Sacrebleu!', '*scoffs*'] },
+  // Julia Childish (a Julia Child caricature): the warbling grande dame of French cooking. Technique above all, and
+  // butter: you can never have too much. Cheerful even when it goes wrong, but she notices.
+  julia: {
+    id: 'julia', name: 'Julia Childish', title: 'The French Chef',
+    sens: { technique: 1.5, flaw: 1.2, sweet: 1.2, 'rich+': 0.3, 'rich-': 1.3 }, loves: ['bouillabaisse'], theme: [90, 130, 200],
+    sounds: { good: ['*warbles with delight*', 'Bon appétit!'], bad: ['Oh, dear, dear.', '*clutches her pearls*'] },
     evaluate(a) {
       const p = a.p, good = [], bad = [], bal = balanceOf(a), H = Sim.happened;
       let tech = 0;
-      if (a.mirepoix) { tech += 0.25; good.push('A proper mirepoix. Good foundations.'); }
-      if (H.has('fond')) { tech += 0.25; good.push('You built a fond. Bien.'); }
-      if (a.deglazed || H.has('deglaze')) { tech += 0.25; good.push('And you deglazed it. Exquisite.'); }
-      if (H.has('roux') && a.flaws.lumps < 0.2) { tech += 0.25; good.push('A silky roux. Très bien.'); }
-      if (a.caramelized) { tech += 0.25; good.push('Caramelized with patience. Bravo.'); }
-      if (tech === 0) bad.push('Where is the technique? This is merely... boiled.');
-      bad.push(...flawLines(a, { burnt: 'Burnt! An insult to the flame.', raw: 'Raw. Unacceptable.', mushy: 'Overcooked to mush. Non.', curdled: 'The cream has split. Amateur.', lumps: 'Lumps! Make a roux, as God intended.', greasy: 'Greasy. Pas du tout.', chemical: 'Extinguisher powder?! Mon dieu.' }));
-      const s = 10 * (0.5 * bal + 0.35 * Math.min(1, tech) + 0.15) - a.flawSum * 12;
+      if (a.mirepoix) { tech += 0.25; good.push('A proper mirepoix! Now we\'re cooking.'); }
+      if (H.has('fond')) { tech += 0.25; good.push('Oh, what a lovely fond.'); }
+      if (a.deglazed || H.has('deglaze')) { tech += 0.25; good.push('And deglazed! Marvelous.'); }
+      if (H.has('roux') && a.flaws.lumps < 0.2) { tech += 0.25; good.push('A silky roux. Just divine.'); }
+      if (a.caramelized) { tech += 0.25; good.push('Caramelized slowly, the way it should be.'); }
+      if (tech === 0) bad.push('It needs a little technique, dear. Brown something!');
+      const butter = Math.min(1, p.rich / 0.4);
+      if (p.rich > 0.35) good.push('Butter! You can never have too much butter.');
+      else if (p.rich < 0.12) bad.push('It wants a little more butter.');
+      bad.push(...flawLines(a, { burnt: "It caught on the bottom. These things happen, but it's burnt.", raw: "Oh, that isn't cooked yet.", mushy: 'Cooked to mush, I\'m afraid.', curdled: 'The cream has split. Temper it, dear.', lumps: 'Lumps! Whisk, whisk, whisk.', greasy: 'Even I think that\'s too greasy.', chemical: 'Is that... extinguisher? Goodness.' }));
+      const s = 10 * (0.45 * bal + 0.3 * Math.min(1, tech) + 0.1 * butter + 0.15) - a.flawSum * 12;
       return { score: s, good, bad };
     },
   },
 
-  // Marty Stew (a Martha Stewart caricature): homey perfection. Tidy, balanced, warm, garnished, no sloppiness.
-  marty: {
-    id: 'marty', name: 'Marty Stew', title: 'The Domestic Doyenne',
+  // Marta Stew (a Martha Stewart caricature): homey perfection. Tidy, balanced, warm, garnished, no sloppiness.
+  marta: {
+    id: 'marta', name: 'Marta Stew', title: 'The Domestic Doyenne',
     sens: { 'salty+': 1.5, heat: 1.3, aroma: 1.2, ingredients: 1.4, flaw: 1.2, technique: 0.7 }, loves: ['tonkotsu-ramen'], theme: [200, 120, 150],
     sounds: { good: ['*dabs lips with a napkin*', 'Lovely.'], bad: ['*purses lips*', 'Oh, dear.'] },
     evaluate(a) {
@@ -464,10 +480,10 @@ function wrongDishLine(j, level, wrong, r) {
     gordo: ing ? `WHERE'S THE ${ing.toUpperCase()}?! This is NOT a ${dish.toUpperCase()}!` : `What IS this? It's NOT a ${dish.toUpperCase()}!`,
     paul: ing ? `No ${ing}. That isn't a ${dish}. Not even close.` : `That isn't a ${dish}. Not even close.`,
     dudeguy: ing ? `Dude. A ${dish} with no ${ing}? That's not a thing!` : `Bro, this is NOT a ${dish}.`,
-    signore: ing ? `Where is the ${ing}? This is not ${dish}!` : `This? This is not ${dish}. Mamma mia.`,
-    seonbae: ing ? `No ${ing}? Then it is not ${dish}.` : `This is not ${dish}. Try again.`,
-    monsieur: ing ? `${dish[0].toUpperCase() + dish.slice(1)} without ${ing}? Non, non, non.` : `I ordered ${dish}. This is not ${dish}.`,
-    marty: ing ? `Oh, dear. A ${dish} needs ${ing}.` : `This isn't ${dish}, is it?`,
+    jamie: ing ? `No ${ing}, mate? That's not a ${dish}.` : `That's not a ${dish}, mate. Not even close.`,
+    kenji: ing ? `Without ${ing}, by definition this isn't ${dish}.` : `I ran the numbers. This isn't ${dish}.`,
+    julia: ing ? `A ${dish} without ${ing}? Oh, dear me, no.` : `Well! This isn't ${dish} at all, is it?`,
+    marta: ing ? `Oh, dear. A ${dish} needs ${ing}.` : `This isn't ${dish}, is it?`,
     obama: ing ? `Let me be clear: a ${dish} has ${ing} in it.` : `I asked for ${dish}. This is something else entirely.`,
     ram: `THAT IS NOT WHAT I ASKED FOR.`,
   };
@@ -1109,10 +1125,20 @@ const SKETCH_JUDGES = {
     for (let k = -3; k <= 3; k++) tri(g, x + k * 5, hy - 13, 5, 7, [250, 226, 90]);
     rect(g, x - 9, hy - 3, 18, 3, [20, 20, 24]);
   }),
-  signore: sketchJudge((g, x, hy) => { rect(g, x - 9, hy - 27, 18, 13, [252, 252, 252]); ellipse(g, x, hy - 27, 11, 5, [252, 252, 252]); rect(g, x - 9, hy - 15, 18, 1, [200, 200, 210]); }),   // toque
-  seonbae: sketchJudge((g, x, hy) => { ellipse(g, x, hy - 9, 16, 9, [30, 26, 30], 'top'); }),   // neat dark hair
-  monsieur: sketchJudge((g, x, hy) => { ellipse(g, x + 2, hy - 13, 15, 5, [40, 50, 110]); rect(g, x + 1, hy - 20, 2, 3, [40, 50, 110]); rect(g, x - 6, hy + 5, 12, 1, [60, 40, 30]); rect(g, x - 7, hy + 4, 1, 1, [60, 40, 30]); rect(g, x + 6, hy + 4, 1, 1, [60, 40, 30]); }),   // beret, mustache
-  marty: sketchJudge((g, x, hy) => { ellipse(g, x, hy - 6, 18, 13, [236, 206, 140], 'top'); rect(g, x - 18, hy - 6, 5, 12, [236, 206, 140]); rect(g, x + 13, hy - 6, 5, 12, [236, 206, 140]); }),   // blond bob
+  jamie: sketchJudge((g, x, hy) => {   // tousled hair and a bowl of olives
+    for (let k = -3; k <= 3; k++) ellipse(g, x + k * 4, hy - 13 + (k & 1), 4, 4, [150, 110, 60]);
+    ellipse(g, x + 16, 106, 8, 3, [240, 236, 226]); for (let k = 0; k < 4; k++) ellipse(g, x + 11 + k * 3, 104 - (k & 1), 2, 2, [90, 110, 40]);
+  }),
+  kenji: sketchJudge((g, x, hy) => {   // glasses, short beard, a thermometer in his pocket
+    ellipse(g, x, hy - 10, 16, 7, [36, 30, 30], 'top');
+    for (const sd of [-1, 1]) { rect(g, x + sd * 5 - 3, hy - 4, 7, 1, SK_INK); rect(g, x + sd * 5 - 3, hy + 1, 7, 1, SK_INK); rect(g, x + sd * 5 - 3, hy - 4, 1, 5, SK_INK); rect(g, x + sd * 5 + 3, hy - 4, 1, 5, SK_INK); }
+    ellipse(g, x, hy + 11, 10, 5, [50, 40, 36], 'bottom'); rect(g, x - 14, 90, 2, 10, [200, 206, 220]);
+  }),
+  julia: sketchJudge((g, x, hy) => {   // tall curled hair and pearls
+    ellipse(g, x, hy - 12, 18, 10, [120, 80, 50], 'top'); for (const sd of [-1, 1]) ellipse(g, x + sd * 16, hy - 4, 4, 7, [120, 80, 50]);
+    for (let k = -3; k <= 3; k++) rect(g, x + k * 3, 84 + Math.round(Math.abs(k) * 0.5), 2, 2, [250, 250, 245]);
+  }),
+  marta: sketchJudge((g, x, hy) => { ellipse(g, x, hy - 6, 18, 13, [236, 206, 140], 'top'); rect(g, x - 18, hy - 6, 5, 12, [236, 206, 140]); rect(g, x + 13, hy - 6, 5, 12, [236, 206, 140]); }),   // blond bob
   obama: sketchJudge((g, x, hy) => { ellipse(g, x, hy - 10, 16, 7, [40, 34, 34], 'top'); rect(g, x - 1, 88, 3, 18, [180, 40, 50]); }),   // short hair, a tie
   ram: sketchJudge((g, x, hy) => {   // horns and burning eyes
     for (const sd of [-1, 1]) for (let k = 0; k < 10; k++) rect(g, x + sd * (12 + k), hy - 12 - Math.round(Math.sin(k / 9 * Math.PI) * 9) + (k > 6 ? k - 6 : 0), 3, 3, [60, 40, 36]);

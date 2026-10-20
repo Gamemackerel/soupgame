@@ -1,6 +1,6 @@
 {
-  "name": "judges/marty",
-  "path": "characters/judges/marty",
+  "name": "judges/kenji",
+  "path": "characters/judges/kenji",
   "group": "characters",
   "cell": [
     96,
@@ -69,7 +69,7 @@
     "meh",
     "upset"
   ],
-  "notes": "Marty Stew: the queen of home entertaining (a Martha Stewart caricature). Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
+  "notes": "Kenji L Salt: the food scientist (a J. Kenji López-Alt caricature): glasses, short dark beard, a probe thermometer in his shirt pocket. Body behind the judging table; everything below the table line is hidden. The anchor is the top of their slot, centered.",
   "guides": [
     {
       "y": 118,
