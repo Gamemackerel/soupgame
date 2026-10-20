@@ -2,6 +2,11 @@
   "characters/chef/body",
   "characters/chef/face",
   "characters/chef/head",
+  "ingredients/beans",
   "ingredients/carrot",
+  "ingredients/celery",
+  "ingredients/cheese",
+  "ingredients/chicken",
+  "ingredients/cumin",
   "ingredients/wine"
 ]
