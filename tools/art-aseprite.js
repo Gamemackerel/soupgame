@@ -5,6 +5,8 @@
 //                                        that already exists: pass --force to replace one, which loses its drawing).
 //   node tools/art-aseprite.js export    Splits every art/aseprite file back into the game's sprite sheets in
 //                                        art/sprites/, then registers them (tools/art-index.js).
+//   node tools/art-aseprite.js manifest  Writes art/preview/docs.json, what the artist's scene preview (art/preview.html)
+//                                        needs to read the files in the browser (rerun when sprites change).
 //
 // In each file:
 //   - A layer GROUP per game sprite, named for it (body, head, face, front, ...). Everything visible inside a group
@@ -220,7 +222,29 @@ function exportDoc(doc, file) {
   return { done, skipped, warnings: [...new Set(ase.warnings)] };
 }
 
-module.exports = { documents, make, exportDoc, layout };
+// ---------- manifest ----------
+// What the artist's scene preview (art/preview.html) needs to read the Aseprite files in the browser, the same way
+// exportDoc does: each file's groups, tags and crops, and each sprite's sheet layout. Written to art/preview/docs.json.
+function manifest() {
+  const sprites = {}, sheet = (p) => { if (!sprites[p]) { const m = tpl(p).meta; sprites[p] = { cell: m.cell, sheet: m.sheet, states: m.states.map((s) => ({ name: s.name, row: s.row, frames: s.frames })) }; } };
+  const docs = documents().map((doc) => {
+    if (doc.kind === 'items') {
+      doc.items.forEach((it) => sheet(it.sprite));
+      return { file: doc.file, kind: 'items', group: doc.group, items: doc.items.map(({ sprite, state, tag }) => ({ sprite, state, tag })) };
+    }
+    const L = layout(doc);
+    L.parts.forEach((p) => sheet(p.t.meta.path));
+    return { file: doc.file, kind: 'parts', w: L.W, h: L.H, groups: L.parts.map((p) => p.group), parts: L.parts.map((p) => ({ group: p.group, sprite: p.t.meta.path, x: p.x, y: p.y, w: p.w, h: p.h,
+      states: p.t.meta.states.map((s) => ({ name: s.name, frames: s.frames, tag: p.home[s.name] && p.home[s.name].name })) })) };
+  });
+  return { docs, sprites };
+}
+function writeManifest() {
+  fs.mkdirSync(path.join(ROOT, 'art', 'preview'), { recursive: true });
+  fs.writeFileSync(path.join(ROOT, 'art', 'preview', 'docs.json'), JSON.stringify(manifest()));
+}
+
+module.exports = { documents, make, exportDoc, layout, manifest };
 
 // ---------- CLI ----------
 const cmd = require.main === module ? process.argv[2] : null, force = process.argv.includes('--force');
@@ -234,6 +258,9 @@ if (cmd === 'make') {
     made++;
   }
   console.log(`Made ${made} Aseprite files in art/aseprite/` + (kept ? ` (kept ${kept} that already exist; --force replaces them)` : '') + '.');
+} else if (cmd === 'manifest') {
+  writeManifest();
+  console.log('Wrote art/preview/docs.json.');
 } else if (cmd === 'export') {
   let total = 0;
   for (const doc of documents()) {

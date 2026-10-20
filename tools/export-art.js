@@ -112,6 +112,7 @@ function catalog(metas) {
 </style></head><body><main>
 <h1>Soup Pot: art templates</h1>
 <p>Everything to redraw. You'll draw in the ready-made Aseprite files: <a href="soup-pot-aseprite.zip"><b>download them here (zip)</b></a>. This page shows what each piece is, where it sits and which poses it needs. The full instructions are in the <a href="https://github.com/Gamemackerel/soupgame/blob/main/art/README.md">art README</a>.</p>
+<p><b>See your drawings in the game:</b> drop your Aseprite files on the <a href="../art/preview.html">scene preview</a>, which shows them in the kitchens and at the judging table right away.</p>
 <p><b>Only the first frame of each pose is required.</b> Extra frames are optional animation: left empty, the game holds the first frame. Poses marked "also used for" share one drawing, so it's drawn once.</p>
 <nav>${order.map((g) => `<a href="#${g}">${g}</a>`).join('')}</nav>
 ${sections}
