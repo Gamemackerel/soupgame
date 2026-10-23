@@ -546,7 +546,7 @@ const Game = {
   judging() { return { level: this.level, panel: this.panel && this.panel.length === 3 ? this.panel : null }; },
 
   tipPot() { Tip.start(); },
-  freshPot() { Tip.active = false; Spill.clear(); Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; UI.confirm = null; Chef.select(SHELF[0]); paused = false; },
+  freshPot() { this.levelStart = Sim.frame; Tip.active = false; Spill.clear(); Sim.reset(); Chef.clean(); Sim.dial = 0; Sim.lid = false; UI.tool = 'pour'; UI.card = null; UI.confirm = null; Chef.select(SHELF[0]); paused = false; },
   timeLeft() { return this.level ? Levels.timeLimit(this.level) - (Sim.frame - this.levelStart) / 60 : Infinity; },
   startLevel(level) {
     this.level = level; this.panel = null; this.timedOut = false;
@@ -569,6 +569,8 @@ const Game = {
   serve() {
     Judging.start(this.judging());
     const L = Judging.levelResult;
+    if (Judging.results && !Judging.analysis.empty)
+      PlayLog.record(this.level, L, Judging.results, JUDGES.map((j) => j.id), Judging.analysis, (Sim.frame - this.levelStart) / 60);
     if (L && this.level) {
       const tierOpenBefore = Progress.unlocked(this.level.tier + 1), doneBefore = this.tierDone(this.level.tier);
       Progress.record(this.level, L, Judging.handshake);

@@ -155,6 +155,51 @@ function button(g, b, hov, danger) {
   rect(g, b.x + 1, b.y + 1, b.w - 2, 2, danger ? [250, 140, 120] : [255, 240, 170]);
 }
 
+// ---------- Playtest log (per browser) ----------
+// Every dish served, one line each, for tuning: Settings → COPY PLAYTEST LOG puts it on the clipboard (or downloads
+// it) for a tester to send over. Keeps the last LOG_MAX.
+const LOG_MAX = 400;
+const PlayLog = {
+  KEY: 'soupgame.playlog.v1',
+  entries() { try { return JSON.parse(localStorage.getItem(this.KEY)) || []; } catch (e) { return []; } },
+  add(entry) {
+    const all = this.entries(); all.push(entry);
+    try { localStorage.setItem(this.KEY, JSON.stringify(all.slice(-LOG_MAX))); } catch (e) { /* full or private mode: skip */ }
+  },
+  // One served dish: what it was, how it scored and why.
+  record(level, L, results, judgeIds, a, secs) {
+    const r2 = (v) => Math.round(v * 100) / 100;
+    this.add({
+      at: new Date().toISOString(), dish: level ? level.id : 'sandbox', secs: Math.round(secs),
+      limit: level ? Levels.timeLimit(level) : null,
+      score: L ? L.total : r2(results.reduce((t, r) => t + r.score, 0) / (results.length || 1)),
+      badge: L ? L.badge : null, passed: L ? L.passed : null,
+      judges: Object.fromEntries(judgeIds.map((id, n) => [id, results[n] ? results[n].score : null])),
+      missing: L ? L.missing : [], slipped: L ? L.slipped : [], missingIng: L ? L.missingIng : [], flaws: L ? L.broke : [],
+      wrongDish: !!(L && L.wrong), gap: L && L.gap ? L.gap.ax + (L.gap.d > 0 ? '+' : '') + r2(L.gap.d) : null,
+      flourish: L && L.judges.some((j) => j.flourish) ? L.extras : [],
+      used: [...Sim.used], techniques: [...Sim.happened],
+      taste: a && a.p ? Object.fromEntries(LEVEL_AXES.map((k) => [k, r2(a.p[k] || 0)])) : null,
+    });
+  },
+  text() {
+    const all = this.entries();
+    return `Soup Pot playtest log, ${all.length} dish${all.length === 1 ? '' : 'es'}, copied ${new Date().toISOString()}\n` + all.map((e) => JSON.stringify(e)).join('\n') + '\n';
+  },
+  // To the clipboard; if the browser won't allow that, as a download.
+  copy(done) {
+    const text = this.text(), n = this.entries().length;
+    const download = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' })); a.download = 'soup-pot-playtest-log.txt';
+      document.body.append(a); a.click(); a.remove();
+      done(`Saved the log of ${n} dishes as a file`);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(`Copied ${n} dishes. Paste them to the developer!`), download);
+    else download();
+  },
+};
+
 // ---------- Title menu (Story, Sandbox, Settings) and Settings ----------
 const TITLE_BTNS = [
   { id: 'story', label: 'STORY', x: 110, y: 118, w: 100, h: 20 },
@@ -162,12 +207,13 @@ const TITLE_BTNS = [
   { id: 'settings', label: 'SETTINGS', x: 110, y: 170, w: 100, h: 20 },
 ];
 const SETTINGS_BTNS = [
-  { id: 'journal', label: 'JOURNAL', x: 110, y: 84, w: 100, h: 20 },
-  { id: 'reset', label: 'RESET PROGRESS', x: 95, y: 122, w: 130, h: 20, danger: true },
-  { id: 'back', label: 'BACK', x: 110, y: 190, w: 100, h: 20 },
+  { id: 'journal', label: 'JOURNAL', x: 110, y: 66, w: 100, h: 20 },
+  { id: 'log', label: 'COPY PLAYTEST LOG', x: 95, y: 100, w: 130, h: 20 },
+  { id: 'reset', label: 'RESET PROGRESS', x: 95, y: 134, w: 130, h: 20, danger: true },
+  { id: 'back', label: 'BACK', x: 110, y: 196, w: 100, h: 20 },
 ];
 // Music volume: click or drag along it.
-const MUSIC_SLIDER = { x: 110, y: 168, w: 100, h: 6 };
+const MUSIC_SLIDER = { x: 110, y: 178, w: 100, h: 6 };
 
 const Title = {
   active: false, page: 'root', hover: null, confirmReset: 0, flash: null, dragging: false,
@@ -188,6 +234,7 @@ const Title = {
     else if (b.id === 'sandbox') Game.startSandbox();
     else if (b.id === 'settings') this.page = 'settings';
     else if (b.id === 'journal') Journal.open();
+    else if (b.id === 'log') PlayLog.copy((text) => { this.flash = { text, t: 0 }; });
     else if (b.id === 'back') this.page = 'root';
     else if (b.id === 'reset') {
       if (this.confirmReset > 0) { Progress.reset(); this.confirmReset = 0; this.flash = { text: 'Progress reset', t: 0 }; }
@@ -212,9 +259,10 @@ const Title = {
     if (this.page === 'root') {
       T.text('SOUP POT', 160, 40, { size: 26, color: '#ffe9c0', align: 'center', shadow: true });
     } else {
-      T.text('SETTINGS', 160, 50, { size: 16, color: '#ffe9c0', align: 'center', shadow: true });
-      T.text('Every technique you have discovered.', 160, 108, { size: 5, color: '#d8c0b0', align: 'center' });
-      T.text('Wipes your scores, badges, journal and story progress.', 160, 146, { size: 5, color: '#d8c0b0', align: 'center' });
+      T.text('SETTINGS', 160, 36, { size: 16, color: '#ffe9c0', align: 'center', shadow: true });
+      T.text('Every technique you have discovered.', 160, 90, { size: 5, color: '#d8c0b0', align: 'center' });
+      T.text('Every dish you have served, to send to the developer.', 160, 124, { size: 5, color: '#d8c0b0', align: 'center' });
+      T.text('Wipes your scores, badges, journal and story progress.', 160, 158, { size: 5, color: '#d8c0b0', align: 'center' });
       T.text('MUSIC', MUSIC_SLIDER.x - 8, MUSIC_SLIDER.y - 1, { size: 6, color: '#ffe9c0', align: 'right' });
       T.text(Math.round(Music.volume * 100) + '%', MUSIC_SLIDER.x + MUSIC_SLIDER.w + 8, MUSIC_SLIDER.y - 1, { size: 6, color: '#d8c0b0' });
     }
@@ -222,7 +270,7 @@ const Title = {
       const label = b.id === 'reset' && this.confirmReset > 0 ? 'CLICK AGAIN TO RESET' : b.label;
       T.text(label, b.x + b.w / 2, b.y + 7, { size: 6, color: b.danger ? '#fff' : '#3a2020', align: 'center' });
     }
-    if (this.flash) T.text(this.flash.text, 160, 200, { size: 7, color: '#ffd860', align: 'center', shadow: true });
+    if (this.flash) T.text(this.flash.text, 160, this.page === 'settings' ? 226 : 200, { size: 7, color: '#ffd860', align: 'center', shadow: true });
   },
 };
 

@@ -648,6 +648,8 @@ Starchy pieces count as "raw" until well softened. Deeply caramelized onions now
 - **Gordo Hamsie, the head chef.** A satirical human caricature: spiky blond hair, a deeply furrowed forehead, chef whites, and a face that goes red when angry. An execution perfectionist who cares about raw, burnt, mushy, under-seasoning and sloppy technique. He rants in caps with bleeps that keep the first letter (S\*\*\*!) and creative insults.
 - **Paul Bollywood, the master baker.** A lookalike of the famous baker: tanned, with short cropped silver hair, a short silver beard and goatee, piercing blue eyes and a dark open-collar shirt. He judges bakes (rise, crust, crumb) and spice (bloomed versus raw, heat balance). His rare **Bollywood handshake** goes to a dish he scores 9 or more *and* loves by his own taste (9+), with its own animation of him reaching across the table. On the tier-1 pars only the goulash and the chili, with their bloomed spices, earn it.
 
+**Playtest log:** every dish served (story or sandbox) is logged in the browser: the dish, total and each judge's score, badge, time used against the limit, missing or forbidden techniques, ingredients left out, flaws, the biggest drift from the recipe, any flourish, ingredients used, techniques done and the measured taste (`PlayLog` in `js/menu.js`, the last 400 dishes). Settings → **COPY PLAYTEST LOG** copies it (or downloads it as a file) for testers to send; `node tools/read-playlog.js <logs...>` summarizes them per dish.
+
 ## 18. Heat on the Pot Bottom (implemented)
 
 - **Moist vegetables are held down.** Onion, carrot and celery stay near 110 °C while they still hold water. They only climb toward the pan's temperature as they brown and dry out.
