@@ -123,7 +123,7 @@ function catalog(metas, finished) {
 <p><b>See your drawings in the game:</b> drop your Aseprite files on the <a href="../art/preview.html">scene preview</a>, which shows them in the kitchens and at the judging table right away.</p>
 <p><b>Only the first frame of each pose is required.</b> Extra frames are optional animation: left empty, the game holds the first frame. Poses marked "also used for" share one drawing, so it's drawn once.</p>
 <nav>${order.map((g) => `<a href="#${g}">${g}</a>`).join('')}</nav>
-${finished.size ? `<p><b>Finished so far: ${[...finished].filter((p) => metas.some((m) => m.path === p)).length} of ${metas.length} sprites.</b> ${metas.filter((m) => finished.has(m.path)).map((m) => `<a href="#${esc(m.path)}">${esc(m.path.split('/').pop())}</a>`).join(', ')}</p>` : ''}
+${finished.size ? `<p><b>Finished so far: ${[...finished].filter((p) => metas.some((m) => m.path === p)).length} of ${metas.length} sprites.</b> ${metas.filter((m) => finished.has(m.path)).map((m) => `<a href="#${esc(m.path)}">${esc(m.path.replace(/^(characters|ingredients|backgrounds)\//, ''))}</a>`).join(', ')}</p>` : ''}
 ${sections}
 </main></body></html>
 `;
