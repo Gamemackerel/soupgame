@@ -65,7 +65,9 @@ const server = http.createServer((req, res) => {
   }
   const metas = all.sheets.map((a) => a.meta);
   fs.writeFileSync(path.join(OUT, 'catalog.json'), JSON.stringify(metas, null, 2) + '\n');
-  fs.writeFileSync(path.join(ROOT, 'art', 'index.html'), catalog(metas));
+  const indexFile = path.join(ROOT, 'art', 'sprites', 'index.json');
+  const finished = new Set(fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile, 'utf8')) : []);
+  fs.writeFileSync(path.join(ROOT, 'art', 'index.html'), catalog(metas, finished));
 
   const cells = (m) => m.states.reduce((n, s) => n + s.frames, 0);
   const groups = {};
@@ -74,24 +76,28 @@ const server = http.createServer((req, res) => {
   console.log(`Wrote ${metas.length} templates to art/templates/ and art/index.html.`);
 })();
 
-// A browsable page of every template: what each sprite is, its states, and its zoomed guide.
-function catalog(metas) {
+// A browsable page of every template: what each sprite is, its states, and its zoomed guide. Sprites with finished
+// art (art/sprites/index.json) show the finished drawing first, as the game uses it, with the guide underneath.
+function catalog(metas, finished) {
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   const order = ['characters', 'ingredients', 'backgrounds'];
   const sections = order.map((g) => {
     const ms = metas.filter((m) => m.group === g);
-    const cards = ms.map((m) => `
-    <section class="sprite" id="${esc(m.path)}">
-      <h3>${esc(m.path)}</h3>
+    const cards = ms.map((m) => { const done = finished.has(m.path), zoom = Math.max(1, Math.min(8, Math.floor(640 / m.sheet[0]))); return `
+    <section class="sprite${done ? ' done' : ''}" id="${esc(m.path)}">
+      <h3>${esc(m.path)}${done ? ' <span class="badge">Finished</span>' : ''}</h3>
       <p class="facts">cell ${m.cell[0]}×${m.cell[1]} · anchor ${m.anchor[0]},${m.anchor[1]} · sheet ${m.sheet[0]}×${m.sheet[1]} ·
         <a href="templates/${esc(m.path)}.png">template</a> · <a href="templates/${esc(m.path)}.json">json</a></p>
       <p>${esc(m.notes)}</p>
       <table>${m.states.map((s) => `<tr><td>${s.row}</td><td><b>${esc(s.name)}</b>${s.also && s.also.length ? `<br><small>also used for ${esc(s.also.join(', '))}</small>` : ''}</td><td>1 drawing${s.frames > 1 ? ` <small>+ ${s.frames - 1} optional animation frame${s.frames > 2 ? 's' : ''} (${s.fps} fps${s.loop ? ', loops' : ', plays once'})</small>` : ''}</td><td>${esc(s.note || '')}</td></tr>`).join('')}</table>
-      <img src="templates/${esc(m.path)}.guide.png" alt="${esc(m.path)} guide">
+      ${done ? `<p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/${esc(m.path)}.png" style="width:${m.sheet[0] * zoom}px" alt="${esc(m.path)} finished">
+      <details><summary>Show the original guide</summary><img src="templates/${esc(m.path)}.guide.png" alt="${esc(m.path)} guide" loading="lazy"></details>`
+        : `<img src="templates/${esc(m.path)}.guide.png" alt="${esc(m.path)} guide">`}
       ${m.animated ? `<details><summary>Show the optional animation frames</summary><img src="templates/${esc(m.path)}.frames.png" alt="${esc(m.path)} animation frames" loading="lazy"></details>` : ''}
-    </section>`).join('');
+    </section>`; }).join('');
     const drawings = ms.reduce((n, m) => n + m.states.length, 0), extra = ms.reduce((n, m) => n + m.states.reduce((k, s) => k + s.frames - 1, 0), 0);
-    return `<h2 id="${g}">${g[0].toUpperCase() + g.slice(1)} <small>${drawings} drawings${extra ? ` + ${extra} optional animation frames` : ''}</small></h2>${cards}`;
+    const doneHere = ms.filter((m) => finished.has(m.path)).length;
+    return `<h2 id="${g}">${g[0].toUpperCase() + g.slice(1)} <small>${drawings} drawings${extra ? ` + ${extra} optional animation frames` : ''}${doneHere ? ` · ${doneHere} of ${ms.length} sprites finished` : ''}</small></h2>${cards}`;
   }).join('\n');
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -103,6 +109,8 @@ function catalog(metas) {
   main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
   nav a { margin-right: 14px; color: var(--accent); }
   h2 { margin-top: 48px; border-bottom: 2px solid var(--line); } h2 small { font-weight: 400; color: var(--muted); font-size: 14px; }
+  .badge { font: 600 12px system-ui, sans-serif; color: #fff; background: #2f7d3a; border-radius: 4px; padding: 2px 7px; vertical-align: 3px; margin-left: 6px; }
+  .sprite.done { border-color: #2f7d3a; } img.art { max-width: 100%; background: repeating-conic-gradient(#0000 0 25%, #8882 0 50%) 0 0 / 16px 16px; }
   .sprite { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 16px 0; overflow-x: auto; }
   .sprite h3 { margin: 0; font-family: ui-monospace, monospace; } .facts { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
   table { border-collapse: collapse; font-size: 13px; margin-bottom: 10px; } td { padding: 2px 10px 2px 0; vertical-align: top; }
@@ -115,6 +123,7 @@ function catalog(metas) {
 <p><b>See your drawings in the game:</b> drop your Aseprite files on the <a href="../art/preview.html">scene preview</a>, which shows them in the kitchens and at the judging table right away.</p>
 <p><b>Only the first frame of each pose is required.</b> Extra frames are optional animation: left empty, the game holds the first frame. Poses marked "also used for" share one drawing, so it's drawn once.</p>
 <nav>${order.map((g) => `<a href="#${g}">${g}</a>`).join('')}</nav>
+${finished.size ? `<p><b>Finished so far: ${[...finished].filter((p) => metas.some((m) => m.path === p)).length} of ${metas.length} sprites.</b> ${metas.filter((m) => finished.has(m.path)).map((m) => `<a href="#${esc(m.path)}">${esc(m.path.split('/').pop())}</a>`).join(', ')}</p>` : ''}
 ${sections}
 </main></body></html>
 `;
