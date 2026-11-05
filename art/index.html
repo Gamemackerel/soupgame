@@ -8,6 +8,8 @@
   main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
   nav a { margin-right: 14px; color: var(--accent); }
   h2 { margin-top: 48px; border-bottom: 2px solid var(--line); } h2 small { font-weight: 400; color: var(--muted); font-size: 14px; }
+  .badge { font: 600 12px system-ui, sans-serif; color: #fff; background: #2f7d3a; border-radius: 4px; padding: 2px 7px; vertical-align: 3px; margin-left: 6px; }
+  .sprite.done { border-color: #2f7d3a; } img.art { max-width: 100%; background: repeating-conic-gradient(#0000 0 25%, #8882 0 50%) 0 0 / 16px 16px; }
   .sprite { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 16px 0; overflow-x: auto; }
   .sprite h3 { margin: 0; font-family: ui-monospace, monospace; } .facts { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
   table { border-collapse: collapse; font-size: 13px; margin-bottom: 10px; } td { padding: 2px 10px 2px 0; vertical-align: top; }
@@ -20,32 +22,36 @@
 <p><b>See your drawings in the game:</b> drop your Aseprite files on the <a href="../art/preview.html">scene preview</a>, which shows them in the kitchens and at the judging table right away.</p>
 <p><b>Only the first frame of each pose is required.</b> Extra frames are optional animation: left empty, the game holds the first frame. Poses marked "also used for" share one drawing, so it's drawn once.</p>
 <nav><a href="#characters">characters</a><a href="#ingredients">ingredients</a><a href="#backgrounds">backgrounds</a></nav>
-<h2 id="characters">Characters <small>112 drawings + 107 optional animation frames</small></h2>
-    <section class="sprite" id="characters/chef/body">
-      <h3>characters/chef/body</h3>
+<p><b>Finished so far: 10 of 95 sprites.</b> <a href="#characters/chef/body">body</a>, <a href="#characters/chef/head">head</a>, <a href="#characters/chef/face">face</a>, <a href="#ingredients/wine">wine</a>, <a href="#ingredients/cumin">cumin</a>, <a href="#ingredients/carrot">carrot</a>, <a href="#ingredients/celery">celery</a>, <a href="#ingredients/beans">beans</a>, <a href="#ingredients/chicken">chicken</a>, <a href="#ingredients/cheese">cheese</a></p>
+<h2 id="characters">Characters <small>112 drawings + 107 optional animation frames · 3 of 33 sprites finished</small></h2>
+    <section class="sprite done" id="characters/chef/body">
+      <h3>characters/chef/body <span class="badge">Finished</span></h3>
       <p class="facts">cell 48×46 · anchor 24,-74 · sheet 48×46 ·
         <a href="templates/characters/chef/body.png">template</a> · <a href="templates/characters/chef/body.json">json</a></p>
       <p>His torso above the pot rim: he must be wearing a traditional chef shirt and a red scarf. The anchor is the middle of his body line; the head sits on top (see chef/head). Arms are drawn by code from the shoulders.</p>
       <table><tr><td>0</td><td><b>idle</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/characters/chef/body.guide.png" alt="characters/chef/body guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/characters/chef/body.png" style="width:384px" alt="characters/chef/body finished">
+      <details><summary>Show the original guide</summary><img src="templates/characters/chef/body.guide.png" alt="characters/chef/body guide" loading="lazy"></details>
       
     </section>
-    <section class="sprite" id="characters/chef/head">
-      <h3>characters/chef/head</h3>
+    <section class="sprite done" id="characters/chef/head">
+      <h3>characters/chef/head <span class="badge">Finished</span></h3>
       <p class="facts">cell 40×52 · anchor 20,36 · sheet 40×52 ·
         <a href="templates/characters/chef/head.png">template</a> · <a href="templates/characters/chef/head.json">json</a></p>
       <p>Head and ears, with no face. He must be wearing a chef hat, and otherwise be dressed in traditional chef attire. The anchor is the center of his face; chef/face is laid over it.</p>
       <table><tr><td>0</td><td><b>idle</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/characters/chef/head.guide.png" alt="characters/chef/head guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/characters/chef/head.png" style="width:320px" alt="characters/chef/head finished">
+      <details><summary>Show the original guide</summary><img src="templates/characters/chef/head.guide.png" alt="characters/chef/head guide" loading="lazy"></details>
       
     </section>
-    <section class="sprite" id="characters/chef/face">
-      <h3>characters/chef/face</h3>
+    <section class="sprite done" id="characters/chef/face">
+      <h3>characters/chef/face <span class="badge">Finished</span></h3>
       <p class="facts">cell 24×22 · anchor 12,8 · sheet 24×176 ·
         <a href="templates/characters/chef/face.png">template</a> · <a href="templates/characters/chef/face.json">json</a></p>
       <p>Eyes, brows, mouth, mustache and blush, drawn over chef/head. Same anchor as the head (the center of his face).</p>
       <table><tr><td>0</td><td><b>idle</b></td><td>1 drawing</td><td></td></tr><tr><td>1</td><td><b>blink</b></td><td>1 drawing</td><td>idle with eyes shut, shown for a few frames now and then</td></tr><tr><td>2</td><td><b>happy</b></td><td>1 drawing</td><td></td></tr><tr><td>3</td><td><b>love</b></td><td>1 drawing</td><td>after a great taste</td></tr><tr><td>4</td><td><b>meh</b><br><small>also used for worried</small></td><td>1 drawing</td><td></td></tr><tr><td>5</td><td><b>gross</b></td><td>1 drawing</td><td>burnt food</td></tr><tr><td>6</td><td><b>shock</b><br><small>also used for panic</small></td><td>1 drawing</td><td></td></tr><tr><td>7</td><td><b>angry</b></td><td>1 drawing</td><td>flipping the pot over</td></tr></table>
-      <img src="templates/characters/chef/face.guide.png" alt="characters/chef/face guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/characters/chef/face.png" style="width:192px" alt="characters/chef/face finished">
+      <details><summary>Show the original guide</summary><img src="templates/characters/chef/face.guide.png" alt="characters/chef/face guide" loading="lazy"></details>
       
     </section>
     <section class="sprite" id="characters/judges/pounce">
@@ -318,7 +324,7 @@
       <img src="templates/characters/extras/customer.guide.png" alt="characters/extras/customer guide">
       
     </section>
-<h2 id="ingredients">Ingredients <small>55 drawings</small></h2>
+<h2 id="ingredients">Ingredients <small>55 drawings · 7 of 54 sprites finished</small></h2>
     <section class="sprite" id="ingredients/water">
       <h3>ingredients/water</h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
@@ -346,13 +352,14 @@
       <img src="templates/ingredients/cream.guide.png" alt="ingredients/cream guide">
       
     </section>
-    <section class="sprite" id="ingredients/wine">
-      <h3>ingredients/wine</h3>
+    <section class="sprite done" id="ingredients/wine">
+      <h3>ingredients/wine <span class="badge">Finished</span></h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
         <a href="templates/ingredients/wine.png">template</a> · <a href="templates/ingredients/wine.json">json</a></p>
       <p>Wine: on the shelf, and in the chef's hand.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/wine.guide.png" alt="ingredients/wine guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/ingredients/wine.png" style="width:128px" alt="ingredients/wine finished">
+      <details><summary>Show the original guide</summary><img src="templates/ingredients/wine.guide.png" alt="ingredients/wine guide" loading="lazy"></details>
       
     </section>
     <section class="sprite" id="ingredients/vinegar">
@@ -436,13 +443,14 @@
       <img src="templates/ingredients/saffron.guide.png" alt="ingredients/saffron guide">
       
     </section>
-    <section class="sprite" id="ingredients/cumin">
-      <h3>ingredients/cumin</h3>
+    <section class="sprite done" id="ingredients/cumin">
+      <h3>ingredients/cumin <span class="badge">Finished</span></h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
         <a href="templates/ingredients/cumin.png">template</a> · <a href="templates/ingredients/cumin.json">json</a></p>
       <p>Cumin: on the shelf, and in the chef's hand.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/cumin.guide.png" alt="ingredients/cumin guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/ingredients/cumin.png" style="width:128px" alt="ingredients/cumin finished">
+      <details><summary>Show the original guide</summary><img src="templates/ingredients/cumin.guide.png" alt="ingredients/cumin guide" loading="lazy"></details>
       
     </section>
     <section class="sprite" id="ingredients/pepper">
@@ -508,22 +516,24 @@
       <img src="templates/ingredients/garlic.guide.png" alt="ingredients/garlic guide">
       
     </section>
-    <section class="sprite" id="ingredients/carrot">
-      <h3>ingredients/carrot</h3>
+    <section class="sprite done" id="ingredients/carrot">
+      <h3>ingredients/carrot <span class="badge">Finished</span></h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
         <a href="templates/ingredients/carrot.png">template</a> · <a href="templates/ingredients/carrot.json">json</a></p>
       <p>Carrot: on the shelf, and in the chef's hand.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/carrot.guide.png" alt="ingredients/carrot guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/ingredients/carrot.png" style="width:128px" alt="ingredients/carrot finished">
+      <details><summary>Show the original guide</summary><img src="templates/ingredients/carrot.guide.png" alt="ingredients/carrot guide" loading="lazy"></details>
       
     </section>
-    <section class="sprite" id="ingredients/celery">
-      <h3>ingredients/celery</h3>
+    <section class="sprite done" id="ingredients/celery">
+      <h3>ingredients/celery <span class="badge">Finished</span></h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
         <a href="templates/ingredients/celery.png">template</a> · <a href="templates/ingredients/celery.json">json</a></p>
       <p>Celery: on the shelf, and in the chef's hand.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/celery.guide.png" alt="ingredients/celery guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/ingredients/celery.png" style="width:128px" alt="ingredients/celery finished">
+      <details><summary>Show the original guide</summary><img src="templates/ingredients/celery.guide.png" alt="ingredients/celery guide" loading="lazy"></details>
       
     </section>
     <section class="sprite" id="ingredients/tomato">
@@ -553,13 +563,14 @@
       <img src="templates/ingredients/corn.guide.png" alt="ingredients/corn guide">
       
     </section>
-    <section class="sprite" id="ingredients/beans">
-      <h3>ingredients/beans</h3>
+    <section class="sprite done" id="ingredients/beans">
+      <h3>ingredients/beans <span class="badge">Finished</span></h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
         <a href="templates/ingredients/beans.png">template</a> · <a href="templates/ingredients/beans.json">json</a></p>
       <p>Beans: on the shelf, and in the chef's hand.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/beans.guide.png" alt="ingredients/beans guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/ingredients/beans.png" style="width:128px" alt="ingredients/beans finished">
+      <details><summary>Show the original guide</summary><img src="templates/ingredients/beans.guide.png" alt="ingredients/beans guide" loading="lazy"></details>
       
     </section>
     <section class="sprite" id="ingredients/herbs">
@@ -580,13 +591,14 @@
       <img src="templates/ingredients/meat.guide.png" alt="ingredients/meat guide">
       
     </section>
-    <section class="sprite" id="ingredients/chicken">
-      <h3>ingredients/chicken</h3>
+    <section class="sprite done" id="ingredients/chicken">
+      <h3>ingredients/chicken <span class="badge">Finished</span></h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
         <a href="templates/ingredients/chicken.png">template</a> · <a href="templates/ingredients/chicken.json">json</a></p>
       <p>Chicken: on the shelf, and in the chef's hand.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/chicken.guide.png" alt="ingredients/chicken guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/ingredients/chicken.png" style="width:128px" alt="ingredients/chicken finished">
+      <details><summary>Show the original guide</summary><img src="templates/ingredients/chicken.guide.png" alt="ingredients/chicken guide" loading="lazy"></details>
       
     </section>
     <section class="sprite" id="ingredients/fish">
@@ -625,13 +637,14 @@
       <img src="templates/ingredients/noodles.guide.png" alt="ingredients/noodles guide">
       
     </section>
-    <section class="sprite" id="ingredients/cheese">
-      <h3>ingredients/cheese</h3>
+    <section class="sprite done" id="ingredients/cheese">
+      <h3>ingredients/cheese <span class="badge">Finished</span></h3>
       <p class="facts">cell 16×16 · anchor 0,0 · sheet 16×16 ·
         <a href="templates/ingredients/cheese.png">template</a> · <a href="templates/ingredients/cheese.json">json</a></p>
       <p>Cheese: on the shelf, and in the chef's hand.</p>
       <table><tr><td>0</td><td><b>default</b></td><td>1 drawing</td><td></td></tr></table>
-      <img src="templates/ingredients/cheese.guide.png" alt="ingredients/cheese guide">
+      <p class="facts">The finished drawing, as the game uses it:</p><img class="art" src="sprites/ingredients/cheese.png" style="width:128px" alt="ingredients/cheese finished">
+      <details><summary>Show the original guide</summary><img src="templates/ingredients/cheese.guide.png" alt="ingredients/cheese guide" loading="lazy"></details>
       
     </section>
     <section class="sprite" id="ingredients/clams">
